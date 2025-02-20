@@ -1,0 +1,1183 @@
+{
+	"info": {
+		"_postman_id": "6fd717a6-d461-4f8b-8186-136c1f322b10",
+		"name": "Quản lý quán ăn",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "3245861"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Login thành công', () => {",
+									"    pm.response.to.have.status(200)",
+									"  const response = pm.response.json()",
+									"  const {accessToken, refreshToken} = response.data",
+									"  pm.environment.set('accessToken', accessToken)",
+									"  pm.environment.set('refreshToken', refreshToken)",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{ownerEmail}}\",\n    \"password\": \"{{ownerPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/auth/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/auth/logout",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Route Handler",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"{{ownerEmail}}\",\n    \"password\": \"{{ownerPassword}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3000/api/auth/login",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Call logout to Route Handler",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3000/api/auth/logout",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Refresh token thành công', () => {",
+									"    pm.response.to.have.status(200)",
+									"  const response = pm.response.json()",
+									"  const {accessToken, refreshToken} = response.data",
+									"  pm.environment.set('accessToken', accessToken)",
+									"  pm.environment.set('refreshToken', refreshToken)",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refreshToken\": \"{{refreshToken}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/auth/refresh-token",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"auth",
+								"refresh-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token to Route Handler",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3000/api/auth/refresh-token",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"api",
+								"auth",
+								"refresh-token"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Account",
+			"item": [
+				{
+					"name": "Me",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/accounts/me",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"accounts",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Me",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Được\",\n    \"avatar\": \"http://localhost:4000/static/bff7094a39c24d21bcce9f5d064c9eea.png\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/accounts/me",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"accounts",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Change Password",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Đổi mật khẩu thành công', () => {",
+									"    pm.response.to.have.status(200)",
+									"    const body = JSON.parse(pm.request.body.raw)",
+									"    const password = body.password",
+									"    pm.environment.set('ownerPassword', password)",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"password\": \"123111\",\n    \"confirmPassword\": \"123111\",\n    \"oldPassword\": \"123123\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/accounts/change-password",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"accounts",
+								"change-password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Add Account",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Dư Thanh An\",\n    \"email\": \"duthanhan@gmail.com\",\n    \"password\": \"123456\",\n    \"confirmPassword\": \"123456\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/accounts",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"accounts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Account List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/accounts",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"accounts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit Account",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Dư Thanh An 2\",\n    \"email\":\"duthanhan@gmail.com\",\n\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/accounts/detail/8",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"accounts",
+								"detail",
+								"8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Account Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/accounts/detail/8",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"accounts",
+								"detail",
+								"8"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Guest",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Được Đại K\",\n    \"tableNumber\": 2\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/accounts/guests",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"accounts",
+								"guests"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Guests List",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/accounts/guests?fromDate=2024-07-12T14:20:42.799Z&toDate=2024-07-13T14:20:42.799Z",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"accounts",
+								"guests"
+							],
+							"query": [
+								{
+									"key": "fromDate",
+									"value": "2024-07-12T14:20:42.799Z"
+								},
+								{
+									"key": "toDate",
+									"value": "2024-07-13T14:20:42.799Z"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Media",
+			"item": [
+				{
+					"name": "Upload Image",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/Users/duthanhduoc/Downloads/pexels-flodahm-1483769.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{host}}/media/upload",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"media",
+								"upload"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Dish",
+			"item": [
+				{
+					"name": "Add Dish",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Bánh mì\",\n    \"price\": 30000,\n    \"description\": \"Bánh mì Việt Nam\",\n    \"image\": \"http://localhost:4000/static/12f883ababcf4ff6a15ccc87371bf3e1.jpg\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/dishes",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"dishes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Dishes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/dishes",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"dishes"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Dish Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/dishes/3",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"dishes",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Dish",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Bánh mì\",\n    \"price\": 30000,\n    \"description\": \"Bánh mì Pháp\",\n    \"image\":  \"http://localhost:4000/static/12f883ababcf4ff6a15ccc87371bf3e1.jpg\",\n    \"status\": \"Hidden\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/dishes/3",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"dishes",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Dish",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/dishes/3",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"dishes",
+								"3"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Table",
+			"item": [
+				{
+					"name": "Add Table",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n   \"number\": 1,\n   \"capacity\": 4,\n   \"status\": \"Available\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/tables",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"tables"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tables",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/tables",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"tables"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Table Detail",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/tables/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"tables",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Table",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n   \"capacity\": 4,\n   \"status\": \"Hidden\",\n   \"changeToken\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/tables/1",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"tables",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Table",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/tables/2",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"tables",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Khách",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Login thành công', () => {",
+									"    pm.response.to.have.status(200)",
+									"  const response = pm.response.json()",
+									"  const {accessToken, refreshToken} = response.data",
+									"  pm.environment.set('guestAccessToken', accessToken)",
+									"  pm.environment.set('guestRefreshToken', refreshToken)",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Dư Thanh Được\",\n    \"tableNumber\": 2,\n    \"token\": \"667f3b1ce5e4429990dacea1809d20e7\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/guest/auth/login",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"guest",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Refresh token thành công', () => {",
+									"    pm.response.to.have.status(200)",
+									"  const response = pm.response.json()",
+									"  const {accessToken, refreshToken} = response.data",
+									"  pm.environment.set('guestAccessToken', accessToken)",
+									"  pm.environment.set('guestRefreshToken', refreshToken)",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refreshToken\": \"{{guestRefreshToken}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/guest/auth/refresh-token",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"guest",
+								"auth",
+								"refresh-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test('Logout thành công', () => {",
+									"    pm.response.to.have.status(200)",
+									"  pm.environment.set('guestAccessToken', '')",
+									"  pm.environment.set('guestRefreshToken', '')",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refreshToken\": \"{{guestRefreshToken}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/guest/auth/logout",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"guest",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login Route Handler",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Dư Thanh Được\",\n    \"tableNumber\": 2,\n    \"token\": \"667f3b1ce5e4429990dacea1809d20e7\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{client}}/api/guest/auth/login",
+							"host": [
+								"{{client}}"
+							],
+							"path": [
+								"api",
+								"guest",
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Call logout to Route Handler",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refreshToken\": \"{{guestRefreshToken}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{client}}/api/guest/auth/logout",
+							"host": [
+								"{{client}}"
+							],
+							"path": [
+								"api",
+								"guest",
+								"auth",
+								"logout"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token to Route Handler",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{client}}/api/guest/auth/refresh-token",
+							"host": [
+								"{{client}}"
+							],
+							"path": [
+								"api",
+								"guest",
+								"auth",
+								"refresh-token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Orders list",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/guest/orders",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"guest",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create orders",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "[\n    {\n        \"dishId\": 1,\n        \"quantity\": 2\n    },\n    {\n        \"dishId\": 2,\n        \"quantity\": 3\n    }\n]",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/guest/orders",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"guest",
+								"orders"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"auth": {
+				"type": "bearer",
+				"bearer": [
+					{
+						"key": "token",
+						"value": "{{guestAccessToken}}",
+						"type": "string"
+					}
+				]
+			},
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Đơn hàng",
+			"item": [
+				{
+					"name": "Order list",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/orders",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Order",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"Pending\",\n    \"dishId\": 2,\n    \"quantity\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/orders/26",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"orders",
+								"26"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Pay",
+					"request": {
+						"method": "GET",
+						"header": []
+					},
+					"response": []
+				},
+				{
+					"name": "Create Orders",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"guestId\": 84,\n    \"orders\": [\n        {\n            \"dishId\": 2,\n            \"quantity\": 1\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{host}}/orders",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"orders"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Indicator",
+			"item": [
+				{
+					"name": "Dashboard Indicator",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{host}}/indicators/dashboard?fromDate=2024-07-10T08:46:30.929Z&toDate=2024-07-19T08:46:30.929Z",
+							"host": [
+								"{{host}}"
+							],
+							"path": [
+								"indicators",
+								"dashboard"
+							],
+							"query": [
+								{
+									"key": "fromDate",
+									"value": "2024-07-10T08:46:30.929Z"
+								},
+								{
+									"key": "toDate",
+									"value": "2024-07-19T08:46:30.929Z"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

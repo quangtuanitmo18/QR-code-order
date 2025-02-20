@@ -1,0 +1,77 @@
+{
+  "ErrorMessage": {
+    "invalidEmail": "Email không hợp lệ",
+    "required": "Trường này không được để trống",
+    "minmaxPassword": "Mật khẩu phải từ 6 đến 100 ký tự"
+  },
+  "Brand": {
+    "title": "Nhà hàng Big Boy",
+    "defaultTitle": "Big Boy"
+  },
+  "HomePage": {
+    "title": "Trang chủ",
+    "description": "Khát khao một trải nghiệm ẩm thực Mỹ cổ điển? Big Boy là lựa chọn hoàn hảo! Thưởng thức chiếc Big Boy burger biểu tượng, thơm ngon và đậm đà, cùng với những ly milkshake béo ngậy và khoai tây chiên giòn tan. Hoàn hảo cho các buổi gặp mặt gia đình và bạn bè!",
+    "slogan": "Vị ngon, trọn khoảnh khắc",
+    "h2": "Đa dạng các món ăn"
+  },
+  "DishDetail": {
+    "notFound": "Món ăn không tồn tại"
+  },
+  "LoginGuest": {
+    "title": "Đăng nhập để gọi món",
+    "description": "Nhập thông tin đăng nhập để thực hiện gọi món"
+  },
+  "Login": {
+    "title": "Đăng nhập",
+    "description": "Khu vực đăng nhập quản lý",
+    "cardDescription": "Nhập email và mật khẩu của bạn để đăng nhập vào hệ thống",
+    "buttonLogin": "Đăng nhập",
+    "loginWithGoogle": "Đăng nhập với Google"
+  },
+  "GuestMenu": {
+    "title": "Thực đơn",
+    "description": "Chọn món ăn yêu thích của bạn"
+  },
+  "ManageAccounts": {
+    "title": "Quản lý tài khoản",
+    "description": "Quản lý tài khoản nhân viên"
+  },
+  "Dashboard": {
+    "title": "Bảng điều khiển",
+    "description": "Xem và phân tích dữ liệu bán hàng"
+  },
+  "Dishes": {
+    "title": "Món ăn",
+    "description": "Quản lý món ăn"
+  },
+  "Orders": {
+    "title": "Đơn hàng",
+    "description": "Quản lý đơn hàng"
+  },
+  "Setting": {
+    "title": "Cài đặt",
+    "description": "Quản lý cài đặt tài khoản của bạn"
+  },
+  "Tables": {
+    "title": "Bàn ăn",
+    "description": "Quản lý bàn ăn"
+  },
+  "SwitchLanguage": {
+    "title": "Chuyển ngôn ngữ",
+    "en": "Tiếng Anh",
+    "vi": "Tiếng Việt"
+  },
+  "NavItem": {
+    "home": "Trang chủ",
+    "menu": "Thực đơn",
+    "orders": "Đơn hàng",
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "manage": "Quản lý",
+    "logoutDialog": {
+      "logoutQuestion": "Bạn có chắc chắn muốn đăng xuất?",
+      "logoutCancel": "Hủy",
+      "logoutConfirm": "Đăng xuất có thể dẫn đến mất dữ liệu đơn hàng của bạn"
+    }
+  }
+}
