@@ -1,11 +1,5 @@
 import DashboardMain from '@/app/[locale]/manage/dashboard/dashboard-main'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import envConfig, { Locale } from '@/config'
 import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
@@ -15,7 +9,7 @@ type Props = {
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
-  const params = await props.params;
+  const params = await props.params
   const t = await getTranslations({
     locale: params.locale,
     namespace: 'Dashboard'
@@ -41,7 +35,7 @@ export default async function Dashboard() {
         <Card x-chunk='dashboard-06-chunk-0'>
           <CardHeader>
             <CardTitle>Dashboard</CardTitle>
-            <CardDescription>Phân tích các chỉ số</CardDescription>
+            <CardDescription>Metrics Analysis</CardDescription>
           </CardHeader>
           <CardContent>
             <DashboardMain />

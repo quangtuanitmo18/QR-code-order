@@ -38,19 +38,10 @@ export default function DropdownAvatar() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant='outline'
-          size='icon'
-          className='overflow-hidden rounded-full'
-        >
+        <Button variant='outline' size='icon' className='overflow-hidden rounded-full'>
           <Avatar>
-            <AvatarImage
-              src={account?.avatar ?? undefined}
-              alt={account?.name}
-            />
-            <AvatarFallback>
-              {account?.name.slice(0, 2).toUpperCase()}
-            </AvatarFallback>
+            <AvatarImage src={account?.avatar ?? undefined} alt={account?.name} />
+            <AvatarFallback>{account?.name.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -59,12 +50,12 @@ export default function DropdownAvatar() {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link href={'/manage/setting'} className='cursor-pointer'>
-            Cài đặt
+            Setting
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem>Hỗ trợ</DropdownMenuItem>
+        <DropdownMenuItem>Help</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={logout}>Đăng xuất</DropdownMenuItem>
+        <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

@@ -1,56 +1,53 @@
 export default function About() {
   return (
-    <div className='flex flex-col'>
-      <section className='bg-secondary  py-20 px-4 md:px-6 lg:px-8'>
-        <div className='max-w-4xl text-center'>
-          <h1 className='text-4xl font-bold sm:text-5xl md:text-6xl'>
-            Về nhà hàng Big Boy
+    <div className="flex flex-col">
+      <section className="bg-secondary py-20 px-4 md:px-6 lg:px-8">
+        <div className="max-w-4xl text-center">
+          <h1 className="text-4xl font-bold sm:text-5xl md:text-6xl">
+            About Restaurant
           </h1>
-          <p className='mt-4 text-lg md:text-xl'>
-            Địa chỉ: Số 1, đường Nguyễn Văn Linh, thành phố Đà Nẵng
+          <p className="mt-4 text-lg md:text-xl">
+            Address: No. 1, Nguyen Van Linh Street, Da Nang City
           </p>
         </div>
       </section>
-      <section className='py-12 md:py-20 lg:py-24'>
-        <div className='max-w-4xl space-y-8'>
+      <section className="py-12 md:py-20 lg:py-24">
+        <div className="max-w-4xl space-y-8">
           <div>
-            <h2 className='text-3xl font-bold'>Câu chuyện của chúng tôi</h2>
-            <p className='mt-4 text-muted-foreground leading-8'>
-              Big Boy được thành lập vào năm 2010 với một sứ mệnh đơn giản: phục
-              vụ món ăn ngon, chất lượng cao để gắn kết mọi người lại với nhau.
-              Niềm đam mê của chúng tôi đối với nguyên liệu đặc biệt và công
-              thức sáng tạo đã đưa chúng tôi trở thành một tổ chức địa phương
-              được yêu thích, nổi tiếng với cam kết tạo ra những bữa ăn nuôi
-              dưỡng cơ thể và tâm hồn.
+            <h2 className="text-3xl font-bold">Our Story</h2>
+            <p className="mt-4 text-muted-foreground leading-8">
+              Big Boy was founded in 2010 with a simple mission: to serve
+              delicious, high-quality food that brings people together. Our
+              passion for unique ingredients and creative recipes has turned us
+              into a beloved local establishment known for our commitment to
+              creating meals that nourish both body and soul.
             </p>
           </div>
           <div>
-            <h2 className='text-3xl font-bold'>Giá trị của chúng tôi</h2>
-            <p className='mt-4 text-muted-foreground leading-8'>
-              Tại trung tâm của Big Boy là sự cống hiến sâu sắc cho tính bền
-              vững, cộng đồng và sự xuất sắc trong ẩm thực. Chúng tôi lấy nguyên
-              liệu từ các nông dân và nhà sản xuất địa phương, đảm bảo sự tươi
-              mới và hỗ trợ nền kinh tế địa phương. Đội ngũ của chúng tôi đam mê
-              tạo ra những món ăn không chỉ làm hài lòng vị giác mà còn nuôi
-              dưỡng cơ thể, với sự tập trung vào thực phẩm lành mạnh, không qua
-              chế biến.
+            <h2 className="text-3xl font-bold">Our Values</h2>
+            <p className="mt-4 text-muted-foreground leading-8">
+              At the heart of Big Boy is a deep commitment to sustainability,
+              community, and culinary excellence. We source our ingredients from
+              local farmers and producers to ensure freshness and support the
+              local economy. Our team is passionate about creating dishes that
+              not only delight the palate but also nourish the body, with a
+              focus on healthy, unprocessed foods.
             </p>
           </div>
           <div>
-            <h2 className='text-3xl font-bold'>Cam kết của chúng tôi</h2>
-            <p className='mt-4 text-muted-foreground leading-8'>
-              Chúng tôi tin rằng món ăn ngon có sức mạnh gắn kết mọi người lại
-              với nhau và tạo ra những kỷ niệm lâu dài. Đó là lý do tại sao
-              chúng tôi cam kết cung cấp một trải nghiệm ẩm thực tuyệt vời, từ
-              lúc bạn bước qua cửa cho đến miếng cuối cùng của bữa ăn. Các đầu
-              bếp tài năng của chúng tôi làm việc không ngừng để tạo ra những
-              món ăn thể hiện tốt nhất các nguyên liệu theo mùa, được lấy từ địa
-              phương, đảm bảo rằng mỗi đĩa ăn là một lễ kỷ niệm của hương vị và
-              chất lượng.
+            <h2 className="text-3xl font-bold">Our Commitment</h2>
+            <p className="mt-4 text-muted-foreground leading-8">
+              We believe that great food has the power to bring people together
+              and create lasting memories. That's why we are committed to
+              providing an exceptional dining experience, from the moment you
+              walk in until the last bite of your meal. Our talented chefs work
+              tirelessly to craft dishes that showcase the best of seasonal,
+              locally-sourced ingredients, ensuring that every plate is a
+              celebration of flavor and quality.
             </p>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
 }

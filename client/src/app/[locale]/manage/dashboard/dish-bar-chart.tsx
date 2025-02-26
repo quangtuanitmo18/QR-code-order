@@ -3,20 +3,8 @@
 import { TrendingUp } from 'lucide-react'
 import { Bar, BarChart, XAxis, YAxis } from 'recharts'
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card'
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent
-} from '@/components/ui/chart'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { DashboardIndicatorResType } from '@/schemaValidations/indicator.schema'
 import { useMemo } from 'react'
 
@@ -57,10 +45,7 @@ const chartConfig = {
 export function DishBarChart({
   chartData
 }: {
-  chartData: Pick<
-    DashboardIndicatorResType['data']['dishIndicator'][0],
-    'name' | 'successOrders'
-  >[]
+  chartData: Pick<DashboardIndicatorResType['data']['dishIndicator'][0], 'name' | 'successOrders'>[]
 }) {
   const chartDateColors = useMemo(
     () =>
@@ -75,8 +60,8 @@ export function DishBarChart({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Xếp hạng món ăn</CardTitle>
-        <CardDescription>Được gọi nhiều nhất</CardDescription>
+        <CardTitle>Dish Ranking</CardTitle>
+        <CardDescription>Most Ordered</CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
@@ -102,12 +87,7 @@ export function DishBarChart({
             />
             <XAxis dataKey='successOrders' type='number' hide />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <Bar
-              dataKey='successOrders'
-              name={'Đơn thanh toán: '}
-              layout='vertical'
-              radius={5}
-            />
+            <Bar dataKey='successOrders' name={'Paid Orders: '} layout='vertical' radius={5} />
           </BarChart>
         </ChartContainer>
       </CardContent>

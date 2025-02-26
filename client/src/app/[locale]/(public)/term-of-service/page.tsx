@@ -1,60 +1,57 @@
 export default function TermsOfService() {
   return (
-    <div className='flex flex-col'>
-      <section className='bg-secondary py-20 px-4 md:px-6 lg:px-8'>
-        <div className='max-w-4xl text-center'>
-          <h1 className='text-4xl font-bold sm:text-5xl md:text-6xl'>
-            Điều khoản dịch vụ
+    <div className="flex flex-col">
+      <section className="bg-secondary py-20 px-4 md:px-6 lg:px-8">
+        <div className="max-w-4xl text-center">
+          <h1 className="text-4xl font-bold sm:text-5xl md:text-6xl">
+            Terms of Service
           </h1>
         </div>
       </section>
-      <section className='py-12 md:py-20 lg:py-24'>
-        <div className='max-w-4xl space-y-8'>
+      <section className="py-12 md:py-20 lg:py-24">
+        <div className="max-w-4xl space-y-8">
           <div>
-            <h2 className='text-3xl font-bold'>Giới thiệu</h2>
-            <p className='mt-4 text-muted-foreground leading-8'>
-              Chào mừng bạn đến với trang Điều khoản dịch vụ của chúng tôi. Khi
-              sử dụng dịch vụ của chúng tôi, bạn đồng ý tuân thủ các điều khoản
-              và điều kiện dưới đây.
+            <h2 className="text-3xl font-bold">Introduction</h2>
+            <p className="mt-4 text-muted-foreground leading-8">
+              Welcome to our Terms of Service page. By using our services, you
+              agree to comply with the terms and conditions outlined below.
             </p>
           </div>
-          <div className='space-y-4'>
-            <h2 className='text-3xl font-bold'>Sử dụng dịch vụ</h2>
-            <p className='text-muted-foreground leading-8'>
-              Bạn đồng ý sử dụng dịch vụ của chúng tôi chỉ cho các mục đích hợp
-              pháp và không vi phạm bất kỳ luật lệ nào. Bạn không được sử dụng
-              dịch vụ của chúng tôi để phát tán nội dung bất hợp pháp, gây hại
-              hoặc vi phạm quyền riêng tư của người khác.
+          <div className="space-y-4">
+            <h2 className="text-3xl font-bold">Use of Service</h2>
+            <p className="text-muted-foreground leading-8">
+              You agree to use our services only for lawful purposes and not to
+              violate any laws. You may not use our services to disseminate
+              illegal content, cause harm, or infringe upon the privacy rights
+              of others.
             </p>
           </div>
-          <div className='space-y-4'>
-            <h2 className='text-3xl font-bold'>Quyền sở hữu trí tuệ</h2>
-            <p className='text-muted-foreground leading-8'>
-              Tất cả nội dung và tài liệu trên trang web của chúng tôi, bao gồm
-              văn bản, hình ảnh, đồ họa, logo, và phần mềm, đều thuộc quyền sở
-              hữu của chúng tôi hoặc các bên cấp phép của chúng tôi và được bảo
-              vệ bởi luật sở hữu trí tuệ.
+          <div className="space-y-4">
+            <h2 className="text-3xl font-bold">Intellectual Property</h2>
+            <p className="text-muted-foreground leading-8">
+              All content and materials on our website, including text, images,
+              graphics, logos, and software, are the property of us or our
+              licensors and are protected by intellectual property laws.
             </p>
           </div>
-          <div className='space-y-4'>
-            <h2 className='text-3xl font-bold'>Thay đổi điều khoản</h2>
-            <p className='text-muted-foreground leading-8'>
-              Chúng tôi có quyền thay đổi các điều khoản dịch vụ này bất kỳ lúc
-              nào mà không cần thông báo trước. Việc tiếp tục sử dụng dịch vụ
-              của bạn sau khi các thay đổi được đăng tải sẽ được coi là sự chấp
-              nhận của bạn đối với các thay đổi đó.
+          <div className="space-y-4">
+            <h2 className="text-3xl font-bold">Changes to Terms</h2>
+            <p className="text-muted-foreground leading-8">
+              We reserve the right to change these terms of service at any time
+              without prior notice. Your continued use of our services after any
+              changes are posted will constitute your acceptance of those
+              changes.
             </p>
           </div>
-          <div className='space-y-4'>
-            <h2 className='text-3xl font-bold'>Liên hệ</h2>
-            <p className='text-muted-foreground leading-8'>
-              Nếu bạn có bất kỳ câu hỏi nào về các điều khoản dịch vụ này, vui
-              lòng liên hệ với chúng tôi qua email hoặc số điện thoại được cung
-              cấp trên trang web của chúng tôi.
+          <div className="space-y-4">
+            <h2 className="text-3xl font-bold">Contact</h2>
+            <p className="text-muted-foreground leading-8">
+              If you have any questions regarding these terms of service, please
+              contact us via the email or phone number provided on our website.
             </p>
           </div>
         </div>
       </section>
     </div>
-  )
+  );
 }

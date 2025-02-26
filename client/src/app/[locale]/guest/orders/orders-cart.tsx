@@ -4,12 +4,9 @@ import { useAppStore } from '@/components/app-provider'
 import { Badge } from '@/components/ui/badge'
 import { toast } from '@/components/ui/use-toast'
 import { OrderStatus } from '@/constants/type'
-import { formatCurrency, getVietnameseOrderStatus } from '@/lib/utils'
+import { formatCurrency, getOrderStatus } from '@/lib/utils'
 import { useGuestGetOrderListQuery } from '@/queries/useGuest'
-import {
-  PayGuestOrdersResType,
-  UpdateOrderResType
-} from '@/schemaValidations/order.schema'
+import { PayGuestOrdersResType, UpdateOrderResType } from '@/schemaValidations/order.schema'
 import Image from 'next/image'
 import { useEffect, useMemo } from 'react'
 
@@ -28,9 +25,7 @@ export default function OrdersCart() {
           return {
             ...result,
             waitingForPaying: {
-              price:
-                result.waitingForPaying.price +
-                order.dishSnapshot.price * order.quantity,
+              price: result.waitingForPaying.price + order.dishSnapshot.price * order.quantity,
               quantity: result.waitingForPaying.quantity + order.quantity
             }
           }
@@ -39,8 +34,7 @@ export default function OrdersCart() {
           return {
             ...result,
             paid: {
-              price:
-                result.paid.price + order.dishSnapshot.price * order.quantity,
+              price: result.paid.price + order.dishSnapshot.price * order.quantity,
               quantity: result.paid.quantity + order.quantity
             }
           }
@@ -79,9 +73,7 @@ export default function OrdersCart() {
         quantity
       } = data
       toast({
-        description: `Món ${name} (SL: ${quantity}) vừa được cập nhật sang trạng thái "${getVietnameseOrderStatus(
-          data.status
-        )}"`
+        description: `Dish ${name} (Qty: ${quantity}) has just been updated to status "${getOrderStatus(data.status)}"`
       })
       refetch()
     }
@@ -89,8 +81,9 @@ export default function OrdersCart() {
     function onPayment(data: PayGuestOrdersResType['data']) {
       const { guest } = data[0]
       toast({
-        description: `${guest?.name} tại bàn ${guest?.tableNumber} thanh toán thành công ${data.length} đơn`
+        description: `${guest?.name} at table ${guest?.tableNumber} has successfully paid for ${data.length} orders`
       })
+
       refetch()
     }
 
@@ -124,28 +117,26 @@ export default function OrdersCart() {
           <div className='space-y-1'>
             <h3 className='text-sm'>{order.dishSnapshot.name}</h3>
             <div className='text-xs font-semibold'>
-              {formatCurrency(order.dishSnapshot.price)} x{' '}
-              <Badge className='px-1'>{order.quantity}</Badge>
+              {formatCurrency(order.dishSnapshot.price)} x <Badge className='px-1'>{order.quantity}</Badge>
             </div>
           </div>
           <div className='flex-shrink-0 ml-auto flex justify-center items-center'>
-            <Badge variant={'outline'}>
-              {getVietnameseOrderStatus(order.status)}
-            </Badge>
+            <Badge variant={'outline'}>{getOrderStatus(order.status)}</Badge>
           </div>
         </div>
       ))}
       {paid.quantity !== 0 && (
         <div className='sticky bottom-0 '>
           <div className='w-full flex space-x-4 text-xl font-semibold'>
-            <span>Đơn đã thanh toán · {paid.quantity} món</span>
+            <span>Order Paid · {paid.quantity} dishes</span>
+
             <span>{formatCurrency(paid.price)}</span>
           </div>
         </div>
       )}
       <div className='sticky bottom-0 '>
         <div className='w-full flex space-x-4 text-xl font-semibold'>
-          <span>Đơn chưa thanh toán · {waitingForPaying.quantity} món</span>
+          <span>Waiting for paying · {waitingForPaying.quantity} dishes</span>
           <span>{formatCurrency(waitingForPaying.price)}</span>
         </div>
       </div>

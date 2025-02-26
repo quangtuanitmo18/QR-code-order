@@ -1,10 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import TableTable from '@/app/[locale]/manage/tables/table-table'
 import { Suspense } from 'react'
 import { Metadata } from 'next'
@@ -16,7 +10,7 @@ type Props = {
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
-  const params = await props.params;
+  const params = await props.params
   const t = await getTranslations({
     locale: params.locale,
     namespace: 'Tables'
@@ -42,8 +36,8 @@ export default function TablesPage() {
       <div className='space-y-2'>
         <Card x-chunk='dashboard-06-chunk-0'>
           <CardHeader>
-            <CardTitle>Bàn ăn</CardTitle>
-            <CardDescription>Quản lý bàn ăn</CardDescription>
+            <CardTitle>Tables</CardTitle>
+            <CardDescription>Tables Management</CardDescription>
           </CardHeader>
           <CardContent>
             <Suspense>

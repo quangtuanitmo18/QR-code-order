@@ -10,7 +10,7 @@ export const createOrdersController = async (orderHandlerId: number, body: Creat
     }
   })
   if (guest.tableNumber === null) {
-    throw new Error('Bàn gắn liền với khách hàng này đã bị xóa, vui lòng chọn khách hàng khác!')
+    throw new Error('The table associated with this customer has been deleted, please select another customer!')
   }
   const table = await prisma.table.findUniqueOrThrow({
     where: {
@@ -18,7 +18,9 @@ export const createOrdersController = async (orderHandlerId: number, body: Creat
     }
   })
   if (table.status === TableStatus.Hidden) {
-    throw new Error(`Bàn ${table.number} gắn liền với khách hàng đã bị ẩn, vui lòng chọn khách hàng khác!`)
+    throw new Error(
+      `The table ${table.number} associated with this customer has been hidden, please select another customer!`
+    )
   }
 
   const [ordersRecord, socketRecord] = await Promise.all([
@@ -31,10 +33,10 @@ export const createOrdersController = async (orderHandlerId: number, body: Creat
             }
           })
           if (dish.status === DishStatus.Unavailable) {
-            throw new Error(`Món ${dish.name} đã hết`)
+            throw new Error(`Dish ${dish.name} is unavailable`)
           }
           if (dish.status === DishStatus.Hidden) {
-            throw new Error(`Món ${dish.name} không thể đặt`)
+            throw new Error(`Dish ${dish.name} can not be ordered`)
           }
           const dishSnapshot = await tx.dishSnapshot.create({
             data: {
@@ -115,7 +117,7 @@ export const payOrdersController = async ({ guestId, orderHandlerId }: { guestId
     }
   })
   if (orders.length === 0) {
-    throw new Error('Không có hóa đơn nào cần thanh toán')
+    throw new Error('No orders need to be paid')
   }
   await prisma.$transaction(async (tx) => {
     const orderIds = orders.map((order) => order.id)

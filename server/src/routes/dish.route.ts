@@ -41,7 +41,7 @@ export default async function dishRoutes(fastify: FastifyInstance, options: Fast
       const dishs = await getDishList()
       reply.send({
         data: dishs as DishListResType['data'],
-        message: 'Lấy danh sách món ăn thành công!'
+        message: 'Get the list of dishes successfully!'
       })
     }
   )
@@ -70,7 +70,7 @@ export default async function dishRoutes(fastify: FastifyInstance, options: Fast
           page,
           limit
         },
-        message: 'Lấy danh sách món ăn thành công!'
+        message: 'Get the list of dishes successfully!'
       })
     }
   )
@@ -92,7 +92,7 @@ export default async function dishRoutes(fastify: FastifyInstance, options: Fast
       const dish = await getDishDetail(request.params.id)
       reply.send({
         data: dish as DishResType['data'],
-        message: 'Lấy thông tin món ăn thành công!'
+        message: 'Get dish information successfully!'
       })
     }
   )
@@ -118,7 +118,7 @@ export default async function dishRoutes(fastify: FastifyInstance, options: Fast
       const dish = await createDish(request.body)
       reply.send({
         data: dish as DishResType['data'],
-        message: 'Tạo món ăn thành công!'
+        message: 'Create dish successfully!'
       })
     }
   )
@@ -145,7 +145,7 @@ export default async function dishRoutes(fastify: FastifyInstance, options: Fast
       const dish = await updateDish(request.params.id, request.body)
       reply.send({
         data: dish as DishResType['data'],
-        message: 'Cập nhật món ăn thành công!'
+        message: 'Create dish successfully!'
       })
     }
   )
@@ -169,7 +169,7 @@ export default async function dishRoutes(fastify: FastifyInstance, options: Fast
     async (request, reply) => {
       const result = await deleteDish(request.params.id)
       reply.send({
-        message: 'Xóa món ăn thành công!',
+        message: 'Delete dish successfully!',
         data: result as DishResType['data']
       })
     }

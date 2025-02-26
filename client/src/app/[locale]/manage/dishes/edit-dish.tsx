@@ -14,26 +14,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage
-} from '@/components/ui/form'
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getVietnameseDishStatus, handleErrorApi } from '@/lib/utils'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import {
-  UpdateDishBody,
-  UpdateDishBodyType
-} from '@/schemaValidations/dish.schema'
+import { getDishStatus, handleErrorApi } from '@/lib/utils'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { UpdateDishBody, UpdateDishBodyType } from '@/schemaValidations/dish.schema'
 import { DishStatus, DishStatusValues } from '@/constants/type'
 import { Textarea } from '@/components/ui/textarea'
 import { useUploadMediaMutation } from '@/queries/useMedia'
@@ -97,9 +82,7 @@ export default function EditDish({
       if (file) {
         const formData = new FormData()
         formData.append('file', file)
-        const uploadImageResult = await uploadMediaMutation.mutateAsync(
-          formData
-        )
+        const uploadImageResult = await uploadMediaMutation.mutateAsync(formData)
         const imageUrl = uploadImageResult.payload.data
         body = {
           ...body,
@@ -137,10 +120,8 @@ export default function EditDish({
     >
       <DialogContent className='sm:max-w-[600px] max-h-screen overflow-auto'>
         <DialogHeader>
-          <DialogTitle>Cập nhật món ăn</DialogTitle>
-          <DialogDescription>
-            Các trường sau đây là bắ buộc: Tên, ảnh
-          </DialogDescription>
+          <DialogTitle>Edit dish</DialogTitle>
+          <DialogDescription>The following fields are required: Name, Image</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -158,9 +139,7 @@ export default function EditDish({
                     <div className='flex gap-2 items-start justify-start'>
                       <Avatar className='aspect-square w-[100px] h-[100px] rounded-md object-cover'>
                         <AvatarImage src={previewAvatarFromFile} />
-                        <AvatarFallback className='rounded-none'>
-                          {name || 'Avatar'}
-                        </AvatarFallback>
+                        <AvatarFallback className='rounded-none'>{name || 'Avatar'}</AvatarFallback>
                       </Avatar>
                       <input
                         type='file'
@@ -194,7 +173,7 @@ export default function EditDish({
                 render={({ field }) => (
                   <FormItem>
                     <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='name'>Tên món ăn</Label>
+                      <Label htmlFor='name'>Dish name</Label>
                       <div className='col-span-3 w-full space-y-2'>
                         <Input id='name' className='w-full' {...field} />
                         <FormMessage />
@@ -209,14 +188,9 @@ export default function EditDish({
                 render={({ field }) => (
                   <FormItem>
                     <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='price'>Giá</Label>
+                      <Label htmlFor='price'>Price</Label>
                       <div className='col-span-3 w-full space-y-2'>
-                        <Input
-                          id='price'
-                          className='w-full'
-                          {...field}
-                          type='number'
-                        />
+                        <Input id='price' className='w-full' {...field} type='number' />
                         <FormMessage />
                       </div>
                     </div>
@@ -229,13 +203,9 @@ export default function EditDish({
                 render={({ field }) => (
                   <FormItem>
                     <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='description'>Mô tả sản phẩm</Label>
+                      <Label htmlFor='description'>Description</Label>
                       <div className='col-span-3 w-full space-y-2'>
-                        <Textarea
-                          id='description'
-                          className='w-full'
-                          {...field}
-                        />
+                        <Textarea id='description' className='w-full' {...field} />
                         <FormMessage />
                       </div>
                     </div>
@@ -248,22 +218,18 @@ export default function EditDish({
                 render={({ field }) => (
                   <FormItem>
                     <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='description'>Trạng thái</Label>
+                      <Label htmlFor='description'>Status</Label>
                       <div className='col-span-3 w-full space-y-2'>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                          value={field.value}
-                        >
+                        <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='Chọn trạng thái' />
+                              <SelectValue placeholder='Select status' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {DishStatusValues.map((status) => (
                               <SelectItem key={status} value={status}>
-                                {getVietnameseDishStatus(status)}
+                                {getDishStatus(status)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -280,7 +246,7 @@ export default function EditDish({
         </Form>
         <DialogFooter>
           <Button type='submit' form='edit-dish-form'>
-            Lưu
+            Save
           </Button>
         </DialogFooter>
       </DialogContent>

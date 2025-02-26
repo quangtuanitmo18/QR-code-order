@@ -1,10 +1,4 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import AccountTable from '@/app/[locale]/manage/accounts/account-table'
 import { Suspense } from 'react'
 import envConfig, { Locale } from '@/config'
@@ -18,7 +12,7 @@ type Props = {
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
-  const params = await props.params;
+  const params = await props.params
   const t = await getTranslations({
     locale: params.locale,
     namespace: 'ManageAccounts'
@@ -45,8 +39,8 @@ export default async function AccountsPage() {
       <div className='space-y-2'>
         <Card x-chunk='dashboard-06-chunk-0'>
           <CardHeader>
-            <CardTitle>Tài khoản</CardTitle>
-            <CardDescription>Quản lý tài khoản nhân viên</CardDescription>
+            <CardTitle>Account</CardTitle>
+            <CardDescription>Employee Account Management</CardDescription>
           </CardHeader>
           <CardContent>
             <Suspense>

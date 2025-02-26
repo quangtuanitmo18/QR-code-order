@@ -24,14 +24,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { createContext, useContext, useEffect, useState } from 'react'
 import {
@@ -44,11 +37,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
-import {
-  formatCurrency,
-  getVietnameseDishStatus,
-  handleErrorApi
-} from '@/lib/utils'
+import { formatCurrency, getDishStatus, handleErrorApi } from '@/lib/utils'
 import { useSearchParams } from 'next/navigation'
 import AutoPagination from '@/components/auto-pagination'
 import { DishListResType } from '@/schemaValidations/dish.schema'
@@ -78,33 +67,29 @@ export const columns: ColumnDef<DishItem>[] = [
   },
   {
     accessorKey: 'image',
-    header: 'Ảnh',
+    header: 'Image',
     cell: ({ row }) => (
       <div>
         <Avatar className='aspect-square w-[100px] h-[100px] rounded-md object-cover'>
           <AvatarImage src={row.getValue('image')} />
-          <AvatarFallback className='rounded-none'>
-            {row.original.name}
-          </AvatarFallback>
+          <AvatarFallback className='rounded-none'>{row.original.name}</AvatarFallback>
         </Avatar>
       </div>
     )
   },
   {
     accessorKey: 'name',
-    header: 'Tên',
+    header: 'Name',
     cell: ({ row }) => <div className='capitalize'>{row.getValue('name')}</div>
   },
   {
     accessorKey: 'price',
-    header: 'Giá cả',
-    cell: ({ row }) => (
-      <div className='capitalize'>{formatCurrency(row.getValue('price'))}</div>
-    )
+    header: 'Price',
+    cell: ({ row }) => <div className='capitalize'>{formatCurrency(row.getValue('price'))}</div>
   },
   {
     accessorKey: 'description',
-    header: 'Mô tả',
+    header: 'Description',
     cell: ({ row }) => (
       <div
         dangerouslySetInnerHTML={{
@@ -116,10 +101,8 @@ export const columns: ColumnDef<DishItem>[] = [
   },
   {
     accessorKey: 'status',
-    header: 'Trạng thái',
-    cell: ({ row }) => (
-      <div>{getVietnameseDishStatus(row.getValue('status'))}</div>
-    )
+    header: 'Status',
+    cell: ({ row }) => <div>{getDishStatus(row.getValue('status'))}</div>
   },
   {
     id: 'actions',
@@ -144,8 +127,8 @@ export const columns: ColumnDef<DishItem>[] = [
           <DropdownMenuContent align='end'>
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={openEditDish}>Sửa</DropdownMenuItem>
-            <DropdownMenuItem onClick={openDeleteDish}>Xóa</DropdownMenuItem>
+            <DropdownMenuItem onClick={openEditDish}>Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={openDeleteDish}>Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -187,13 +170,10 @@ function AlertDialogDeleteDish({
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Xóa món ăn?</AlertDialogTitle>
+          <AlertDialogTitle>Delete dish?</AlertDialogTitle>
           <AlertDialogDescription>
-            Món{' '}
-            <span className='bg-foreground text-primary-foreground rounded px-1'>
-              {dishDelete?.name}
-            </span>{' '}
-            sẽ bị xóa vĩnh viễn
+            Dish <span className='bg-foreground text-primary-foreground rounded px-1'>{dishDelete?.name}</span> will be
+            permanently deleted.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -253,22 +233,15 @@ export default function DishTable() {
   }, [table, pageIndex])
 
   return (
-    <DishTableContext.Provider
-      value={{ dishIdEdit, setDishIdEdit, dishDelete, setDishDelete }}
-    >
+    <DishTableContext.Provider value={{ dishIdEdit, setDishIdEdit, dishDelete, setDishDelete }}>
       <div className='w-full'>
         <EditDish id={dishIdEdit} setId={setDishIdEdit} />
-        <AlertDialogDeleteDish
-          dishDelete={dishDelete}
-          setDishDelete={setDishDelete}
-        />
+        <AlertDialogDeleteDish dishDelete={dishDelete} setDishDelete={setDishDelete} />
         <div className='flex items-center py-4'>
           <Input
-            placeholder='Lọc tên'
+            placeholder='Filter name...'
             value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-            onChange={(event) =>
-              table.getColumn('name')?.setFilterValue(event.target.value)
-            }
+            onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
             className='max-w-sm'
           />
           <div className='ml-auto flex items-center gap-2'>
@@ -283,12 +256,7 @@ export default function DishTable() {
                   {headerGroup.headers.map((header) => {
                     return (
                       <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                       </TableHead>
                     )
                   })}
@@ -298,26 +266,15 @@ export default function DishTable() {
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                  >
+                  <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
+                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className='h-24 text-center'
-                  >
+                  <TableCell colSpan={columns.length} className='h-24 text-center'>
                     No results.
                   </TableCell>
                 </TableRow>
@@ -326,11 +283,11 @@ export default function DishTable() {
           </Table>
         </div>
         <div className='flex items-center justify-end space-x-2 py-4'>
-          <div className='text-xs text-muted-foreground py-4 flex-1 '>
-            Hiển thị{' '}
-            <strong>{table.getPaginationRowModel().rows.length}</strong> trong{' '}
-            <strong>{data.length}</strong> kết quả
+          <div className='text-xs text-muted-foreground py-4 flex-1'>
+            Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of <strong>{data.length}</strong>{' '}
+            results
           </div>
+
           <div>
             <AutoPagination
               page={table.getState().pagination.pageIndex + 1}

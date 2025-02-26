@@ -1,40 +1,18 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { PlusCircle, Upload } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage
-} from '@/components/ui/form'
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getVietnameseDishStatus, handleErrorApi } from '@/lib/utils'
-import {
-  CreateDishBody,
-  CreateDishBodyType
-} from '@/schemaValidations/dish.schema'
+import { getDishStatus, handleErrorApi } from '@/lib/utils'
+import { CreateDishBody, CreateDishBodyType } from '@/schemaValidations/dish.schema'
 import { DishStatus, DishStatusValues } from '@/constants/type'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useAddDishMutation } from '@/queries/useDish'
 import { useUploadMediaMutation } from '@/queries/useMedia'
@@ -76,9 +54,7 @@ export default function AddDish() {
       if (file) {
         const formData = new FormData()
         formData.append('file', file)
-        const uploadImageResult = await uploadMediaMutation.mutateAsync(
-          formData
-        )
+        const uploadImageResult = await uploadMediaMutation.mutateAsync(formData)
         const imageUrl = uploadImageResult.payload.data
         body = {
           ...values,
@@ -112,14 +88,12 @@ export default function AddDish() {
       <DialogTrigger asChild>
         <Button size='sm' className='h-7 gap-1'>
           <PlusCircle className='h-3.5 w-3.5' />
-          <span className='sr-only sm:not-sr-only sm:whitespace-nowrap'>
-            Thêm món ăn
-          </span>
+          <span className='sr-only sm:not-sr-only sm:whitespace-nowrap'>Add dish</span>
         </Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-[600px] max-h-screen overflow-auto'>
         <DialogHeader>
-          <DialogTitle>Thêm món ăn</DialogTitle>
+          <DialogTitle>Add dish</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -140,9 +114,7 @@ export default function AddDish() {
                     <div className='flex gap-2 items-start justify-start'>
                       <Avatar className='aspect-square w-[100px] h-[100px] rounded-md object-cover'>
                         <AvatarImage src={previewAvatarFromFile} />
-                        <AvatarFallback className='rounded-none'>
-                          {name || 'Ảnh món ăn'}
-                        </AvatarFallback>
+                        <AvatarFallback className='rounded-none'>{name || 'Dish Image'}</AvatarFallback>
                       </Avatar>
                       <input
                         type='file'
@@ -176,7 +148,7 @@ export default function AddDish() {
                 render={({ field }) => (
                   <FormItem>
                     <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='name'>Tên món ăn</Label>
+                      <Label htmlFor='name'>Dish name</Label>
                       <div className='col-span-3 w-full space-y-2'>
                         <Input id='name' className='w-full' {...field} />
                         <FormMessage />
@@ -191,14 +163,9 @@ export default function AddDish() {
                 render={({ field }) => (
                   <FormItem>
                     <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='price'>Giá</Label>
+                      <Label htmlFor='price'>Price</Label>
                       <div className='col-span-3 w-full space-y-2'>
-                        <Input
-                          id='price'
-                          className='w-full'
-                          {...field}
-                          type='number'
-                        />
+                        <Input id='price' className='w-full' {...field} type='number' />
                         <FormMessage />
                       </div>
                     </div>
@@ -211,13 +178,9 @@ export default function AddDish() {
                 render={({ field }) => (
                   <FormItem>
                     <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='description'>Mô tả sản phẩm</Label>
+                      <Label htmlFor='description'>Description</Label>
                       <div className='col-span-3 w-full space-y-2'>
-                        <Textarea
-                          id='description'
-                          className='w-full'
-                          {...field}
-                        />
+                        <Textarea id='description' className='w-full' {...field} />
                         <FormMessage />
                       </div>
                     </div>
@@ -230,21 +193,18 @@ export default function AddDish() {
                 render={({ field }) => (
                   <FormItem>
                     <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='description'>Trạng thái</Label>
+                      <Label htmlFor='description'>Status</Label>
                       <div className='col-span-3 w-full space-y-2'>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='Chọn trạng thái' />
+                              <SelectValue placeholder='Select status' />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
                             {DishStatusValues.map((status) => (
                               <SelectItem key={status} value={status}>
-                                {getVietnameseDishStatus(status)}
+                                {getDishStatus(status)}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -261,7 +221,7 @@ export default function AddDish() {
         </Form>
         <DialogFooter>
           <Button type='submit' form='add-dish-form'>
-            Thêm
+            Add
           </Button>
         </DialogFooter>
       </DialogContent>

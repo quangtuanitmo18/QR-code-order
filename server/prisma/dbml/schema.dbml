@@ -108,7 +108,7 @@ Ref: DishSnapshot.dishId > Dish.id [delete: Set Null]
 Ref: Order.guestId > Guest.id [delete: Set Null]
 
 Ref: Order.tableNumber > Table.number [delete: Set Null]
-
+ 
 Ref: Order.dishSnapshotId - DishSnapshot.id [delete: Cascade]
 
 Ref: Order.orderHandlerId > Account.id [delete: Set Null]

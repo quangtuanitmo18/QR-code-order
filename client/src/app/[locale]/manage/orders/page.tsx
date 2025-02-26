@@ -1,11 +1,5 @@
 import OrderTable from '@/app/[locale]/manage/orders/order-table'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import envConfig, { Locale } from '@/config'
 import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
@@ -16,7 +10,7 @@ type Props = {
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
-  const params = await props.params;
+  const params = await props.params
   const t = await getTranslations({
     locale: params.locale,
     namespace: 'Orders'
@@ -42,8 +36,8 @@ export default function AccountsPage() {
       <div className='space-y-2'>
         <Card x-chunk='dashboard-06-chunk-0'>
           <CardHeader>
-            <CardTitle>Đơn hàng</CardTitle>
-            <CardDescription>Quản lý đơn hàng</CardDescription>
+            <CardTitle>Orders</CardTitle>
+            <CardDescription>Orders Management</CardDescription>
           </CardHeader>
           <CardContent>
             <Suspense>

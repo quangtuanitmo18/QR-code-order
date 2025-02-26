@@ -1,28 +1,28 @@
 // Import the framework and instantiate it
 import envConfig, { API_URL } from '@/config'
+import { initOwnerAccount } from '@/controllers/account.controller'
+import autoRemoveRefreshTokenJob from '@/jobs/autoRemoveRefreshToken.job'
 import { errorHandlerPlugin } from '@/plugins/errorHandler.plugins'
+import { socketPlugin } from '@/plugins/socket.plugins'
 import validatorCompilerPlugin from '@/plugins/validatorCompiler.plugins'
 import accountRoutes from '@/routes/account.route'
 import authRoutes from '@/routes/auth.route'
+import dishRoutes from '@/routes/dish.route'
+import guestRoutes from '@/routes/guest.route'
+import indicatorRoutes from '@/routes/indicator.route'
+import mediaRoutes from '@/routes/media.route'
+import orderRoutes from '@/routes/order.route'
+import staticRoutes from '@/routes/static.route'
+import tablesRoutes from '@/routes/table.route'
+import testRoutes from '@/routes/test.route'
+import { createFolder } from '@/utils/helpers'
 import fastifyAuth from '@fastify/auth'
 import fastifyCookie from '@fastify/cookie'
-import fastifyHelmet from '@fastify/helmet'
-import fastifySocketIO from 'fastify-socket.io'
-import Fastify from 'fastify'
 import cors from '@fastify/cors'
+import fastifyHelmet from '@fastify/helmet'
+import Fastify from 'fastify'
+import fastifySocketIO from 'fastify-socket.io'
 import path from 'path'
-import { createFolder } from '@/utils/helpers'
-import mediaRoutes from '@/routes/media.route'
-import staticRoutes from '@/routes/static.route'
-import dishRoutes from '@/routes/dish.route'
-import testRoutes from '@/routes/test.route'
-import { initOwnerAccount } from '@/controllers/account.controller'
-import tablesRoutes from '@/routes/table.route'
-import guestRoutes from '@/routes/guest.route'
-import orderRoutes from '@/routes/order.route'
-import { socketPlugin } from '@/plugins/socket.plugins'
-import indicatorRoutes from '@/routes/indicator.route'
-import autoRemoveRefreshTokenJob from '@/jobs/autoRemoveRefreshToken.job'
 
 const fastify = Fastify({
   logger: false
@@ -91,7 +91,7 @@ const start = async () => {
       port: envConfig.PORT,
       host: envConfig.DOCKER ? '0.0.0.0' : 'localhost'
     })
-    console.log(`Server đang chạy: ${API_URL}`)
+    console.log(`Server is running on: ${API_URL}`)
   } catch (err) {
     console.log(err)
     fastify.log.error(err)

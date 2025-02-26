@@ -10,7 +10,7 @@ type Props = {
 }
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
-  const params = await props.params;
+  const params = await props.params
   const t = await getTranslations({
     locale: params.locale,
     namespace: 'Setting'
@@ -34,11 +34,9 @@ export default function Setting() {
     <main className='grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8'>
       <div className='mx-auto grid w-full flex-1 auto-rows-max gap-4'>
         <div className='flex items-center gap-4'>
-          <h1 className='flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0'>
-            Cài đặt
-          </h1>
+          <h1 className='flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0'>Setting</h1>
           <Badge variant='outline' className='ml-auto sm:ml-0'>
-            Owner
+            Admin
           </Badge>
         </div>
         <div className='grid gap-4 md:grid-cols-2 md:gap-8'>

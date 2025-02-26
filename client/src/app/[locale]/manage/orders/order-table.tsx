@@ -11,25 +11,14 @@ import {
   useReactTable
 } from '@tanstack/react-table'
 import { Input } from '@/components/ui/input'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table'
-import {
-  GetOrdersResType,
-  PayGuestOrdersResType,
-  UpdateOrderResType
-} from '@/schemaValidations/order.schema'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { GetOrdersResType, PayGuestOrdersResType, UpdateOrderResType } from '@/schemaValidations/order.schema'
 import AddOrder from '@/app/[locale]/manage/orders/add-order'
 import EditOrder from '@/app/[locale]/manage/orders/edit-order'
 import { createContext, useEffect, useMemo, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import AutoPagination from '@/components/auto-pagination'
-import { getVietnameseOrderStatus, handleErrorApi } from '@/lib/utils'
+import { getOrderStatus, handleErrorApi } from '@/lib/utils'
 import { OrderStatusValues } from '@/constants/type'
 import OrderStatics from '@/app/[locale]/manage/orders/order-statics'
 import orderTableColumns from '@/app/[locale]/manage/orders/order-table-columns'
@@ -38,25 +27,13 @@ import { Check, ChevronsUpDown } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import {
-  Command,
-  CommandGroup,
-  CommandItem,
-  CommandList
-} from '@/components/ui/command'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger
-} from '@/components/ui/popover'
+import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { endOfDay, format, startOfDay } from 'date-fns'
 import TableSkeleton from '@/app/[locale]/manage/orders/table-skeleton'
 import { toast } from '@/components/ui/use-toast'
 import { GuestCreateOrdersResType } from '@/schemaValidations/guest.schema'
-import {
-  useGetOrderListQuery,
-  useUpdateOrderMutation
-} from '@/queries/useOrder'
+import { useGetOrderListQuery, useUpdateOrderMutation } from '@/queries/useOrder'
 import { useTableListQuery } from '@/queries/useTable'
 import { useAppStore } from '@/components/app-provider'
 
@@ -72,10 +49,7 @@ export const OrderTableContext = createContext({
   orderObjectByGuestId: {} as OrderObjectByGuestID
 })
 
-export type StatusCountObject = Record<
-  (typeof OrderStatusValues)[number],
-  number
->
+export type StatusCountObject = Record<(typeof OrderStatusValues)[number], number>
 export type Statics = {
   status: StatusCountObject
   table: Record<number, Record<number, StatusCountObject>>
@@ -114,8 +88,7 @@ export default function OrderTable() {
     pageSize: PAGE_SIZE //default page size
   })
   const updateOrderMutation = useUpdateOrderMutation()
-  const { statics, orderObjectByGuestId, servingGuestByTableNumber } =
-    useOrderService(orderList)
+  const { statics, orderObjectByGuestId, servingGuestByTableNumber } = useOrderService(orderList)
 
   const changeStatus = async (body: {
     orderId: number
@@ -192,26 +165,27 @@ export default function OrderTable() {
         quantity
       } = data
       toast({
-        description: `Món ${name} (SL: ${quantity}) vừa được cập nhật sang trạng thái "${getVietnameseOrderStatus(
-          data.status
-        )}"`
+        description: `Dish ${name} (Qty: ${quantity}) has just been updated to status "${getOrderStatus(data.status)}"`
       })
+
       refetch()
     }
 
     function onNewOrder(data: GuestCreateOrdersResType['data']) {
       const { guest } = data[0]
       toast({
-        description: `${guest?.name} tại bàn ${guest?.tableNumber} vừa đặt ${data.length} đơn`
+        description: `${guest?.name} at table ${guest?.tableNumber} has just placed ${data.length} orders`
       })
+
       refetch()
     }
 
     function onPayment(data: PayGuestOrdersResType['data']) {
       const { guest } = data[0]
       toast({
-        description: `${guest?.name} tại bàn ${guest?.tableNumber} thanh toán thành công ${data.length} đơn`
+        description: `${guest?.name} at table ${guest?.tableNumber} has successfully paid for ${data.length} orders`
       })
+
       refetch()
     }
 
@@ -240,28 +214,24 @@ export default function OrderTable() {
       }}
     >
       <div className='w-full'>
-        <EditOrder
-          id={orderIdEdit}
-          setId={setOrderIdEdit}
-          onSubmitSuccess={() => {}}
-        />
+        <EditOrder id={orderIdEdit} setId={setOrderIdEdit} onSubmitSuccess={() => {}} />
         <div className=' flex items-center'>
           <div className='flex flex-wrap gap-2'>
             <div className='flex items-center'>
-              <span className='mr-2'>Từ</span>
+              <span className='mr-2'>From</span>
               <Input
                 type='datetime-local'
-                placeholder='Từ ngày'
+                placeholder='From date'
                 className='text-sm'
                 value={format(fromDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
                 onChange={(event) => setFromDate(new Date(event.target.value))}
               />
             </div>
             <div className='flex items-center'>
-              <span className='mr-2'>Đến</span>
+              <span className='mr-2'>To</span>
               <Input
                 type='datetime-local'
-                placeholder='Đến ngày'
+                placeholder='To date'
                 value={format(toDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
                 onChange={(event) => setToDate(new Date(event.target.value))}
               />
@@ -276,23 +246,15 @@ export default function OrderTable() {
         </div>
         <div className='flex flex-wrap items-center gap-4 py-4'>
           <Input
-            placeholder='Tên khách'
-            value={
-              (table.getColumn('guestName')?.getFilterValue() as string) ?? ''
-            }
-            onChange={(event) =>
-              table.getColumn('guestName')?.setFilterValue(event.target.value)
-            }
+            placeholder='Customer name'
+            value={(table.getColumn('guestName')?.getFilterValue() as string) ?? ''}
+            onChange={(event) => table.getColumn('guestName')?.setFilterValue(event.target.value)}
             className='max-w-[100px]'
           />
           <Input
-            placeholder='Số bàn'
-            value={
-              (table.getColumn('tableNumber')?.getFilterValue() as string) ?? ''
-            }
-            onChange={(event) =>
-              table.getColumn('tableNumber')?.setFilterValue(event.target.value)
-            }
+            placeholder='Table number'
+            value={(table.getColumn('tableNumber')?.getFilterValue() as string) ?? ''}
+            onChange={(event) => table.getColumn('tableNumber')?.setFilterValue(event.target.value)}
             className='max-w-[80px]'
           />
           <Popover open={openStatusFilter} onOpenChange={setOpenStatusFilter}>
@@ -304,12 +266,8 @@ export default function OrderTable() {
                 className='w-[150px] text-sm justify-between'
               >
                 {table.getColumn('status')?.getFilterValue()
-                  ? getVietnameseOrderStatus(
-                      table
-                        .getColumn('status')
-                        ?.getFilterValue() as (typeof OrderStatusValues)[number]
-                    )
-                  : 'Trạng thái'}
+                  ? getOrderStatus(table.getColumn('status')?.getFilterValue() as (typeof OrderStatusValues)[number])
+                  : 'Status'}
                 <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
               </Button>
             </PopoverTrigger>
@@ -325,10 +283,7 @@ export default function OrderTable() {
                           table
                             .getColumn('status')
                             ?.setFilterValue(
-                              currentValue ===
-                                table.getColumn('status')?.getFilterValue()
-                                ? ''
-                                : currentValue
+                              currentValue === table.getColumn('status')?.getFilterValue() ? '' : currentValue
                             )
                           setOpenStatusFilter(false)
                         }}
@@ -336,13 +291,10 @@ export default function OrderTable() {
                         <Check
                           className={cn(
                             'mr-2 h-4 w-4',
-                            table.getColumn('status')?.getFilterValue() ===
-                              status
-                              ? 'opacity-100'
-                              : 'opacity-0'
+                            table.getColumn('status')?.getFilterValue() === status ? 'opacity-100' : 'opacity-0'
                           )}
                         />
-                        {getVietnameseOrderStatus(status)}
+                        {getOrderStatus(status)}
                       </CommandItem>
                     ))}
                   </CommandList>
@@ -368,10 +320,7 @@ export default function OrderTable() {
                         <TableHead key={header.id}>
                           {header.isPlaceholder
                             ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                            : flexRender(header.column.columnDef.header, header.getContext())}
                         </TableHead>
                       )
                     })}
@@ -381,26 +330,15 @@ export default function OrderTable() {
               <TableBody>
                 {table.getRowModel().rows?.length ? (
                   table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && 'selected'}
-                    >
+                    <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </TableCell>
+                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                       ))}
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell
-                      colSpan={orderTableColumns.length}
-                      className='h-24 text-center'
-                    >
+                    <TableCell colSpan={orderTableColumns.length} className='h-24 text-center'>
                       No results.
                     </TableCell>
                   </TableRow>
@@ -410,11 +348,11 @@ export default function OrderTable() {
           </div>
         )}
         <div className='flex items-center justify-end space-x-2 py-4'>
-          <div className='text-xs text-muted-foreground py-4 flex-1 '>
-            Hiển thị{' '}
-            <strong>{table.getPaginationRowModel().rows.length}</strong> trong{' '}
-            <strong>{orderList.length}</strong> kết quả
+          <div className='text-xs text-muted-foreground py-4 flex-1'>
+            Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of <strong>{orderList.length}</strong>{' '}
+            results
           </div>
+
           <div>
             <AutoPagination
               page={table.getState().pagination.pageIndex + 1}

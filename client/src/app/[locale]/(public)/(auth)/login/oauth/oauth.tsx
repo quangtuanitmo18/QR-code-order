@@ -40,7 +40,7 @@ export default function Oauth() {
           })
           .catch((e) => {
             toast({
-              description: e.message || 'Có lỗi xảy ra'
+              description: e.message || 'Something went wrong'
             })
           })
         count.current++
@@ -49,20 +49,12 @@ export default function Oauth() {
       if (count.current === 0) {
         setTimeout(() => {
           toast({
-            description: message || 'Có lỗi xảy ra'
+            description: message || 'Something went wrong'
           })
         })
         count.current++
       }
     }
-  }, [
-    accessToken,
-    refreshToken,
-    setRole,
-    router,
-    setSocket,
-    message,
-    mutateAsync
-  ])
+  }, [accessToken, refreshToken, setRole, router, setSocket, message, mutateAsync])
   return null
 }

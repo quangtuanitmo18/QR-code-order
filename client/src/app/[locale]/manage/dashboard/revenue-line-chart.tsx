@@ -2,20 +2,8 @@
 
 import { TrendingUp } from 'lucide-react'
 import { CartesianGrid, Line, LineChart, XAxis } from 'recharts'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle
-} from '@/components/ui/card'
-import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent
-} from '@/components/ui/chart'
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { format, parse } from 'date-fns'
 import { DashboardIndicatorResType } from '@/schemaValidations/indicator.schema'
 const chartConfig = {
@@ -25,15 +13,11 @@ const chartConfig = {
   }
 } satisfies ChartConfig
 
-export function RevenueLineChart({
-  chartData
-}: {
-  chartData: DashboardIndicatorResType['data']['revenueByDate']
-}) {
+export function RevenueLineChart({ chartData }: { chartData: DashboardIndicatorResType['data']['revenueByDate'] }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Doanh thu</CardTitle>
+        <CardTitle>Revenue</CardTitle>
         {/* <CardDescription>January - June 2024</CardDescription> */}
       </CardHeader>
       <CardContent>
@@ -63,13 +47,10 @@ export function RevenueLineChart({
                 return ''
               }}
             />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent indicator='dashed' />}
-            />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator='dashed' />} />
             <Line
               dataKey='revenue'
-              name='Doanh thu'
+              name='Revenue'
               type='linear'
               stroke='var(--color-desktop)'
               strokeWidth={2}

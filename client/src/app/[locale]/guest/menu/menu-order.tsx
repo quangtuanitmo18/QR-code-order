@@ -63,9 +63,7 @@ export default function MenuOrder() {
           >
             <div className='flex-shrink-0 relative'>
               {dish.status === DishStatus.Unavailable && (
-                <span className='absolute inset-0 flex items-center justify-center text-sm'>
-                  Hết hàng
-                </span>
+                <span className='absolute inset-0 flex items-center justify-center text-sm'>Unavailable</span>
               )}
               <Image
                 src={dish.image}
@@ -79,28 +77,19 @@ export default function MenuOrder() {
             <div className='space-y-1'>
               <h3 className='text-sm'>{dish.name}</h3>
               <p className='text-xs'>{dish.description}</p>
-              <p className='text-xs font-semibold'>
-                {formatCurrency(dish.price)}
-              </p>
+              <p className='text-xs font-semibold'>{formatCurrency(dish.price)}</p>
             </div>
             <div className='flex-shrink-0 ml-auto flex justify-center items-center'>
               <Quantity
                 onChange={(value) => handleQuantityChange(dish.id, value)}
-                value={
-                  orders.find((order) => order.dishId === dish.id)?.quantity ??
-                  0
-                }
+                value={orders.find((order) => order.dishId === dish.id)?.quantity ?? 0}
               />
             </div>
           </div>
         ))}
       <div className='sticky bottom-0'>
-        <Button
-          className='w-full justify-between'
-          onClick={handleOrder}
-          disabled={orders.length === 0}
-        >
-          <span>Đặt hàng · {orders.length} món</span>
+        <Button className='w-full justify-between' onClick={handleOrder} disabled={orders.length === 0}>
+          <span>Order · {orders.length} dishes</span>
           <span>{formatCurrency(totalPrice)}</span>
         </Button>
       </div>

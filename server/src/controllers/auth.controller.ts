@@ -13,7 +13,7 @@ export const logoutController = async (refreshToken: string) => {
       token: refreshToken
     }
   })
-  return 'Đăng xuất thành công'
+  return 'Logout successful'
 }
 
 export const loginController = async (body: LoginBodyType) => {
@@ -23,11 +23,11 @@ export const loginController = async (body: LoginBodyType) => {
     }
   })
   if (!account) {
-    throw new EntityError([{ field: 'email', message: 'Email không tồn tại' }])
+    throw new EntityError([{ field: 'email', message: 'Email or password is incorrect' }])
   }
   const isPasswordMatch = await comparePassword(body.password, account.password)
   if (!isPasswordMatch) {
-    throw new EntityError([{ field: 'password', message: 'Email hoặc mật khẩu không đúng' }])
+    throw new EntityError([{ field: 'password', message: 'Email or password is incorrect' }])
   }
   const accessToken = signAccessToken({
     userId: account.id,
@@ -59,7 +59,7 @@ export const refreshTokenController = async (refreshToken: string) => {
   try {
     decodedRefreshToken = verifyRefreshToken(refreshToken)
   } catch (error) {
-    throw new AuthError('Refresh token không hợp lệ')
+    throw new AuthError('Refresh token is invalid')
   }
   const refreshTokenDoc = await prisma.refreshToken.findUniqueOrThrow({
     where: {
@@ -97,11 +97,6 @@ export const refreshTokenController = async (refreshToken: string) => {
   }
 }
 
-/**
- * Hàm này thực hiện gửi yêu cầu lấy Google OAuth token dựa trên authorization code nhận được từ client-side.
- * @param {string} code - Authorization code được gửi từ client-side.
- * @returns {Object} - Đối tượng chứa Google OAuth token.
- */
 const getOauthGooleToken = async (code: string) => {
   const body = {
     code,
@@ -126,7 +121,6 @@ const getOauthGooleToken = async (code: string) => {
 }
 
 /**
- * Hàm này thực hiện gửi yêu cầu lấy thông tin người dùng từ Google dựa trên Google OAuth token.
  * @param {Object} tokens - Đối tượng chứa Google OAuth token.
  * @param {string} tokens.id_token - ID token được lấy từ Google OAuth.
  * @param {string} tokens.access_token - Access token được lấy từ Google OAuth.
@@ -161,7 +155,7 @@ export const loginGoogleController = async (code: string) => {
   if (!googleUser.verified_email) {
     throw new StatusError({
       status: 403,
-      message: 'Email chưa được xác minh từ Google'
+      message: 'Email not verified By Google'
     })
   }
   const account = await prisma.account.findUnique({
@@ -172,7 +166,7 @@ export const loginGoogleController = async (code: string) => {
   if (!account) {
     throw new StatusError({
       status: 403,
-      message: 'Tài khoản này không tồn tại trên hệ thống website'
+      message: 'Account does not exist'
     })
   }
   const accessToken = signAccessToken({

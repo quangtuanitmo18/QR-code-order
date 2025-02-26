@@ -3,7 +3,7 @@ import { DishStatus, OrderStatus, Role, TableStatus } from '@/constants/type'
 import prisma from '@/database'
 import { GuestCreateOrdersBodyType, GuestLoginBodyType } from '@/schemaValidations/guest.schema'
 import { TokenPayload } from '@/types/jwt.types'
-import { AuthError, StatusError } from '@/utils/errors'
+import { AuthError } from '@/utils/errors'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '@/utils/jwt'
 import ms from 'ms'
 
@@ -15,15 +15,15 @@ export const guestLoginController = async (body: GuestLoginBodyType) => {
     }
   })
   if (!table) {
-    throw new Error('Bàn không tồn tại hoặc mã token không đúng')
+    throw new Error('Table does not exist or token is invalid')
   }
 
   if (table.status === TableStatus.Hidden) {
-    throw new Error('Bàn này đã bị ẩn, hãy chọn bàn khác để đăng nhập')
+    throw new Error('Table has been hidden, please choose another table')
   }
 
   if (table.status === TableStatus.Reserved) {
-    throw new Error('Bàn đã được đặt trước, hãy liên hệ nhân viên để được hỗ trợ')
+    throw new Error('Table has been reserved, please contact staff for help')
   }
 
   let guest = await prisma.guest.create({
@@ -80,7 +80,7 @@ export const guestLogoutController = async (id: number) => {
       refreshTokenExpiresAt: null
     }
   })
-  return 'Đăng xuất thành công'
+  return 'Logout successfully'
 }
 
 export const guestRefreshTokenController = async (refreshToken: string) => {
@@ -88,7 +88,7 @@ export const guestRefreshTokenController = async (refreshToken: string) => {
   try {
     decodedRefreshToken = verifyRefreshToken(refreshToken)
   } catch (error) {
-    throw new AuthError('Refresh token không hợp lệ')
+    throw new AuthError('Refresh token is invalid')
   }
   const newRefreshToken = signRefreshToken({
     userId: decodedRefreshToken.userId,
@@ -128,7 +128,7 @@ export const guestCreateOrdersController = async (guestId: number, body: GuestCr
       }
     })
     if (guest.tableNumber === null) {
-      throw new Error('Bàn của bạn đã bị xóa, vui lòng đăng xuất và đăng nhập lại một bàn mới')
+      throw new Error('Table has been deleted, please logout and choose another table')
     }
     const table = await tx.table.findUniqueOrThrow({
       where: {
@@ -136,10 +136,10 @@ export const guestCreateOrdersController = async (guestId: number, body: GuestCr
       }
     })
     if (table.status === TableStatus.Hidden) {
-      throw new Error(`Bàn ${table.number} đã bị ẩn, vui lòng đăng xuất và chọn bàn khác`)
+      throw new Error(`Table ${table.number} has been hidden, please logout and choose another table`)
     }
     if (table.status === TableStatus.Reserved) {
-      throw new Error(`Bàn ${table.number} đã được đặt trước, vui lòng đăng xuất và chọn bàn khác`)
+      throw new Error(`Table ${table.number} has been reserved, please logout and choose another table`)
     }
     const orders = await Promise.all(
       body.map(async (order) => {
@@ -149,10 +149,10 @@ export const guestCreateOrdersController = async (guestId: number, body: GuestCr
           }
         })
         if (dish.status === DishStatus.Unavailable) {
-          throw new Error(`Món ${dish.name} đã hết`)
+          throw new Error(`Dish ${dish.name} is unavailable`)
         }
         if (dish.status === DishStatus.Hidden) {
-          throw new Error(`Món ${dish.name} không thể đặt`)
+          throw new Error(`Dish ${dish.name} can not be ordered`)
         }
         const dishSnapshot = await tx.dishSnapshot.create({
           data: {

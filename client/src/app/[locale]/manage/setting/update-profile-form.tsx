@@ -5,10 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Upload } from 'lucide-react'
 import { useForm } from 'react-hook-form'
-import {
-  UpdateMeBody,
-  UpdateMeBodyType
-} from '@/schemaValidations/account.schema'
+import { UpdateMeBody, UpdateMeBodyType } from '@/schemaValidations/account.schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -63,9 +60,7 @@ export default function UpdateProfileForm() {
       if (file) {
         const formData = new FormData()
         formData.append('file', file)
-        const uploadImageResult = await uploadMediaMutation.mutateAsync(
-          formData
-        )
+        const uploadImageResult = await uploadMediaMutation.mutateAsync(formData)
         const imageUrl = uploadImageResult.payload.data
         body = {
           ...values,
@@ -96,7 +91,7 @@ export default function UpdateProfileForm() {
       >
         <Card x-chunk='dashboard-07-chunk-0'>
           <CardHeader>
-            <CardTitle>Thông tin cá nhân</CardTitle>
+            <CardTitle>Profile</CardTitle>
           </CardHeader>
           <CardContent>
             <div className='grid gap-6'>
@@ -108,9 +103,7 @@ export default function UpdateProfileForm() {
                     <div className='flex gap-2 items-start justify-start'>
                       <Avatar className='aspect-square w-[100px] h-[100px] rounded-md object-cover'>
                         <AvatarImage src={previewAvatar} />
-                        <AvatarFallback className='rounded-none'>
-                          {name}
-                        </AvatarFallback>
+                        <AvatarFallback className='rounded-none'>{name}</AvatarFallback>
                       </Avatar>
                       <input
                         type='file'
@@ -121,9 +114,7 @@ export default function UpdateProfileForm() {
                           const file = e.target.files?.[0]
                           if (file) {
                             setFile(file)
-                            field.onChange(
-                              'http://localhost:3000/' + field.name
-                            )
+                            field.onChange('http://localhost:3000/' + field.name)
                           }
                         }}
                       />
@@ -146,13 +137,8 @@ export default function UpdateProfileForm() {
                 render={({ field }) => (
                   <FormItem>
                     <div className='grid gap-3'>
-                      <Label htmlFor='name'>Tên</Label>
-                      <Input
-                        id='name'
-                        type='text'
-                        className='w-full'
-                        {...field}
-                      />
+                      <Label htmlFor='name'>Name</Label>
+                      <Input id='name' type='text' className='w-full' {...field} />
                       <FormMessage />
                     </div>
                   </FormItem>
@@ -161,10 +147,10 @@ export default function UpdateProfileForm() {
 
               <div className=' items-center gap-2 md:ml-auto flex'>
                 <Button variant='outline' size='sm' type='reset'>
-                  Hủy
+                  Cancel
                 </Button>
                 <Button size='sm' type='submit'>
-                  Lưu thông tin
+                  Save
                 </Button>
               </div>
             </div>

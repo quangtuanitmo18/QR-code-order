@@ -25,18 +25,8 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from '@/components/ui/table'
-import {
-  AccountListResType,
-  AccountType
-} from '@/schemaValidations/account.schema'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { AccountListResType, AccountType } from '@/schemaValidations/account.schema'
 import AddEmployee from '@/app/[locale]/manage/accounts/add-employee'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import EditEmployee from '@/app/[locale]/manage/accounts/edit-employee'
@@ -53,10 +43,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useSearchParams } from 'next/navigation'
 import AutoPagination from '@/components/auto-pagination'
-import {
-  useDeleteAccountMutation,
-  useGetAccountList
-} from '@/queries/useAccount'
+import { useDeleteAccountMutation, useGetAccountList } from '@/queries/useAccount'
 import { toast } from '@/components/ui/use-toast'
 import { handleErrorApi } from '@/lib/utils'
 
@@ -86,26 +73,21 @@ export const columns: ColumnDef<AccountType>[] = [
       <div>
         <Avatar className='aspect-square w-[100px] h-[100px] rounded-md object-cover'>
           <AvatarImage src={row.getValue('avatar')} />
-          <AvatarFallback className='rounded-none'>
-            {row.original.name}
-          </AvatarFallback>
+          <AvatarFallback className='rounded-none'>{row.original.name}</AvatarFallback>
         </Avatar>
       </div>
     )
   },
   {
     accessorKey: 'name',
-    header: 'Tên',
+    header: 'Name',
     cell: ({ row }) => <div className='capitalize'>{row.getValue('name')}</div>
   },
   {
     accessorKey: 'email',
     header: ({ column }) => {
       return (
-        <Button
-          variant='ghost'
-          onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-        >
+        <Button variant='ghost' onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
           Email
           <CaretSortIcon className='ml-2 h-4 w-4' />
         </Button>
@@ -116,8 +98,7 @@ export const columns: ColumnDef<AccountType>[] = [
     id: 'actions',
     enableHiding: false,
     cell: function Actions({ row }) {
-      const { setEmployeeIdEdit, setEmployeeDelete } =
-        useContext(AccountTableContext)
+      const { setEmployeeIdEdit, setEmployeeDelete } = useContext(AccountTableContext)
       const openEditEmployee = () => {
         setEmployeeIdEdit(row.original.id)
       }
@@ -136,10 +117,8 @@ export const columns: ColumnDef<AccountType>[] = [
           <DropdownMenuContent align='end'>
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={openEditEmployee}>Sửa</DropdownMenuItem>
-            <DropdownMenuItem onClick={openDeleteEmployee}>
-              Xóa
-            </DropdownMenuItem>
+            <DropdownMenuItem onClick={openEditEmployee}>Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={openDeleteEmployee}>Delete</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -181,20 +160,15 @@ function AlertDialogDeleteAccount({
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Xóa nhân viên?</AlertDialogTitle>
+          <AlertDialogTitle>Delete account?</AlertDialogTitle>
           <AlertDialogDescription>
-            Tài khoản{' '}
-            <span className='bg-foreground text-primary-foreground rounded px-1'>
-              {employeeDelete?.name}
-            </span>{' '}
-            sẽ bị xóa vĩnh viễn
+            Account <span className='bg-foreground text-primary-foreground rounded px-1'>{employeeDelete?.name}</span>{' '}
+            will be permanently deleted.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={deleteAccount}>
-            Continue
-          </AlertDialogAction>
+          <AlertDialogAction onClick={deleteAccount}>Continue</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -259,22 +233,13 @@ export default function AccountTable() {
       }}
     >
       <div className='w-full'>
-        <EditEmployee
-          id={employeeIdEdit}
-          setId={setEmployeeIdEdit}
-          onSubmitSuccess={() => {}}
-        />
-        <AlertDialogDeleteAccount
-          employeeDelete={employeeDelete}
-          setEmployeeDelete={setEmployeeDelete}
-        />
+        <EditEmployee id={employeeIdEdit} setId={setEmployeeIdEdit} onSubmitSuccess={() => {}} />
+        <AlertDialogDeleteAccount employeeDelete={employeeDelete} setEmployeeDelete={setEmployeeDelete} />
         <div className='flex items-center py-4'>
           <Input
-            placeholder='Filter emails...'
+            placeholder='Filter email...'
             value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
-            onChange={(event) =>
-              table.getColumn('email')?.setFilterValue(event.target.value)
-            }
+            onChange={(event) => table.getColumn('email')?.setFilterValue(event.target.value)}
             className='max-w-sm'
           />
           <div className='ml-auto flex items-center gap-2'>
@@ -289,12 +254,7 @@ export default function AccountTable() {
                   {headerGroup.headers.map((header) => {
                     return (
                       <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
+                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
                       </TableHead>
                     )
                   })}
@@ -304,26 +264,15 @@ export default function AccountTable() {
             <TableBody>
               {table.getRowModel().rows?.length ? (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
-                  >
+                  <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
+                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={columns.length}
-                    className='h-24 text-center'
-                  >
+                  <TableCell colSpan={columns.length} className='h-24 text-center'>
                     No results.
                   </TableCell>
                 </TableRow>
@@ -332,11 +281,11 @@ export default function AccountTable() {
           </Table>
         </div>
         <div className='flex items-center justify-end space-x-2 py-4'>
-          <div className='text-xs text-muted-foreground py-4 flex-1 '>
-            Hiển thị{' '}
-            <strong>{table.getPaginationRowModel().rows.length}</strong> trong{' '}
-            <strong>{data.length}</strong> kết quả
+          <div className='text-xs text-muted-foreground py-4 flex-1'>
+            Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of <strong>{data.length}</strong>{' '}
+            results
           </div>
+
           <div>
             <AutoPagination
               page={table.getState().pagination.pageIndex + 1}

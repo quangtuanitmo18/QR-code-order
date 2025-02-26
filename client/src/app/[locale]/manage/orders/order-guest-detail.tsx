@@ -6,14 +6,11 @@ import {
   formatCurrency,
   formatDateTimeToLocaleString,
   formatDateTimeToTimeString,
-  getVietnameseOrderStatus,
+  getOrderStatus,
   handleErrorApi
 } from '@/lib/utils'
 import { usePayForGuestMutation } from '@/queries/useOrder'
-import {
-  GetOrdersResType,
-  PayGuestOrdersResType
-} from '@/schemaValidations/order.schema'
+import { GetOrdersResType, PayGuestOrdersResType } from '@/schemaValidations/order.schema'
 import Image from 'next/image'
 import { Fragment } from 'react'
 
@@ -29,15 +26,9 @@ export default function OrderGuestDetail({
   onPaySuccess?: (data: PayGuestOrdersResType) => void
 }) {
   const ordersFilterToPurchase = guest
-    ? orders.filter(
-        (order) =>
-          order.status !== OrderStatus.Paid &&
-          order.status !== OrderStatus.Rejected
-      )
+    ? orders.filter((order) => order.status !== OrderStatus.Paid && order.status !== OrderStatus.Rejected)
     : []
-  const purchasedOrderFilter = guest
-    ? orders.filter((order) => order.status === OrderStatus.Paid)
-    : []
+  const purchasedOrderFilter = guest ? orders.filter((order) => order.status === OrderStatus.Paid) : []
   const payForGuestMutation = usePayForGuestMutation()
 
   const pay = async () => {
@@ -58,42 +49,33 @@ export default function OrderGuestDetail({
       {guest && (
         <Fragment>
           <div className='space-x-1'>
-            <span className='font-semibold'>Tên:</span>
+            <span className='font-semibold'>Name:</span>
             <span>{guest.name}</span>
             <span className='font-semibold'>(#{guest.id})</span>
             <span>|</span>
-            <span className='font-semibold'>Bàn:</span>
+            <span className='font-semibold'>Table:</span>
             <span>{guest.tableNumber}</span>
           </div>
           <div className='space-x-1'>
-            <span className='font-semibold'>Ngày đăng ký:</span>
+            <span className='font-semibold'>Registration Date:</span>
+
             <span>{formatDateTimeToLocaleString(guest.createdAt)}</span>
           </div>
         </Fragment>
       )}
 
       <div className='space-y-1'>
-        <div className='font-semibold'>Đơn hàng:</div>
+        <div className='font-semibold'>Order:</div>
         {orders.map((order, index) => {
           return (
             <div key={order.id} className='flex gap-2 items-center text-xs'>
               <span className='w-[10px]'>{index + 1}</span>
-              <span title={getVietnameseOrderStatus(order.status)}>
-                {order.status === OrderStatus.Pending && (
-                  <OrderStatusIcon.Pending className='w-4 h-4' />
-                )}
-                {order.status === OrderStatus.Processing && (
-                  <OrderStatusIcon.Processing className='w-4 h-4' />
-                )}
-                {order.status === OrderStatus.Rejected && (
-                  <OrderStatusIcon.Rejected className='w-4 h-4 text-red-400' />
-                )}
-                {order.status === OrderStatus.Delivered && (
-                  <OrderStatusIcon.Delivered className='w-4 h-4' />
-                )}
-                {order.status === OrderStatus.Paid && (
-                  <OrderStatusIcon.Paid className='w-4 h-4 text-yellow-400' />
-                )}
+              <span title={getOrderStatus(order.status)}>
+                {order.status === OrderStatus.Pending && <OrderStatusIcon.Pending className='w-4 h-4' />}
+                {order.status === OrderStatus.Processing && <OrderStatusIcon.Processing className='w-4 h-4' />}
+                {order.status === OrderStatus.Rejected && <OrderStatusIcon.Rejected className='w-4 h-4 text-red-400' />}
+                {order.status === OrderStatus.Delivered && <OrderStatusIcon.Delivered className='w-4 h-4' />}
+                {order.status === OrderStatus.Paid && <OrderStatusIcon.Paid className='w-4 h-4 text-yellow-400' />}
               </span>
               <Image
                 src={order.dishSnapshot.image}
@@ -103,32 +85,27 @@ export default function OrderGuestDetail({
                 height={30}
                 className='h-[30px] w-[30px] rounded object-cover'
               />
-              <span
-                className='truncate w-[70px] sm:w-[100px]'
-                title={order.dishSnapshot.name}
-              >
+              <span className='truncate w-[70px] sm:w-[100px]' title={order.dishSnapshot.name}>
                 {order.dishSnapshot.name}
               </span>
-              <span className='font-semibold' title={`Tổng: ${order.quantity}`}>
+              <span className='font-semibold' title={`Total: ${order.quantity}`}>
                 x{order.quantity}
               </span>
-              <span className='italic'>
-                {formatCurrency(order.quantity * order.dishSnapshot.price)}
-              </span>
+              <span className='italic'>{formatCurrency(order.quantity * order.dishSnapshot.price)}</span>
               <span
                 className='hidden sm:inline'
-                title={`Tạo: ${formatDateTimeToLocaleString(
+                title={`Create: ${formatDateTimeToLocaleString(
                   order.createdAt
-                )} | Cập nhật: ${formatDateTimeToLocaleString(order.updatedAt)}
+                )} | Edit: ${formatDateTimeToLocaleString(order.updatedAt)}
           `}
               >
                 {formatDateTimeToLocaleString(order.createdAt)}
               </span>
               <span
                 className='sm:hidden'
-                title={`Tạo: ${formatDateTimeToLocaleString(
+                title={`Create: ${formatDateTimeToLocaleString(
                   order.createdAt
-                )} | Cập nhật: ${formatDateTimeToLocaleString(order.updatedAt)}
+                )} | Edit: ${formatDateTimeToLocaleString(order.updatedAt)}
           `}
               >
                 {formatDateTimeToTimeString(order.createdAt)}
@@ -139,7 +116,8 @@ export default function OrderGuestDetail({
       </div>
 
       <div className='space-x-1'>
-        <span className='font-semibold'>Chưa thanh toán:</span>
+        <span className='font-semibold'>Unpaid:</span>
+
         <Badge>
           <span>
             {formatCurrency(
@@ -151,7 +129,7 @@ export default function OrderGuestDetail({
         </Badge>
       </div>
       <div className='space-x-1'>
-        <span className='font-semibold'>Đã thanh toán:</span>
+        <span className='font-semibold'>Paid:</span>
         <Badge variant={'outline'}>
           <span>
             {formatCurrency(
@@ -171,7 +149,7 @@ export default function OrderGuestDetail({
           disabled={ordersFilterToPurchase.length === 0}
           onClick={pay}
         >
-          Thanh toán tất cả ({ordersFilterToPurchase.length} đơn)
+          <span>Pay all ({ordersFilterToPurchase.length} orders)</span>
         </Button>
       </div>
     </div>

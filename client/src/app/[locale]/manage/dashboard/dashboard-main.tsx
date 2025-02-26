@@ -34,7 +34,7 @@ export default function DashboardMain() {
     <div className='space-y-4'>
       <div className='flex flex-wrap gap-2'>
         <div className='flex items-center'>
-          <span className='mr-2'>Từ</span>
+          <span className='mr-2'>From</span>
           <Input
             type='datetime-local'
             placeholder='Từ ngày'
@@ -44,7 +44,7 @@ export default function DashboardMain() {
           />
         </div>
         <div className='flex items-center'>
-          <span className='mr-2'>Đến</span>
+          <span className='mr-2'>To</span>
           <Input
             type='datetime-local'
             placeholder='Đến ngày'
@@ -59,9 +59,8 @@ export default function DashboardMain() {
       <div className='grid gap-4 md:grid-cols-2 lg:grid-cols-4'>
         <Card>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>
-              Tổng doanh thu
-            </CardTitle>
+            <CardTitle className='text-sm font-medium'>Total Revenue</CardTitle>
+
             <svg
               xmlns='http://www.w3.org/2000/svg'
               viewBox='0 0 24 24'
@@ -81,7 +80,7 @@ export default function DashboardMain() {
         </Card>
         <Card>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Khách</CardTitle>
+            <CardTitle className='text-sm font-medium'>Customers</CardTitle>
             <svg
               xmlns='http://www.w3.org/2000/svg'
               viewBox='0 0 24 24'
@@ -99,12 +98,12 @@ export default function DashboardMain() {
           </CardHeader>
           <CardContent>
             <div className='text-2xl font-bold'>{guestCount}</div>
-            <p className='text-xs text-muted-foreground'>Gọi món</p>
+            {/* <p className='text-xs text-muted-foreground'>Gọi món</p> */}
           </CardContent>
         </Card>
         <Card>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>Đơn hàng</CardTitle>
+            <CardTitle className='text-sm font-medium'>Orders</CardTitle>
             <svg
               xmlns='http://www.w3.org/2000/svg'
               viewBox='0 0 24 24'
@@ -126,9 +125,7 @@ export default function DashboardMain() {
         </Card>
         <Card>
           <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
-            <CardTitle className='text-sm font-medium'>
-              Bàn đang phục vụ
-            </CardTitle>
+            <CardTitle className='text-sm font-medium'>Tables Currently in use</CardTitle>
             <svg
               xmlns='http://www.w3.org/2000/svg'
               viewBox='0 0 24 24'

@@ -9,25 +9,25 @@ const menuItems = [
     roles: [Role.Owner, Role.Employee]
   },
   {
-    title: 'Đơn hàng',
+    title: 'Orders',
     Icon: ShoppingCart,
     href: '/manage/orders',
     roles: [Role.Owner, Role.Employee]
   },
   {
-    title: 'Bàn ăn',
+    title: 'Tables',
     Icon: Table,
     href: '/manage/tables',
     roles: [Role.Owner, Role.Employee]
   },
   {
-    title: 'Món ăn',
+    title: 'Dishes',
     Icon: Salad,
     href: '/manage/dishes',
     roles: [Role.Owner, Role.Employee]
   },
   {
-    title: 'Nhân viên',
+    title: 'Employees',
     Icon: Users2,
     href: '/manage/accounts',
     roles: [Role.Owner]

@@ -45,7 +45,7 @@ export default async function guestRoutes(fastify: FastifyInstance, options: Fas
       const { body } = request
       const result = await guestLoginController(body)
       reply.send({
-        message: 'Đăng nhập thành công',
+        message: 'Login successful!',
         data: {
           guest: {
             id: result.guest.id,
@@ -96,7 +96,7 @@ export default async function guestRoutes(fastify: FastifyInstance, options: Fas
     async (request, reply) => {
       const result = await guestRefreshTokenController(request.body.refreshToken)
       reply.send({
-        message: 'Lấy token mới thành công',
+        message: 'Refresh token successfully!',
         data: result
       })
     }
@@ -121,7 +121,7 @@ export default async function guestRoutes(fastify: FastifyInstance, options: Fas
       const result = await guestCreateOrdersController(guestId, request.body)
       fastify.io.to(ManagerRoom).emit('new-order', result)
       reply.send({
-        message: 'Đặt món thành công',
+        message: 'Order created successfully!',
         data: result as GuestCreateOrdersResType['data']
       })
     }
@@ -143,7 +143,7 @@ export default async function guestRoutes(fastify: FastifyInstance, options: Fas
       const guestId = request.decodedAccessToken?.userId as number
       const result = await guestGetOrdersController(guestId)
       reply.send({
-        message: 'Lấy danh sách đơn hàng thành công',
+        message: 'Get the list of orders successfully!',
         data: result as GuestGetOrdersResType['data']
       })
     }

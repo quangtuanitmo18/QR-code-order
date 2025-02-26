@@ -36,13 +36,13 @@ export const dashboardIndicatorController = async ({ fromDate, toDate }: { fromD
     prisma.dish.findMany()
   ])
 
-  // Doanh thu
+  // revenue
   let revenue = 0
-  // Số lượng khách gọi món thành công
+  // number of customers who ordered dish successfully
   const guestCount = guests.length
   // Số lượng đơn
   const orderCount = orders.length
-  // Thống kê món ăn
+  // statistics of dishes
   const dishIndicatorObj: Record<
     number,
     {
@@ -60,16 +60,15 @@ export const dashboardIndicatorController = async ({ fromDate, toDate }: { fromD
     acc[dish.id] = { ...dish, successOrders: 0 }
     return acc
   }, {} as any)
-  // Doanh thu theo ngày
+  // revenue by date
   // Tạo object revenueByDateObj với key là ngày từ fromDate -> toDate và value là doanh thu
   const revenueByDateObj: { [key: string]: number } = {}
 
-  // Lặp từ fromDate -> toDate
   for (let i = fromDate; i <= toDate; i.setDate(i.getDate() + 1)) {
     revenueByDateObj[formatInTimeZone(i, envConfig.SERVER_TIMEZONE, 'dd/MM/yyyy')] = 0
   }
 
-  // Số lượng bàn đang được sử dụng
+  // number of tables being used
   const tableNumberObj: { [key: number]: boolean } = {}
   orders.forEach((order) => {
     if (order.status === OrderStatus.Paid) {
@@ -90,7 +89,6 @@ export const dashboardIndicatorController = async ({ fromDate, toDate }: { fromD
   // Số lượng bàn đang sử dụng
   const servingTableCount = Object.keys(tableNumberObj).length
 
-  // Doanh thu theo ngày
   const revenueByDate = Object.keys(revenueByDateObj).map((date) => {
     return {
       date,

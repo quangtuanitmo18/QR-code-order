@@ -30,7 +30,7 @@ export default async function tablesRoutes(fastify: FastifyInstance, options: Fa
       const Tables = await getTableList()
       reply.send({
         data: Tables as TableListResType['data'],
-        message: 'Lấy danh sách bàn thành công!'
+        message: 'Get the list of tables successfully!'
       })
     }
   )
@@ -52,7 +52,7 @@ export default async function tablesRoutes(fastify: FastifyInstance, options: Fa
       const Table = await getTableDetail(request.params.number)
       reply.send({
         data: Table as TableResType['data'],
-        message: 'Lấy thông tin bàn thành công!'
+        message: 'Get the detail of table successfully!'
       })
     }
   )
@@ -77,7 +77,7 @@ export default async function tablesRoutes(fastify: FastifyInstance, options: Fa
       const Table = await createTable(request.body)
       reply.send({
         data: Table as TableResType['data'],
-        message: 'Tạo bàn thành công!'
+        message: 'Create new table successfully!'
       })
     }
   )
@@ -104,7 +104,7 @@ export default async function tablesRoutes(fastify: FastifyInstance, options: Fa
       const Table = await updateTable(request.params.number, request.body)
       reply.send({
         data: Table as TableResType['data'],
-        message: 'Cập nhật bàn thành công!'
+        message: 'Update table successfully!'
       })
     }
   )
@@ -128,7 +128,7 @@ export default async function tablesRoutes(fastify: FastifyInstance, options: Fa
     async (request, reply) => {
       const result = await deleteTable(request.params.number)
       reply.send({
-        message: 'Xóa bàn thành công!',
+        message: 'Delete table successfully!',
         data: result as TableResType['data']
       })
     }

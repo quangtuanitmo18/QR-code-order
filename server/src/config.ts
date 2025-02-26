@@ -1,7 +1,7 @@
+import { config } from 'dotenv'
 import fs from 'fs'
 import path from 'path'
 import z from 'zod'
-import { config } from 'dotenv'
 
 config({
   path: '.env'
@@ -10,7 +10,7 @@ config({
 const checkEnv = async () => {
   const chalk = (await import('chalk')).default
   if (!fs.existsSync(path.resolve('.env'))) {
-    console.log(chalk.red(`Không tìm thấy file môi trường .env`))
+    console.log(chalk.red(`Can not find file .env`))
     process.exit(1)
   }
 }
@@ -45,7 +45,7 @@ const configServer = configSchema.safeParse(process.env)
 
 if (!configServer.success) {
   console.error(configServer.error.issues)
-  throw new Error('Các giá trị khai báo trong file .env không hợp lệ')
+  throw new Error('The declared values ​​in the .env file are invalid.')
 }
 const envConfig = configServer.data
 export const API_URL = envConfig.PRODUCTION

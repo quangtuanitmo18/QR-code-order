@@ -1,18 +1,18 @@
-import { toast } from '@/components/ui/use-toast'
-import { EntityError } from '@/lib/http'
-import { type ClassValue, clsx } from 'clsx'
-import { UseFormSetError } from 'react-hook-form'
-import { twMerge } from 'tailwind-merge'
-import { jwtDecode } from 'jwt-decode'
 import authApiRequest from '@/apiRequests/auth'
-import { DishStatus, OrderStatus, Role, TableStatus } from '@/constants/type'
-import envConfig, { defaultLocale } from '@/config'
-import { TokenPayload } from '@/types/jwt.types'
 import guestApiRequest from '@/apiRequests/guest'
+import { toast } from '@/components/ui/use-toast'
+import envConfig, { defaultLocale } from '@/config'
+import { DishStatus, OrderStatus, Role, TableStatus } from '@/constants/type'
+import { EntityError } from '@/lib/http'
+import { TokenPayload } from '@/types/jwt.types'
+import { type ClassValue, clsx } from 'clsx'
 import { format } from 'date-fns'
+import { jwtDecode } from 'jwt-decode'
 import { BookX, CookingPot, HandCoins, Loader, Truck } from 'lucide-react'
-import { io } from 'socket.io-client'
+import { UseFormSetError } from 'react-hook-form'
 import slugify from 'slugify'
+import { io } from 'socket.io-client'
+import { twMerge } from 'tailwind-merge'
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
@@ -42,8 +42,8 @@ export const handleErrorApi = ({
     })
   } else {
     toast({
-      title: 'Lỗi',
-      description: error?.payload?.message ?? 'Lỗi không xác định',
+      title: 'Error',
+      description: error?.payload?.message ?? 'Something went wrong',
       variant: 'destructive',
       duration: duration ?? 5000
     })
@@ -52,16 +52,12 @@ export const handleErrorApi = ({
 
 const isBrowser = typeof window !== 'undefined'
 
-export const getAccessTokenFromLocalStorage = () =>
-  isBrowser ? localStorage.getItem('accessToken') : null
+export const getAccessTokenFromLocalStorage = () => (isBrowser ? localStorage.getItem('accessToken') : null)
 
-export const getRefreshTokenFromLocalStorage = () =>
-  isBrowser ? localStorage.getItem('refreshToken') : null
-export const setAccessTokenToLocalStorage = (value: string) =>
-  isBrowser && localStorage.setItem('accessToken', value)
+export const getRefreshTokenFromLocalStorage = () => (isBrowser ? localStorage.getItem('refreshToken') : null)
+export const setAccessTokenToLocalStorage = (value: string) => isBrowser && localStorage.setItem('accessToken', value)
 
-export const setRefreshTokenToLocalStorage = (value: string) =>
-  isBrowser && localStorage.setItem('refreshToken', value)
+export const setRefreshTokenToLocalStorage = (value: string) => isBrowser && localStorage.setItem('refreshToken', value)
 export const removeTokensFromLocalStorage = () => {
   isBrowser && localStorage.removeItem('accessToken')
   isBrowser && localStorage.removeItem('refreshToken')
@@ -92,18 +88,11 @@ export const checkAndRefreshToken = async (param?: {
   // thì mình sẽ kiểm tra còn 1/3 thời gian (3s) thì mình sẽ cho refresh token lại
   // Thời gian còn lại sẽ tính dựa trên công thức: decodedAccessToken.exp - now
   // Thời gian hết hạn của access token dựa trên công thức: decodedAccessToken.exp - decodedAccessToken.iat
-  if (
-    param?.force ||
-    decodedAccessToken.exp - now <
-      (decodedAccessToken.exp - decodedAccessToken.iat) / 3
-  ) {
+  if (param?.force || decodedAccessToken.exp - now < (decodedAccessToken.exp - decodedAccessToken.iat) / 3) {
     // Gọi API refresh token
     try {
       const role = decodedRefreshToken.role
-      const res =
-        role === Role.Guest
-          ? await guestApiRequest.refreshToken()
-          : await authApiRequest.refreshToken()
+      const res = role === Role.Guest ? await guestApiRequest.refreshToken() : await authApiRequest.refreshToken()
       setAccessTokenToLocalStorage(res.payload.data.accessToken)
       setRefreshTokenToLocalStorage(res.payload.data.refreshToken)
       param?.onSuccess && param.onSuccess()
@@ -114,69 +103,51 @@ export const checkAndRefreshToken = async (param?: {
 }
 
 export const formatCurrency = (number: number) => {
-  return new Intl.NumberFormat('vi-VN', {
+  return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: 'VND'
+    currency: 'USD'
   }).format(number)
 }
 
-export const getVietnameseDishStatus = (
-  status: (typeof DishStatus)[keyof typeof DishStatus]
-) => {
+export const getDishStatus = (status: (typeof DishStatus)[keyof typeof DishStatus]) => {
   switch (status) {
     case DishStatus.Available:
-      return 'Có sẵn'
+      return 'Available'
     case DishStatus.Unavailable:
-      return 'Không có sẵn'
+      return 'Unavailable'
     default:
-      return 'Ẩn'
+      return 'Hidden'
   }
 }
 
-export const getVietnameseOrderStatus = (
-  status: (typeof OrderStatus)[keyof typeof OrderStatus]
-) => {
+export const getOrderStatus = (status: (typeof OrderStatus)[keyof typeof OrderStatus]) => {
   switch (status) {
     case OrderStatus.Delivered:
-      return 'Đã phục vụ'
+      return 'Served'
     case OrderStatus.Paid:
-      return 'Đã thanh toán'
+      return 'Completed'
     case OrderStatus.Pending:
-      return 'Chờ xử lý'
+      return 'In Preparation'
     case OrderStatus.Processing:
-      return 'Đang nấu'
+      return 'Cooking'
     default:
-      return 'Từ chối'
+      return 'Canceled'
   }
 }
 
-export const getVietnameseTableStatus = (
-  status: (typeof TableStatus)[keyof typeof TableStatus]
-) => {
+export const getTableStatus = (status: (typeof TableStatus)[keyof typeof TableStatus]) => {
   switch (status) {
     case TableStatus.Available:
-      return 'Có sẵn'
+      return 'Available'
     case TableStatus.Reserved:
-      return 'Đã đặt'
+      return 'Reserved'
     default:
-      return 'Ẩn'
+      return 'Hidden'
   }
 }
 
-export const getTableLink = ({
-  token,
-  tableNumber
-}: {
-  token: string
-  tableNumber: number
-}) => {
-  return (
-    envConfig.NEXT_PUBLIC_URL +
-    `/${defaultLocale}/tables/` +
-    tableNumber +
-    '?token=' +
-    token
-  )
+export const getTableLink = ({ token, tableNumber }: { token: string; tableNumber: number }) => {
+  return envConfig.NEXT_PUBLIC_URL + `/${defaultLocale}/tables/` + tableNumber + '?token=' + token
 }
 
 export const decodeToken = (token: string) => {
@@ -192,16 +163,11 @@ export function removeAccents(str: string) {
 }
 
 export const simpleMatchText = (fullText: string, matchText: string) => {
-  return removeAccents(fullText.toLowerCase()).includes(
-    removeAccents(matchText.trim().toLowerCase())
-  )
+  return removeAccents(fullText.toLowerCase()).includes(removeAccents(matchText.trim().toLowerCase()))
 }
 
 export const formatDateTimeToLocaleString = (date: string | Date) => {
-  return format(
-    date instanceof Date ? date : new Date(date),
-    'HH:mm:ss dd/MM/yyyy'
-  )
+  return format(date instanceof Date ? date : new Date(date), 'HH:mm:ss dd/MM/yyyy')
 }
 
 export const formatDateTimeToTimeString = (date: string | Date) => {

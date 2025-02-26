@@ -29,7 +29,7 @@ export default async function indicatorRoutes(fastify: FastifyInstance, options:
       const queryString = request.query
       const result = await dashboardIndicatorController(queryString)
       reply.send({
-        message: 'Lấy các chỉ số thành công',
+        message: 'Get dashboard indicator successfully!',
         data: result as DashboardIndicatorResType['data']
       })
     }
