@@ -23,9 +23,16 @@ import fastifyHelmet from '@fastify/helmet'
 import Fastify from 'fastify'
 import fastifySocketIO from 'fastify-socket.io'
 import path from 'path'
+import fs from 'fs'
+
+const httpsOptions = {
+  key: fs.readFileSync(path.resolve('/etc/letsencrypt/live/164181.msk.web.highserver.ru/privkey.pem')),
+  cert: fs.readFileSync(path.resolve('/etc/letsencrypt/live/164181.msk.web.highserver.ru/fullchain.pem'))
+}
 
 const fastify = Fastify({
-  logger: false
+  logger: false,
+  https: httpsOptions
 })
 
 // Run the server!
@@ -89,7 +96,7 @@ const start = async () => {
     await initOwnerAccount()
     await fastify.listen({
       port: envConfig.PORT,
-      host: envConfig.DOCKER ? '0.0.0.0' : 'localhost'
+      host: '0.0.0.0'
     })
     console.log(`Server is running on: ${API_URL}`)
   } catch (err) {
