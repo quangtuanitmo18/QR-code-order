@@ -18,10 +18,7 @@ export async function PUT(request: Request) {
     )
   }
   try {
-    const { payload } = await accountApiRequest.sChangePasswordV2(
-      accessToken,
-      body
-    )
+    const { payload } = await accountApiRequest.sChangePasswordV2(accessToken, body)
 
     const decodedAccessToken = jwt.decode(payload.data.accessToken) as {
       exp: number
@@ -33,14 +30,14 @@ export async function PUT(request: Request) {
       path: '/',
       httpOnly: true,
       sameSite: 'lax',
-      secure: true,
+      secure: false,
       expires: decodedAccessToken.exp * 1000
     })
     cookieStore.set('refreshToken', payload.data.refreshToken, {
       path: '/',
       httpOnly: true,
       sameSite: 'lax',
-      secure: true,
+      secure: false,
       expires: decodedRefreshToken.exp * 1000
     })
     return Response.json(payload)

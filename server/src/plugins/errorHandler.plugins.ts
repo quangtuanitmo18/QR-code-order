@@ -64,7 +64,7 @@ export const errorHandlerPlugin = fastifyPlugin(async (fastify) => {
           path: '/',
           httpOnly: true,
           sameSite: 'none',
-          secure: true
+          secure: false
         })
         .status(error.status)
         .send({
