@@ -4,4 +4,6 @@ dist/
 .env
 /uploads
 
+/prisma/dev.db
+
 /logs
