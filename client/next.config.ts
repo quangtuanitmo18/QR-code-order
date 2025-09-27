@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
       {
+        hostname: "164181.msk.web.highserver.ru",
+        pathname: "/**",
+      },
+      {
         hostname: "via.placeholder.com",
         pathname: "/**",
       },
