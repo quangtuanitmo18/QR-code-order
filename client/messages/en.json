@@ -1,0 +1,77 @@
+{
+  "ErrorMessage": {
+    "invalidEmail": "Invalid email",
+    "required": "This field is required",
+    "minmaxPassword": "Password must be between 6 and 100 characters"
+  },
+  "Brand": {
+    "title": "Big Boy Restaurant",
+    "defaultTitle": "Big Boy"
+  },
+  "HomePage": {
+    "title": "Home page",
+    "description": "Craving a classic American diner experience? Look no further than Big Boy! Savor our iconic Big Boy burger, juicy and flavorful, paired with creamy milkshakes and crispy fries. Perfect for families and friends!",
+    "slogan": "Taste good, every moment",
+    "h2": "A variety of dishes"
+  },
+  "Login": {
+    "title": "Login",
+    "description": "Manager login area",
+    "cardDescription": "Enter your email and password to log in to the system",
+    "buttonLogin": "Login",
+    "loginWithGoogle": "Login with Google"
+  },
+  "DishDetail": {
+    "notFound": "Dish not found"
+  },
+  "LoginGuest": {
+    "title": "Login to order",
+    "description": "Enter login information to place an order"
+  },
+  "GuestMenu": {
+    "title": "Menu",
+    "description": "Choose your favorite dishes"
+  },
+  "ManageAccounts": {
+    "title": "Manage accounts",
+    "description": "Manage employee accounts"
+  },
+  "Dashboard": {
+    "title": "Dashboard",
+    "description": "View and analyze sales data"
+  },
+  "Dishes": {
+    "title": "Dishes",
+    "description": "Manage dishes"
+  },
+  "Orders": {
+    "title": "Orders",
+    "description": "Manage orders"
+  },
+  "Setting": {
+    "title": "Setting",
+    "description": "Manage your account settings"
+  },
+  "Tables": {
+    "title": "Tables",
+    "description": "Manage tables"
+  },
+  "SwitchLanguage": {
+    "title": "Switch language",
+    "en": "English",
+    "vi": "Vietnamese"
+  },
+  "NavItem": {
+    "home": "Home",
+    "menu": "Menu",
+    "orders": "Orders",
+    "login": "Login",
+    "logout": "Logout",
+    "manage": "Manage",
+    "logoutDialog": {
+      "logoutQuestion": "Are you sure you want to log out?",
+      "logoutCancel": "Cancel",
+      "logoutConfirm": "Signing out may result in loss of your orders"
+    }
+  }
+}
