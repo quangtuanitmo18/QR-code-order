@@ -28,6 +28,8 @@ const fastify = Fastify({
   logger: false
 })
 
+fastify.get('/healthz', async () => ({ ok: true }))
+
 // Run the server!
 const start = async () => {
   try {
