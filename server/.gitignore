@@ -4,3 +4,5 @@ dist/
 .env
 
 /logs
+
+/prisma/dev.db
