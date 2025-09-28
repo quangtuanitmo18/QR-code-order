@@ -35,6 +35,8 @@ const fastify = Fastify({
   trustProxy: true
 })
 
+fastify.get('/healthz', async () => ({ ok: true }))
+
 // Run the server!
 const start = async () => {
   try {
@@ -106,4 +108,32 @@ const start = async () => {
     process.exit(1)
   }
 }
+
+async function shutdown(signal: NodeJS.Signals) {
+  try {
+    fastify.log.info({ signal }, 'Shutting down gracefully...')
+    if (fastify.io && typeof fastify.io.close === 'function') {
+      fastify.io.close()
+    }
+
+    await fastify.close()
+    process.exit(0)
+  } catch (e) {
+    fastify.log.error(e)
+    process.exit(1)
+  }
+}
+
+process.on('SIGINT', () => shutdown('SIGINT'))
+process.on('SIGTERM', () => shutdown('SIGTERM'))
+
+process.on('unhandledRejection', (reason) => {
+  fastify.log.error({ reason }, 'Unhandled Rejection')
+  process.exit(1)
+})
+process.on('uncaughtException', (err) => {
+  fastify.log.error(err, 'Uncaught Exception')
+  process.exit(1)
+})
+
 start()
