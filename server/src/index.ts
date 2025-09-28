@@ -27,12 +27,11 @@ import path from 'path'
 
 const fastify = Fastify({
   logger: true,
-  http2: true,
+
   https: {
     key: fs.readFileSync('/etc/letsencrypt/live/164181.msk.web.highserver.ru/privkey.pem'),
     cert: fs.readFileSync('/etc/letsencrypt/live/164181.msk.web.highserver.ru/fullchain.pem')
-  },
-  trustProxy: true
+  }
 })
 
 fastify.get('/healthz', async () => ({ ok: true }))
