@@ -43,8 +43,7 @@ export default function TermsOfServicePage() {
             </header>
             <p className="mt-4 leading-8 text-muted-foreground">
               You agree to use our services only for lawful purposes and not to
-              distribute unlawful or harmful content or infringe others'
-              privacy.
+              distribute unlawful or harmful content or infringe others privacy.
             </p>
             <ul className="mt-4 space-y-3 leading-8 text-muted-foreground">
               <li className="flex items-start gap-3">
@@ -57,7 +56,7 @@ export default function TermsOfServicePage() {
               </li>
               <li className="flex items-start gap-3">
                 <IconCheck className="mt-1 h-5 w-5 flex-none" />
-                <span>Respect for others' rights and data.</span>
+                <span>Respect for others rights and data.</span>
               </li>
             </ul>
           </article>
