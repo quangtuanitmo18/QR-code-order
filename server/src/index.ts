@@ -22,16 +22,15 @@ import cors from '@fastify/cors'
 import fastifyHelmet from '@fastify/helmet'
 import Fastify from 'fastify'
 import fastifySocketIO from 'fastify-socket.io'
-import fs from 'fs'
 import path from 'path'
 
 const fastify = Fastify({
-  logger: true,
+  logger: true
 
-  https: {
-    key: fs.readFileSync('/etc/letsencrypt/live/164181.msk.web.highserver.ru/privkey.pem'),
-    cert: fs.readFileSync('/etc/letsencrypt/live/164181.msk.web.highserver.ru/fullchain.pem')
-  }
+  // https: {
+  //   key: fs.readFileSync('/etc/letsencrypt/live/164181.msk.web.highserver.ru/privkey.pem'),
+  //   cert: fs.readFileSync('/etc/letsencrypt/live/164181.msk.web.highserver.ru/fullchain.pem')
+  // }
 })
 
 fastify.get('/healthz', async () => ({ ok: true }))
