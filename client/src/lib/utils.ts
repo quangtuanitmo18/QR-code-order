@@ -252,7 +252,7 @@ export const formatDateTimeToTimeString = (date: string | Date) => {
 };
 
 export const generateSocketInstace = (accessToken: string) => {
-  return io(envConfig.NEXT_PUBLIC_API_ENDPOINT, {
+  return io(envConfig.NEXT_PUBLIC_WS_ORIGIN, {
     auth: {
       Authorization: `Bearer ${accessToken}`,
     },
