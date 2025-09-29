@@ -27,6 +27,7 @@ import path from 'path'
 const fastify = Fastify({
   logger: true
 
+  // https - reverse proxy nginx config
   // https: {
   //   key: fs.readFileSync('/etc/letsencrypt/live/164181.msk.web.highserver.ru/privkey.pem'),
   //   cert: fs.readFileSync('/etc/letsencrypt/live/164181.msk.web.highserver.ru/fullchain.pem')
