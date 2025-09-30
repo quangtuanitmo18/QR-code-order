@@ -6,8 +6,8 @@ module.exports = {
       name: "qr-order-server",
       cwd: "./server",
       script: "npm",
-      args: "run start",
-      instances: "1",
+      script: "dist/index.js", // chạy thẳng file build
+      instances: 1,
       exec_mode: "cluster",
       autorestart: true,
       min_uptime: "30s",
@@ -15,6 +15,8 @@ module.exports = {
       exp_backoff_restart_delay: 5000,
       max_memory_restart: "512M",
       // readiness & shutdown
+      wait_ready: true, // dùng readiness
+
       listen_timeout: 10000,
       kill_timeout: 8000,
 
@@ -32,7 +34,7 @@ module.exports = {
       cwd: "./client",
       script: "npm",
       args: "run start",
-      instances: "1",
+      instances: 2,
       exec_mode: "cluster",
       autorestart: true,
       min_uptime: "30s",

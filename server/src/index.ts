@@ -100,7 +100,9 @@ const start = async () => {
       // host: envConfig.DOCKER ? '0.0.0.0' : 'localhost'
       host: '0.0.0.0'
     })
-    console.log(`Server đang chạy: ${API_URL}`)
+    if (process.send) process.send('ready')
+
+    fastify.log.info(`Server is ready: ${API_URL}`)
   } catch (err) {
     console.log(err)
     fastify.log.error(err)
