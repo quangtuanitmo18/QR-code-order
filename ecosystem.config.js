@@ -6,7 +6,7 @@ module.exports = {
       name: "qr-order-server",
       cwd: "./server",
       script: "npm",
-      script: "dist/index.js", // chạy thẳng file build
+      script: "dist/index.js",
       instances: 1,
       exec_mode: "cluster",
       autorestart: true,
@@ -32,8 +32,8 @@ module.exports = {
     {
       name: "qr-order-client",
       cwd: "./client",
-      script: "npm",
-      args: "run start",
+      script: "node_modules/next/dist/bin/next",
+      args: "start -p 3000 -H 127.0.0.1",
       instances: 2,
       exec_mode: "cluster",
       autorestart: true,
