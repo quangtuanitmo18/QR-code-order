@@ -15,7 +15,6 @@ module.exports = {
       exp_backoff_restart_delay: 5000,
       max_memory_restart: "512M",
       // readiness & shutdown
-      wait_ready: true,
       listen_timeout: 10000,
       kill_timeout: 8000,
 
@@ -23,6 +22,7 @@ module.exports = {
       out_file: "/var/log/qr-order/server/out.log",
       error_file: "/var/log/qr-order/server/error.log",
       merge_logs: false,
+      time: true,
       log_date_format: "YYYY-MM-DD HH:mm Z",
     },
 
