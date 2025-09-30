@@ -33,7 +33,7 @@ module.exports = {
       name: "qr-order-client",
       cwd: "./client",
       script: "node_modules/next/dist/bin/next",
-      args: "start -p 3000 -H 127.0.0.1",
+      args: "start -p 3000",
       instances: 2,
       exec_mode: "cluster",
       autorestart: true,
