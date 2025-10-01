@@ -18,13 +18,13 @@ Sentry.init({
   attachStacktrace: true,
 
   // Alternative GlitchTip server URL if needed (if different from DSN)
-  serverName: process.env.HOSTNAME || "qr-order-frontend",
+  serverName: process.env.HOSTNAME || "qr-order-client",
 
   // Don't send events in development
   beforeSend(event) {
-    if (process.env.NODE_ENV !== "production") {
-      return null;
-    }
+    // if (process.env.NODE_ENV !== "production") {
+    //   return null;
+    // }
     return event;
   },
 });

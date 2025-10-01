@@ -25,19 +25,15 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  sentry: {
-    // Hide source maps from end users
-    hideSourceMaps: true,
-
-    // Don't upload source maps in development
-    disableServerWebpackPlugin: process.env.NODE_ENV !== "production",
-    disableClientWebpackPlugin: process.env.NODE_ENV !== "production",
-  },
+  // Add the new turbopack configuration
+  turbopack: {},
 };
+
 const withBundleAnalyzer = NextBundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
+// Rest of your configuration remains the same
 const sentryWebpackPluginOptions = {
   authToken: process.env.SENTRY_AUTH_TOKEN,
   org: process.env.SENTRY_ORG,
@@ -53,6 +49,9 @@ const sentryWebpackPluginOptions = {
   url: process.env.SENTRY_URL, // Adjust to your GlitchTip URL
 
   silent: true,
+  hideSourceMaps: true,
+  disableServerWebpackPlugin: process.env.NODE_ENV !== "production",
+  disableClientWebpackPlugin: process.env.NODE_ENV !== "production",
 };
 
 export default withSentryConfig(
