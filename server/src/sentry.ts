@@ -1,5 +1,6 @@
 import * as Sentry from '@sentry/node'
 import { nodeProfilingIntegration } from '@sentry/profiling-node'
+import envConfig from './config'
 
 // Track initialization status
 export let sentryInitialized = false
@@ -17,13 +18,13 @@ export function initSentry() {
     }
 
     Sentry.init({
-      dsn: process.env.SENTRY_DSN,
-      environment: process.env.NODE_ENV || 'development',
-      release: process.env.SENTRY_RELEASE || 'v1.0.0',
+      dsn: envConfig.SENTRY_DSN,
+      environment: envConfig.NODE_ENV || 'development',
+      release: envConfig.SENTRY_RELEASE || 'v1.0.0',
 
       // Adjust sample rates based on environment
-      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
-      profilesSampleRate: process.env.NODE_ENV === 'production' ? 0.2 : 1.0,
+      tracesSampleRate: envConfig.NODE_ENV === 'production' ? 0.2 : 1.0,
+      profilesSampleRate: envConfig.NODE_ENV === 'production' ? 0.2 : 1.0,
 
       // GlitchTip compatibility - use standard integrations
       integrations: [nodeProfilingIntegration(), ...integrations],
@@ -32,13 +33,13 @@ export function initSentry() {
       maxBreadcrumbs: 50,
 
       // Optional: Add server name for identification
-      serverName: process.env.SERVER_NAME || 'qr-order-server',
+      serverName: envConfig.SERVER_NAME || 'qr-order-server',
 
       // Optional: Set maximum context size
       maxValueLength: 1000,
 
       // Optional: Debug mode for development
-      debug: process.env.NODE_ENV !== 'production'
+      debug: envConfig.NODE_ENV !== 'production'
     })
 
     sentryInitialized = true
