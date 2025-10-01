@@ -4,8 +4,10 @@ import { FastifyError } from 'fastify'
 import fastifyPlugin from 'fastify-plugin'
 import { ZodError } from 'zod'
 
+// Type definitions - no change needed
 type ZodFastifyError = FastifyError & ZodError
 
+// Type guards - no change needed
 const isZodFastifyError = (error: any): error is ZodFastifyError => {
   if (error instanceof ZodError) {
     return true
@@ -47,9 +49,10 @@ export const errorHandlerPlugin = fastifyPlugin(async (fastify) => {
     request,
     reply
   ) {
+    // Continue with your existing error handling logic
     if (isEntityError(error)) {
       return reply.status(error.status).send({
-        message: 'Lỗi xảy ra khi xác thực dữ liệu...',
+        message: 'Error when authenticating...',
         errors: error.fields,
         statusCode: error.status
       })
@@ -86,7 +89,6 @@ export const errorHandlerPlugin = fastifyPlugin(async (fastify) => {
       })
       const statusCode = 422
       return reply.status(statusCode).send({
-        // validationContext will be 'body' or 'params' or 'headers' or 'query'
         message: `A validation error occurred when validating the ${validationContext}...`,
         errors,
         code: error.code,
@@ -95,7 +97,7 @@ export const errorHandlerPlugin = fastifyPlugin(async (fastify) => {
     } else if (isPrismaClientKnownRequestError(error) && error.code === 'P2025') {
       const statusCode = 404
       return reply.status(statusCode).send({
-        message: error.message ?? 'Không tìm thấy dữ liệu',
+        message: error.message ?? 'Data not found',
         statusCode: statusCode
       })
     } else {
