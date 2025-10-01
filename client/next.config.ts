@@ -1,5 +1,6 @@
+import envConfig from "@/config";
 import NextBundleAnalyzer from "@next/bundle-analyzer";
-import { withSentryConfig } from "@sentry/nextjs";
+import { SentryBuildOptions, withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
@@ -25,6 +26,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+
   // Add the new turbopack configuration
   turbopack: {},
 };
@@ -34,24 +36,22 @@ const withBundleAnalyzer = NextBundleAnalyzer({
 });
 
 // Rest of your configuration remains the same
-const sentryWebpackPluginOptions = {
-  authToken: process.env.SENTRY_AUTH_TOKEN,
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
+const sentryWebpackPluginOptions: SentryBuildOptions = {
+  authToken: envConfig.SENTRY_AUTH_TOKEN,
+  org: envConfig.SENTRY_ORG,
+  project: envConfig.SENTRY_PROJECT,
 
-  release: process.env.NEXT_PUBLIC_RELEASE
-    ? { name: process.env.NEXT_PUBLIC_RELEASE }
+  release: envConfig.NEXT_PUBLIC_RELEASE
+    ? { name: envConfig.NEXT_PUBLIC_RELEASE }
     : undefined,
   sourcemaps: {
+    disable: false, // Bật upload source map (mặc định là false)
+    assets: ["**/*.js", "**/*.js.map"], // Các file sẽ upload
+    ignore: ["**/node_modules/**"], // Bỏ qua node_modules
     deleteSourcemapsAfterUpload: false,
   },
-  disableUpload: process.env.NODE_ENV !== "production",
-  url: process.env.SENTRY_URL, // Adjust to your GlitchTip URL
 
   silent: true,
-  hideSourceMaps: true,
-  disableServerWebpackPlugin: process.env.NODE_ENV !== "production",
-  disableClientWebpackPlugin: process.env.NODE_ENV !== "production",
 };
 
 export default withSentryConfig(
