@@ -45,12 +45,11 @@ const sentryWebpackPluginOptions: SentryBuildOptions = {
     ? { name: envConfig.NEXT_PUBLIC_RELEASE }
     : undefined,
   sourcemaps: {
-    disable: false,
+    disable: true,
     assets: ["**/*.js", "**/*.js.map"],
     ignore: ["**/node_modules/**"],
     deleteSourcemapsAfterUpload: false,
   },
-
   silent: true,
 };
 
