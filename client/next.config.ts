@@ -45,9 +45,9 @@ const sentryWebpackPluginOptions: SentryBuildOptions = {
     ? { name: envConfig.NEXT_PUBLIC_RELEASE }
     : undefined,
   sourcemaps: {
-    disable: false, // Bật upload source map (mặc định là false)
-    assets: ["**/*.js", "**/*.js.map"], // Các file sẽ upload
-    ignore: ["**/node_modules/**"], // Bỏ qua node_modules
+    disable: false,
+    assets: ["**/*.js", "**/*.js.map"],
+    ignore: ["**/node_modules/**"],
     deleteSourcemapsAfterUpload: false,
   },
 
