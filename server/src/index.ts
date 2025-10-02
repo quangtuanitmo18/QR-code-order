@@ -24,6 +24,7 @@ import fastifyHelmet from '@fastify/helmet'
 import Fastify from 'fastify'
 import fastifySocketIO from 'fastify-socket.io'
 import path from 'path'
+import autoCheckHeartbeatJob from './jobs/autoCheckHeartBeatSentry.job'
 
 const fastify = Fastify({
   logger: true
@@ -48,6 +49,8 @@ const start = async () => {
 
     createFolder(path.resolve(envConfig.UPLOAD_FOLDER))
     autoRemoveRefreshTokenJob()
+    autoCheckHeartbeatJob()
+
     const whitelist = ['*']
     fastify.register(cors, {
       origin: whitelist, // Cho phép tất cả các domain gọi API

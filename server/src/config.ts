@@ -42,7 +42,8 @@ const configSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']),
   SENTRY_DSN: z.string(),
   SENTRY_RELEASE: z.string(),
-  SERVER_NAME: z.string()
+  SERVER_NAME: z.string(),
+  SENTRY_HEARTBEAT_URL: z.string().url()
 })
 
 const configServer = configSchema.safeParse(process.env)
