@@ -26,7 +26,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-
+  experimental: {},
   // Add the new turbopack configuration
   turbopack: {},
 };
