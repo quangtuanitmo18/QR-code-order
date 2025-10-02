@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/node'
-import { nodeProfilingIntegration } from '@sentry/profiling-node'
 import envConfig from './config'
 
 // Track initialization status
@@ -27,7 +26,7 @@ export function initSentry() {
       profilesSampleRate: envConfig.NODE_ENV === 'production' ? 0.2 : 1.0,
 
       // GlitchTip compatibility - use standard integrations
-      integrations: [nodeProfilingIntegration(), ...integrations],
+      integrations: [...integrations],
 
       // Maximum breadcrumbs to capture
       maxBreadcrumbs: 50,
