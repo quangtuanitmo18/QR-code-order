@@ -9,7 +9,7 @@ const autoCheckHeartbeatJob = () => {
     return
   }
 
-  Cron('@minutely', async () => {
+  Cron('* * * * *', async () => {
     try {
       const response = await axios.post(envConfig.SENTRY_HEARTBEAT_URL)
     } catch (error) {
