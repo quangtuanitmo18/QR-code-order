@@ -100,14 +100,38 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Load environment path from profile
-            source ~/.profile
-            source ~/.bashrc
+            # Xác định loại user và môi trường
+            echo "Executing as $(whoami)"
+            echo "Home directory: $HOME"
 
-            # Display environment info for debugging
-            echo "Node version: $(node -v)"
-            echo "NPM version: $(npm -v)"
-            echo "PM2 version: $(pm2 -v)"
+            # Thử tìm node trong các vị trí phổ biến
+            NODE_PATH=$(find $HOME -name "node" -type f -executable 2>/dev/null | grep -v "node_modules" | head -n 1 || echo "")
+            if [ -n "$NODE_PATH" ]; then
+              NODE_BIN_DIR=$(dirname "$NODE_PATH")
+              echo "Found Node at $NODE_PATH"
+              export PATH="$NODE_BIN_DIR:$PATH"
+            fi
+
+            # Kiểm tra NVM
+            if [ -d "$HOME/.nvm" ]; then
+              echo "NVM found, activating..."
+              export NVM_DIR="$HOME/.nvm"
+              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+              nvm use default || nvm use stable || nvm use node || echo "Failed to activate nvm"
+            fi
+
+            # Kiểm tra cài đặt toàn cục
+            if command -v node &> /dev/null; then
+              echo "Node is now available: $(which node)"
+              echo "Node version: $(node -v)"
+              echo "NPM version: $(npm -v)"
+            else
+              echo "NODE NOT FOUND IN PATH: $PATH"
+              echo "Will attempt to install node..."
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+              sudo npm install -g pm2
+            fi
 
             cd ${{ secrets.DEPLOY_PATH }}
             git fetch --all
