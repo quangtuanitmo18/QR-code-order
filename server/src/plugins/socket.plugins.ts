@@ -11,7 +11,7 @@ export const socketPlugin = fastifyPlugin(async (fastify) => {
     const { Authorization } = socket.handshake.auth
 
     if (!Authorization) {
-      return next(new AuthError('Authorization  token not found'))
+      return next(new AuthError('Authorization token not found'))
     }
     const accessToken = Authorization.split(' ')[1]
     try {

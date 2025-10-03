@@ -50,7 +50,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }, [] as MetadataRoute.Sitemap);
     return [...localizeStaticSiteMap, ...localizeDishSiteMap];
   } catch (error) {
-    console.error("Error fetching dishes:", error);
     return [...staticRoutes];
   }
 }
