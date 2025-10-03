@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "21"
+          node-version: "20"
 
       # Kiểm tra xem có thay đổi trong thư mục server không
       - name: Check server changes
