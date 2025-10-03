@@ -10,6 +10,9 @@ jobs:
   ci:
     runs-on: ubuntu-22.04
     # Luôn chạy CI cho mọi event
+    outputs:
+      server-changed: ${{ steps.check-server.outputs.server }}
+      client-changed: ${{ steps.check-client.outputs.client }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -109,7 +112,7 @@ jobs:
             echo "${{ secrets.SERVER_ENV_PROD }}" > server/.env
 
             # Cập nhật client nếu có thay đổi
-            if ${{ steps.check-client.outputs.client == 'true' }}; then
+            if ${{ needs.ci.outputs.client-changed  == 'true' }}; then
               echo "Updating client..."
               cd client
               npm ci
@@ -119,7 +122,7 @@ jobs:
             fi
 
             # Cập nhật server nếu có thay đổi
-            if ${{ steps.check-server.outputs.server == 'true' }}; then
+            if ${{ needs.ci.outputs.server-changed == 'true' }}; then
               echo "Updating server..."
               cd server
               npm ci
