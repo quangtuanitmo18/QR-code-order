@@ -100,6 +100,15 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # Load environment path from profile
+            source ~/.profile
+            source ~/.bashrc
+
+            # Display environment info for debugging
+            echo "Node version: $(node -v)"
+            echo "NPM version: $(npm -v)"
+            echo "PM2 version: $(pm2 -v)"
+
             cd ${{ secrets.DEPLOY_PATH }}
             git fetch --all
             git checkout deploy
