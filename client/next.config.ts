@@ -4,6 +4,8 @@ import { SentryBuildOptions, withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 import createNextIntlPlugin from "next-intl/plugin";
 
+const isCI = process.env.CI === "true";
+
 const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   images: {
@@ -26,6 +28,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  output: "standalone",
+  productionBrowserSourceMaps: !isCI,
+
   experimental: {},
   // Add the new turbopack configuration
   turbopack: {},
@@ -45,7 +50,7 @@ const sentryWebpackPluginOptions: SentryBuildOptions = {
     ? { name: envConfig.NEXT_PUBLIC_RELEASE }
     : undefined,
   sourcemaps: {
-    disable: true,
+    disable: isCI,
     assets: ["**/*.js", "**/*.js.map"],
     ignore: ["**/node_modules/**"],
     deleteSourcemapsAfterUpload: false,

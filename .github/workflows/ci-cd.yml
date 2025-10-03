@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    runs-on: ubuntu-22.04-16core
+    runs-on: ubuntu-22.04
     # Luôn chạy CI cho mọi event
     steps:
       - name: Checkout code
@@ -60,7 +60,16 @@ jobs:
 
       - name: Build client
         if: steps.check-client.outputs.client == 'true'
-        run: cd client && npm run build
+        run: |
+          cd client
+          # Tăng giới hạn bộ nhớ cho Node.js
+          export NODE_OPTIONS="--max-old-space-size=4096"
+          # Đặt biến CI để Next.js biết đang trong môi trường CI
+          export CI=true
+          # Tắt telemetry
+          export NEXT_TELEMETRY_DISABLED=1
+          # Giảm verbose output
+          npm run build --no-progress
 
       # Install và test server nếu có thay đổi
       - name: Install server dependencies
