@@ -1,21 +1,21 @@
-import Script from 'next/script'
-import { Fragment } from 'react'
+import Script from "next/script";
+import { Fragment } from "react";
 
 export default function GoogleTag() {
   return (
     <Fragment>
-      <Script src='https://www.googletagmanager.com/gtag/js?id=G-G4XRFCFWTH' />
+      <Script src="https://www.googletagmanager.com/gtag/js?id=G-XDSVDC0MTX" />
       <Script
-        id='gtag-init'
+        id="gtag-init"
         dangerouslySetInnerHTML={{
           __html: `
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
             gtag('js', new Date());
-            gtag('config', 'G-G4XRFCFWTH');
-        `
+            gtag('config', 'G-XDSVDC0MTX');
+        `,
         }}
       />
     </Fragment>
-  )
+  );
 }
