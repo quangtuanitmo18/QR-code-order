@@ -6,6 +6,7 @@ import { comparePassword } from '@/utils/crypto'
 import { AuthError, EntityError, StatusError } from '@/utils/errors'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '@/utils/jwt'
 import axios from 'axios'
+import qs from 'querystring'
 
 export const logoutController = async (refreshToken: string) => {
   await prisma.refreshToken.delete({
@@ -13,7 +14,7 @@ export const logoutController = async (refreshToken: string) => {
       token: refreshToken
     }
   })
-  return 'Đăng xuất thành công'
+  return 'Logout successfully'
 }
 
 export const loginController = async (body: LoginBodyType) => {
@@ -23,11 +24,11 @@ export const loginController = async (body: LoginBodyType) => {
     }
   })
   if (!account) {
-    throw new EntityError([{ field: 'email', message: 'Email không tồn tại' }])
+    throw new EntityError([{ field: 'email', message: 'Email does not exist' }])
   }
   const isPasswordMatch = await comparePassword(body.password, account.password)
   if (!isPasswordMatch) {
-    throw new EntityError([{ field: 'password', message: 'Email hoặc mật khẩu không đúng' }])
+    throw new EntityError([{ field: 'password', message: 'Email or password is incorrect' }])
   }
   const accessToken = signAccessToken({
     userId: account.id,
@@ -59,7 +60,7 @@ export const refreshTokenController = async (refreshToken: string) => {
   try {
     decodedRefreshToken = verifyRefreshToken(refreshToken)
   } catch (error) {
-    throw new AuthError('Refresh token không hợp lệ')
+    throw new AuthError('Refresh token is invalid')
   }
   const refreshTokenDoc = await prisma.refreshToken.findUniqueOrThrow({
     where: {
@@ -102,26 +103,37 @@ export const refreshTokenController = async (refreshToken: string) => {
  * @param {string} code - Authorization code được gửi từ client-side.
  * @returns {Object} - Đối tượng chứa Google OAuth token.
  */
+
 const getOauthGooleToken = async (code: string) => {
-  const body = {
+  const bodyData = {
     code,
     client_id: envConfig.GOOGLE_CLIENT_ID,
     client_secret: envConfig.GOOGLE_CLIENT_SECRET,
     redirect_uri: envConfig.GOOGLE_AUTHORIZED_REDIRECT_URI,
     grant_type: 'authorization_code'
   }
-  const { data } = await axios.post('https://oauth2.googleapis.com/token', body, {
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    }
-  })
-  return data as {
-    access_token: string
-    expires_in: number
-    refresh_token: string
-    scope: string
-    token_type: string
-    id_token: string
+
+  try {
+    // Chuyển đổi object sang định dạng application/x-www-form-urlencoded
+    const encodedBody = qs.stringify(bodyData)
+
+    const response = await axios.post(
+      'https://oauth2.googleapis.com/token',
+      encodedBody, // Sử dụng body đã encode
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        }
+      }
+    )
+
+    return response.data
+  } catch (error) {
+    console.error('Google OAuth error:', (error as any)?.response.status, (error as any)?.response.data)
+    throw new StatusError({
+      status: 500,
+      message: 'Can not connect to Google OAuth'
+    })
   }
 }
 
@@ -142,6 +154,7 @@ const getGoogleUser = async ({ id_token, access_token }: { id_token: string; acc
       Authorization: `Bearer ${id_token}`
     }
   })
+
   return data as {
     id: string
     email: string
@@ -155,13 +168,14 @@ const getGoogleUser = async ({ id_token, access_token }: { id_token: string; acc
 
 export const loginGoogleController = async (code: string) => {
   const data = await getOauthGooleToken(code) // Gửi authorization code để lấy Google OAuth token
+
   const { id_token, access_token } = data // Lấy ID token và access token từ kết quả trả về
   const googleUser = await getGoogleUser({ id_token, access_token }) // Gửi Google OAuth token để lấy thông tin người dùng từ Google
   // Kiểm tra email đã được xác minh từ Google
   if (!googleUser.verified_email) {
     throw new StatusError({
       status: 403,
-      message: 'Email chưa được xác minh từ Google'
+      message: 'Unverified email from Google'
     })
   }
   const account = await prisma.account.findUnique({
@@ -172,7 +186,7 @@ export const loginGoogleController = async (code: string) => {
   if (!account) {
     throw new StatusError({
       status: 403,
-      message: 'Tài khoản này không tồn tại trên hệ thống website'
+      message: 'This account does not exist on the website'
     })
   }
   const accessToken = signAccessToken({
@@ -192,6 +206,9 @@ export const loginGoogleController = async (code: string) => {
       expiresAt: refreshTokenExpiresAt
     }
   })
+
+  console.log('Refresh token created:', refreshToken)
+
   return {
     accessToken,
     refreshToken,

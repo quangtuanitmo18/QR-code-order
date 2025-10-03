@@ -56,7 +56,7 @@ export default async function authRoutes(fastify: FastifyInstance, options: Fast
       const { body } = request
       const { accessToken, refreshToken, account } = await loginController(body)
       reply.send({
-        message: 'Đăng nhập thành công',
+        message: 'Login successful!',
         data: {
           account: account as LoginResType['data']['account'],
           accessToken,
@@ -85,7 +85,7 @@ export default async function authRoutes(fastify: FastifyInstance, options: Fast
         })
         reply.redirect(`${envConfig.GOOGLE_REDIRECT_CLIENT_URL}?${qs}`)
       } catch (error: any) {
-        const { message = 'Lỗi không xác định', status = 500 } = error
+        const { message = 'Unknown error', status = 500 } = error
         const qs = queryString.stringify({
           message,
           status
@@ -110,7 +110,7 @@ export default async function authRoutes(fastify: FastifyInstance, options: Fast
     async (request, reply) => {
       const result = await refreshTokenController(request.body.refreshToken)
       reply.send({
-        message: 'Lấy token mới thành công',
+        message: 'Get new token successfully',
         data: result
       })
     }

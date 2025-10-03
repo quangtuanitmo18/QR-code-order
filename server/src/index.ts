@@ -53,8 +53,8 @@ const start = async () => {
 
     const whitelist = ['*']
     fastify.register(cors, {
-      origin: whitelist, // Cho phép tất cả các domain gọi API
-      credentials: true // Cho phép trình duyệt gửi cookie đến server
+      origin: whitelist,
+      credentials: true
     })
 
     fastify.register(fastifyAuth, {

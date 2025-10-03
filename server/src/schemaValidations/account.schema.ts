@@ -41,7 +41,7 @@ export const CreateEmployeeAccountBody = z
     if (confirmPassword !== password) {
       ctx.addIssue({
         code: 'custom',
-        message: 'Mật khẩu không khớp',
+        message: 'New password does not match',
         path: ['confirmPassword']
       })
     }
@@ -65,13 +65,13 @@ export const UpdateEmployeeAccountBody = z
       if (!password || !confirmPassword) {
         ctx.addIssue({
           code: 'custom',
-          message: 'Hãy nhập mật khẩu mới và xác nhận mật khẩu mới',
+          message: 'Please enter a new password and confirm the new password',
           path: ['changePassword']
         })
       } else if (confirmPassword !== password) {
         ctx.addIssue({
           code: 'custom',
-          message: 'Mật khẩu không khớp',
+          message: 'New password does not match',
           path: ['confirmPassword']
         })
       }
@@ -100,7 +100,7 @@ export const ChangePasswordBody = z
     if (confirmPassword !== password) {
       ctx.addIssue({
         code: 'custom',
-        message: 'Mật khẩu mới không khớp',
+        message: 'New password does not match',
         path: ['confirmPassword']
       })
     }
