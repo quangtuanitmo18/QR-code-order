@@ -148,10 +148,13 @@ jobs:
             if ${{ needs.ci.outputs.client-changed  == 'true' }}; then
               echo "Updating client..."
               cd client
+              export NODE_OPTIONS="--max-old-space-size=1536"
+              export NEXT_DISABLE_SOURCEMAPS=1
+              export NEXT_TELEMETRY_DISABLED=1
               npm ci
-              npm run build
-              pm2 restart qr-order-client || pm2 start npm --name "qr-order-client" -- start
+              npm run build --no-progress
               cd ..
+              pm2 startOrReload ecosystem.config.js --only qr-order-client 
             fi
 
             # Cập nhật server nếu có thay đổi
@@ -160,6 +163,6 @@ jobs:
               cd server
               npm ci
               npm run build
-              pm2 restart qr-order-server || pm2 start npm --name "qr-order-server" -- start
+              pm2 startOrReload ecosystem.config.js --only qr-order-server
               cd ..
             fi
