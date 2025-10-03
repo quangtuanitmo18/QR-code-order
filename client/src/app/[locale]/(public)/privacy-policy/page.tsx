@@ -7,7 +7,7 @@ export default function PrivacyPolicyPage() {
         <div className="relative mx-auto max-w-5xl px-4 py-20 md:px-6 lg:px-8">
           <div className="mx-auto max-w-3xl text-center">
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl">
-              Privacy Policy 123
+              Privacy Policy
             </h1>
             <p className="mt-4 text-lg text-muted-foreground">
               Learn how we collect, use, and protect your information.
