@@ -37,6 +37,7 @@ const fastify = Fastify({
 })
 
 fastify.get('/healthz', async () => ({ ok: true }))
+fastify.get('/healthz1', async () => ({ ok: true }))
 fastify.get('/test-glitchtip', () => {
   throw new Error('GlitchTip BE test')
 })
