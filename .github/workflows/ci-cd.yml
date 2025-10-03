@@ -52,7 +52,7 @@ jobs:
       # Install và test client nếu có thay đổi
       - name: Install client dependencies
         if: steps.check-client.outputs.client == 'true'
-        run: cd client && rm -rf node_modules package-lock.json && npm ci
+        run: cd client && rm -rf node_modules package-lock.json && npm install
 
       - name: Lint client
         if: steps.check-client.outputs.client == 'true'
