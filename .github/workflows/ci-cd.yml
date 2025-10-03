@@ -154,7 +154,7 @@ jobs:
               npm ci
               npm run build --no-progress
               cd ..
-              pm2 restart qr-order-client
+              pm2 startOrReload ecosystem.config.js --only qr-order-client 
             fi
 
             # Cập nhật server nếu có thay đổi
@@ -164,5 +164,5 @@ jobs:
               npm ci
               npm run build
               cd ..
-              pm2 restart qr-order-server
+              pm2 startOrReload ecosystem.config.js --only qr-order-server
             fi
