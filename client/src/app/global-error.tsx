@@ -14,7 +14,6 @@ export default function GlobalError({
     // Report the error to Sentry
     const eventId = Sentry.captureException(error);
     console.error("Unhandled application error:", error);
-    console.log(`Error reported to Sentry with ID: ${eventId}`);
   }, [error]);
 
   return (

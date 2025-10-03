@@ -207,8 +207,6 @@ export const loginGoogleController = async (code: string) => {
     }
   })
 
-  console.log('Refresh token created:', refreshToken)
-
   return {
     accessToken,
     refreshToken,
