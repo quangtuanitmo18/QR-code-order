@@ -1,25 +1,18 @@
-'use client'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import RefreshToken from '@/components/refresh-token'
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState
-} from 'react'
+"use client";
+import ListenLogoutSocket from "@/components/listen-logout-socket";
+import RefreshToken from "@/components/refresh-token";
 import {
   decodeToken,
   generateSocketInstace,
   getAccessTokenFromLocalStorage,
-  removeTokensFromLocalStorage
-} from '@/lib/utils'
-import { RoleType } from '@/types/jwt.types'
-import type { Socket } from 'socket.io-client'
-import ListenLogoutSocket from '@/components/listen-logout-socket'
-import { create } from 'zustand'
+  removeTokensFromLocalStorage,
+} from "@/lib/utils";
+import { RoleType } from "@/types/jwt.types";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { useEffect, useRef } from "react";
+import type { Socket } from "socket.io-client";
+import { create } from "zustand";
 
 // Default
 // staleTime: 0
@@ -28,10 +21,10 @@ import { create } from 'zustand'
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false
-    }
-  }
-})
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 // const AppContext = createContext({
 //   isAuth: false,
 //   role: undefined as RoleType | undefined,
@@ -42,57 +35,56 @@ const queryClient = new QueryClient({
 // })
 
 type AppStoreType = {
-  isAuth: boolean
-  role: RoleType | undefined
-  setRole: (role?: RoleType | undefined) => void
-  socket: Socket | undefined
-  setSocket: (socket?: Socket | undefined) => void
-  disconnectSocket: () => void
-}
+  isAuth: boolean;
+  role: RoleType | undefined;
+  setRole: (role?: RoleType | undefined) => void;
+  socket: Socket | undefined;
+  setSocket: (socket?: Socket | undefined) => void;
+  disconnectSocket: () => void;
+};
 
 export const useAppStore = create<AppStoreType>((set) => ({
   isAuth: false,
   role: undefined as RoleType | undefined,
   setRole: (role?: RoleType | undefined) => {
-    set({ role, isAuth: Boolean(role) })
+    set({ role, isAuth: Boolean(role) });
     if (!role) {
-      removeTokensFromLocalStorage()
+      removeTokensFromLocalStorage();
     }
   },
   socket: undefined as Socket | undefined,
   setSocket: (socket?: Socket | undefined) => set({ socket }),
   disconnectSocket: () =>
     set((state) => {
-      state.socket?.disconnect()
-      return { socket: undefined }
-    })
-}))
+      state.socket?.disconnect();
+      return { socket: undefined };
+    }),
+}));
 
 // export const useAppContext = () => {
 //   return useContext(AppContext)
 // }
 export default function AppProvider({
-  children
+  children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
-  const setRole = useAppStore((state) => state.setRole)
-  const setSocket = useAppStore((state) => state.setSocket)
+  const setRole = useAppStore((state) => state.setRole);
+  const setSocket = useAppStore((state) => state.setSocket);
   // const [socket, setSocket] = useState<Socket | undefined>()
-  // const [role, setRoleState] = useState<RoleType | undefined>()
-  const count = useRef(0)
+  const count = useRef(0);
 
   useEffect(() => {
     if (count.current === 0) {
-      const accessToken = getAccessTokenFromLocalStorage()
+      const accessToken = getAccessTokenFromLocalStorage();
       if (accessToken) {
-        const role = decodeToken(accessToken).role
-        setRole(role)
-        setSocket(generateSocketInstace(accessToken))
+        const role = decodeToken(accessToken).role;
+        setRole(role);
+        setSocket(generateSocketInstace(accessToken));
       }
-      count.current++
+      count.current++;
     }
-  }, [setRole, setSocket])
+  }, [setRole, setSocket]);
 
   // const disconnectSocket = useCallback(() => {
   //   socket?.disconnect()
@@ -119,5 +111,5 @@ export default function AppProvider({
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
     // </AppContext.Provider>
-  )
+  );
 }

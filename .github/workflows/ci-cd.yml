@@ -4,7 +4,7 @@ on:
   push:
     branches: [main, deploy]
   pull_request:
-    branches: [main, deploy]
+    branches: [main]
 
 jobs:
   ci:
@@ -19,7 +19,7 @@ jobs:
         with:
           node-version: "20"
 
-      # Kiểm tra xem có thay đổi trong thư mục server không
+      # Kiểm tra thay đổi trong thư mục
       - name: Check server changes
         id: check-server
         uses: dorny/paths-filter@v2
@@ -28,7 +28,6 @@ jobs:
             server:
               - 'server/**'
 
-      # Kiểm tra xem có thay đổi trong thư mục client không
       - name: Check client changes
         id: check-client
         uses: dorny/paths-filter@v2
@@ -37,18 +36,18 @@ jobs:
             client:
               - 'client/**'
 
-      # Install và test server nếu có thay đổi
-      - name: Install server dependencies
-        if: steps.check-server.outputs.server == 'true'
-        run: cd server && npm ci
+      # Tạo file .env cho CI
+      - name: Create client .env file for CI
+        if: steps.check-client.outputs.client == 'true'
+        run: |
+          echo "${{ secrets.CLIENT_ENV_CI }}" > client/.env
+          cat client/.env | grep -v "SECRET\|PASSWORD" | sed 's/=.*/=***/'
 
-      - name: Lint server
+      - name: Create server .env file for CI
         if: steps.check-server.outputs.server == 'true'
-        run: cd server && npm run lint
-
-      - name: Build server
-        if: steps.check-server.outputs.server == 'true'
-        run: cd server && npm run build
+        run: |
+          echo "${{ secrets.SERVER_ENV_CI }}" > server/.env
+          cat server/.env | grep -v "SECRET\|PASSWORD" | sed 's/=.*/=***/'
 
       # Install và test client nếu có thay đổi
       - name: Install client dependencies
@@ -63,33 +62,25 @@ jobs:
         if: steps.check-client.outputs.client == 'true'
         run: cd client && npm run build
 
+      # Install và test server nếu có thay đổi
+      - name: Install server dependencies
+        if: steps.check-server.outputs.server == 'true'
+        run: cd server && npm ci
+
+      - name: Lint server
+        if: steps.check-server.outputs.server == 'true'
+        run: cd server && npm run lint
+
+      - name: Build server
+        if: steps.check-server.outputs.server == 'true'
+        run: cd server && npm run build
+
   cd:
     runs-on: ubuntu-22.04
-    # only run this job on the deploy branch
+    # Chỉ chạy CD khi push vào nhánh deploy
     needs: ci
     if: github.event_name == 'push' && github.ref == 'refs/heads/deploy'
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # Kiểm tra xem có thay đổi trong thư mục server không
-      - name: Check server changes
-        id: check-server
-        uses: dorny/paths-filter@v2
-        with:
-          filters: |
-            server:
-              - 'server/**'
-
-      # Kiểm tra xem có thay đổi trong thư mục client không
-      - name: Check client changes
-        id: check-client
-        uses: dorny/paths-filter@v2
-        with:
-          filters: |
-            client:
-              - 'client/**'
-
       - name: Deploy to Production Server
         uses: appleboy/ssh-action@master
         with:
@@ -102,22 +93,28 @@ jobs:
             git checkout deploy
             git reset --hard origin/deploy
 
-            # Chỉ cập nhật server nếu có thay đổi
-            if ${{ steps.check-server.outputs.server == 'true' }}; then
-              echo "Updating server..."
-              cd server
-              npm ci
-              npm run build
-              pm2 restart qr-order-server || pm2 start npm --name "qr-order-server" -- start
-              cd ..
-            fi
+            # Tạo file .env cho client trong production
+            echo "${{ secrets.CLIENT_ENV_PROD }}" > client/.env
 
-            # Chỉ cập nhật client nếu có thay đổi
+            # Tạo file .env cho server trong production
+            echo "${{ secrets.SERVER_ENV_PROD }}" > server/.env
+
+            # Cập nhật client nếu có thay đổi
             if ${{ steps.check-client.outputs.client == 'true' }}; then
               echo "Updating client..."
               cd client
               npm ci
               npm run build
               pm2 restart qr-order-client || pm2 start npm --name "qr-order-client" -- start
+              cd ..
+            fi
+
+            # Cập nhật server nếu có thay đổi
+            if ${{ steps.check-server.outputs.server == 'true' }}; then
+              echo "Updating server..."
+              cd server
+              npm ci
+              npm run build
+              pm2 restart qr-order-server || pm2 start npm --name "qr-order-server" -- start
               cd ..
             fi

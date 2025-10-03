@@ -2,6 +2,7 @@ import envConfig from "@/config";
 import * as Sentry from "@sentry/nextjs";
 
 export const onRequestError = Sentry.captureRequestError;
+
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
 Sentry.init({
   dsn: envConfig.NEXT_PUBLIC_SENTRY_DSN,
