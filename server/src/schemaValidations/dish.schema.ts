@@ -60,5 +60,4 @@ export const DishListWithPaginationRes = z.object({
   }),
   message: z.string()
 })
-
 export type DishListWithPaginationResType = z.TypeOf<typeof DishListWithPaginationRes>
