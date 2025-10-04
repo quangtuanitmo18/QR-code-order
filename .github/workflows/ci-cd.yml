@@ -181,8 +181,10 @@ jobs:
 
       - name: Extract version info
         run: |
-          tar -xzf deployment-*.tar.gz VERSION --to-stdout > version.txt
-          echo "📦 Deploying version: $(cat version.txt)"
+          tar -czf "deployment-$BUILD_ID.tar.gz" -C artifacts . --transform='s,^,deployment/,'
+          echo "$BUILD_ID" > VERSION
+          tar -rf "deployment-$BUILD_ID.tar.gz" VERSION
+          gzip -f "deployment-$BUILD_ID.tar.gz"
 
       - name: Upload package to server
         uses: appleboy/scp-action@master
