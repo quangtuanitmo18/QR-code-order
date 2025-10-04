@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
     ],
   },
   output: "standalone",
-  productionBrowserSourceMaps: !isCI,
+  productionBrowserSourceMaps: false,
 
   experimental: {},
   // Add the new turbopack configuration
@@ -50,7 +50,7 @@ const sentryWebpackPluginOptions: SentryBuildOptions = {
     ? { name: envConfig.NEXT_PUBLIC_RELEASE }
     : undefined,
   sourcemaps: {
-    disable: isCI,
+    disable: true,
     assets: ["**/*.js", "**/*.js.map"],
     ignore: ["**/node_modules/**"],
     deleteSourcemapsAfterUpload: false,
