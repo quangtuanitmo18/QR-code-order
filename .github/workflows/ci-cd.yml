@@ -181,10 +181,23 @@ jobs:
 
       - name: Extract version info
         run: |
-          tar -czf "deployment-$BUILD_ID.tar.gz" -C artifacts . --transform='s,^,deployment/,'
-          echo "$BUILD_ID" > VERSION
-          tar -rf "deployment-$BUILD_ID.tar.gz" VERSION
-          gzip -f "deployment-$BUILD_ID.tar.gz"
+          # Listar contenido para depurar
+            echo "📦 Files in current directory:"
+            ls -la
+            
+            # Extraer el archivo VERSION del paquete descargado
+            mkdir -p temp_extract
+            tar -xzf deployment-*.tar.gz -C temp_extract
+            
+            # Leer la versión si existe
+            if [ -f "temp_extract/VERSION" ]; then
+              cat temp_extract/VERSION > version.txt
+              echo "📦 Deploying version: $(cat version.txt)"
+            else
+              # Valor predeterminado si no hay archivo VERSION
+              echo "unknown-$(date +%Y%m%d%H%M%S)" > version.txt
+              echo "⚠️ No VERSION file found, using fallback: $(cat version.txt)"
+            fi
 
       - name: Upload package to server
         uses: appleboy/scp-action@master
