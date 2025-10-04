@@ -5,24 +5,40 @@ on:
     branches: [main, deploy]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: "Target to deploy"
+        required: true
+        default: "all"
+        type: choice
+        options:
+          - all
+          - client
+          - server
 
 jobs:
   ci:
-    runs-on: ubuntu-22.04
-    # Luôn chạy CI cho mọi event
+    runs-on: ubuntu-latest
     outputs:
       server-changed: ${{ steps.check-server.outputs.server }}
       client-changed: ${{ steps.check-client.outputs.client }}
+      build-id: ${{ steps.generate-id.outputs.build_id }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Generate unique build ID
+        id: generate-id
+        run: echo "build_id=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: "20"
+          cache: "npm"
 
-      # Kiểm tra thay đổi trong thư mục
       - name: Check server changes
         id: check-server
         uses: dorny/paths-filter@v2
@@ -30,6 +46,7 @@ jobs:
           filters: |
             server:
               - 'server/**'
+              - 'ecosystem.config.js'
 
       - name: Check client changes
         id: check-client
@@ -38,131 +55,293 @@ jobs:
           filters: |
             client:
               - 'client/**'
+              - 'ecosystem.config.js'
 
       # Tạo file .env cho CI
-      - name: Create client .env file for CI
-        if: steps.check-client.outputs.client == 'true'
+      - name: Create environment files for CI
         run: |
-          echo "${{ secrets.CLIENT_ENV_CI }}" > client/.env
-          cat client/.env | grep -v "SECRET\|PASSWORD" | sed 's/=.*/=***/'
+          if [[ "${{ steps.check-client.outputs.client }}" == "true" ]]; then
+            echo "${{ secrets.CLIENT_ENV_CI }}" > client/.env
+          fi
 
-      - name: Create server .env file for CI
-        if: steps.check-server.outputs.server == 'true'
-        run: |
-          echo "${{ secrets.SERVER_ENV_CI }}" > server/.env
-          cat server/.env | grep -v "SECRET\|PASSWORD" | sed 's/=.*/=***/'
+          if [[ "${{ steps.check-server.outputs.server }}" == "true" ]]; then
+            echo "${{ secrets.SERVER_ENV_CI }}" > server/.env
+          fi
 
-      # Install và test client nếu có thay đổi
-      - name: Install client dependencies
-        if: steps.check-client.outputs.client == 'true'
-        run: cd client && rm -rf node_modules package-lock.json && npm install
-
-      - name: Lint client
-        if: steps.check-client.outputs.client == 'true'
-        run: cd client && npm run lint
-
-      - name: Build client
+      # CLIENT PROCESS
+      - name: Process client
         if: steps.check-client.outputs.client == 'true'
         run: |
           cd client
-          # Tăng giới hạn bộ nhớ cho Node.js
+          echo "📦 Installing client dependencies..."
+          npm ci
+
+          echo "🔍 Linting client code..."
+          npm run lint
+
+          echo "🔒 Running security scan on client..."
+          npx snyk test --severity-threshold=high || echo "Security vulnerabilities found, but proceeding with build"
+
+          echo "🔨 Building client..."
           export NODE_OPTIONS="--max-old-space-size=4096"
-          # Đặt biến CI để Next.js biết đang trong môi trường CI
           export CI=true
-          # Tắt telemetry
           export NEXT_TELEMETRY_DISABLED=1
-          # Giảm verbose output
+          export NEXT_DISABLE_SOURCEMAPS=1
           npm run build --no-progress
 
-      # Install và test server nếu có thay đổi
-      - name: Install server dependencies
+      # SERVER PROCESS
+      - name: Process server
         if: steps.check-server.outputs.server == 'true'
-        run: cd server && npm ci
+        run: |
+          cd server
+          echo "📦 Installing server dependencies..."
+          npm ci
 
-      - name: Lint server
-        if: steps.check-server.outputs.server == 'true'
-        run: cd server && npm run lint
+          echo "🔍 Linting server code..."
+          npm run lint
 
-      - name: Build server
-        if: steps.check-server.outputs.server == 'true'
-        run: cd server && npm run build
+          echo "🔒 Running security scan on server..."
+          npx snyk test --severity-threshold=high || echo "Security vulnerabilities found, but proceeding with build"
+
+          echo "🔨 Building server..."
+          npm run build
+
+      # CREATE ARTIFACT
+      - name: Package deployment artifacts
+        if: success() && (github.ref == 'refs/heads/deploy' || github.event_name == 'workflow_dispatch')
+        run: |
+          BUILD_ID="${{ steps.generate-id.outputs.build_id }}"
+          echo "📦 Creating deployment package with ID: $BUILD_ID"
+
+          # Create artifact structure
+          mkdir -p artifacts
+          echo "$BUILD_ID" > artifacts/VERSION
+          cp ecosystem.config.js artifacts/
+
+          # Copy client files if changed
+          if [[ "${{ steps.check-client.outputs.client }}" == "true" ]]; then
+            mkdir -p artifacts/client
+            cp -r client/.next client/public client/package.json client/package-lock.json artifacts/client/
+            echo "✅ Client files packaged"
+          fi
+
+          # Copy server files if changed
+          if [[ "${{ steps.check-server.outputs.server }}" == "true" ]]; then
+            mkdir -p artifacts/server
+            cp -r server/dist server/package.json server/package-lock.json artifacts/server/
+            echo "✅ Server files packaged"
+          fi
+
+          # Create archive
+          tar -czf "deployment-$BUILD_ID.tar.gz" -C artifacts .
+          echo "📦 Artifact created: deployment-$BUILD_ID.tar.gz"
+
+      # UPLOAD ARTIFACT
+      - name: Upload deployment artifact
+        if: success() && (github.ref == 'refs/heads/deploy' || github.event_name == 'workflow_dispatch')
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-package
+          path: deployment-*.tar.gz
+          retention-days: 7
 
   cd:
-    runs-on: ubuntu-22.04
-    # Chỉ chạy CD khi push vào nhánh deploy
+    runs-on: ubuntu-latest
     needs: ci
-    if: github.event_name == 'push' && github.ref == 'refs/heads/deploy'
+    if: success() && (github.ref == 'refs/heads/deploy' || github.event_name == 'workflow_dispatch')
+
     steps:
-      - name: Deploy to Production Server
-        uses: appleboy/ssh-action@master
+      - name: Download deployment package
+        uses: actions/download-artifact@v3
+        with:
+          name: deployment-package
+
+      - name: Extract version info
+        run: |
+          tar -xzf deployment-*.tar.gz VERSION --to-stdout > version.txt
+          echo "📦 Deploying version: $(cat version.txt)"
+
+      - name: Upload package to server
+        uses: appleboy/scp-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "deployment-*.tar.gz"
+          target: "/tmp"
+          overwrite: true
+
+      - name: Deploy to Production
+        uses: appleboy/ssh-action@v4
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 30m
           script: |
-            # Xác định loại user và môi trường
-            echo "Executing as $(whoami)"
-            echo "Home directory: $HOME"
+            #!/bin/bash
+            set -e  # Exit on any error
 
-            # Thử tìm node trong các vị trí phổ biến
-            NODE_PATH=$(find $HOME -name "node" -type f -executable 2>/dev/null | grep -v "node_modules" | head -n 1 || echo "")
-            if [ -n "$NODE_PATH" ]; then
-              NODE_BIN_DIR=$(dirname "$NODE_PATH")
-              echo "Found Node at $NODE_PATH"
-              export PATH="$NODE_BIN_DIR:$PATH"
+            echo "🔧 Setting up environment..."
+
+            # Load environment
+            source ~/.profile || true
+            source ~/.bashrc || true
+
+            # Setup NVM if available
+            export NVM_DIR="$HOME/.nvm"
+            if [ -s "$NVM_DIR/nvm.sh" ]; then
+              source "$NVM_DIR/nvm.sh"
+              nvm use 20 || nvm install 20
             fi
 
-            # Kiểm tra NVM
-            if [ -d "$HOME/.nvm" ]; then
-              echo "NVM found, activating..."
-              export NVM_DIR="$HOME/.nvm"
-              [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-              nvm use default || nvm use stable || nvm use node || echo "Failed to activate nvm"
-            fi
-
-            # Kiểm tra cài đặt toàn cục
-            if command -v node &> /dev/null; then
-              echo "Node is now available: $(which node)"
-              echo "Node version: $(node -v)"
-              echo "NPM version: $(npm -v)"
-            else
-              echo "NODE NOT FOUND IN PATH: $PATH"
-              echo "Will attempt to install node..."
+            # Check for Node.js and PM2
+            if ! command -v node &> /dev/null; then
+              echo "⚠️ Node.js not found, installing..."
               curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
               sudo apt-get install -y nodejs
+            fi
+
+            if ! command -v pm2 &> /dev/null; then
+              echo "⚠️ PM2 not found, installing..."
               sudo npm install -g pm2
             fi
 
-            cd ${{ secrets.DEPLOY_PATH }}
-            git fetch --all
-            git checkout deploy
-            git reset --hard origin/deploy
+            echo "✅ Environment ready:"
+            echo "Node: $(which node) ($(node -v))"
+            echo "NPM: $(which npm) ($(npm -v))"
+            echo "PM2: $(which pm2) ($(pm2 -v))"
 
-            # Tạo file .env cho client trong production
-            echo "${{ secrets.CLIENT_ENV_PROD }}" > client/.env
+            # Prepare deployment
+            DEPLOY_PATH="${{ secrets.DEPLOY_PATH }}"
+            BACKUP_DIR="$DEPLOY_PATH/backups/$(date +%Y%m%d%H%M%S)"
 
-            # Tạo file .env cho server trong production
-            echo "${{ secrets.SERVER_ENV_PROD }}" > server/.env
+            # Create backup directory
+            mkdir -p "$DEPLOY_PATH/backups"
 
-            # Cập nhật client nếu có thay đổi
-            if ${{ needs.ci.outputs.client-changed  == 'true' }}; then
-              echo "Updating client..."
-              cd client
-              export NODE_OPTIONS="--max-old-space-size=1536"
-              export NEXT_DISABLE_SOURCEMAPS=1
-              export NEXT_TELEMETRY_DISABLED=1
-              npm ci
-              npm run build --no-progress
-              cd ..
-              pm2 startOrReload ecosystem.config.js --only qr-order-client 
+            # Backup current deployment
+            echo "💾 Creating backup..."
+            if [ -d "$DEPLOY_PATH" ]; then
+              mkdir -p "$BACKUP_DIR"
+              [ -d "$DEPLOY_PATH/client" ] && cp -r "$DEPLOY_PATH/client" "$BACKUP_DIR/"
+              [ -d "$DEPLOY_PATH/server" ] && cp -r "$DEPLOY_PATH/server" "$BACKUP_DIR/"
+              [ -f "$DEPLOY_PATH/ecosystem.config.js" ] && cp "$DEPLOY_PATH/ecosystem.config.js" "$BACKUP_DIR/"
             fi
 
-            # Cập nhật server nếu có thay đổi
-            if ${{ needs.ci.outputs.server-changed == 'true' }}; then
-              echo "Updating server..."
-              cd server
-              npm ci
-              npm run build
-              cd ..
-              pm2 startOrReload ecosystem.config.js --only qr-order-server
+            # Extract the package
+            cd "$DEPLOY_PATH"
+            echo "📦 Extracting deployment package..."
+            mkdir -p temp_extract
+            tar -xzf /tmp/deployment-*.tar.gz -C temp_extract
+
+            # Add environment files
+            if [ -d "temp_extract/client" ]; then
+              echo "🔑 Setting client environment variables..."
+              echo "${{ secrets.CLIENT_ENV_PROD }}" > temp_extract/client/.env
             fi
+
+            if [ -d "temp_extract/server" ]; then
+              echo "🔑 Setting server environment variables..."
+              echo "${{ secrets.SERVER_ENV_PROD }}" > temp_extract/server/.env
+            fi
+
+            # Install production dependencies
+            if [ -d "temp_extract/client" ]; then
+              echo "📦 Installing client dependencies..."
+              cd temp_extract/client
+              npm ci --production
+              cd ../..
+            fi
+
+            if [ -d "temp_extract/server" ]; then
+              echo "📦 Installing server dependencies..."
+              cd temp_extract/server
+              npm ci --production
+              cd ../..
+            fi
+
+            # Create log directories
+            mkdir -p /var/log/qr-order/{client,server} || sudo mkdir -p /var/log/qr-order/{client,server}
+
+            # Stop current services before deploying new versions
+            if [ -d "temp_extract/client" ] && pm2 list | grep -q "qr-order-client"; then
+              echo "⏸️ Stopping client service..."
+              pm2 stop qr-order-client
+            fi
+
+            if [ -d "temp_extract/server" ] && pm2 list | grep -q "qr-order-server"; then
+              echo "⏸️ Stopping server service..."
+              pm2 stop qr-order-server
+            fi
+
+            # Move new files into place
+            echo "🚚 Deploying new files..."
+            [ -f "temp_extract/ecosystem.config.js" ] && cp temp_extract/ecosystem.config.js .
+
+            if [ -d "temp_extract/client" ]; then
+              echo "🔄 Updating client..."
+              rm -rf client
+              mv temp_extract/client .
+            fi
+
+            if [ -d "temp_extract/server" ]; then
+              echo "🔄 Updating server..."
+              rm -rf server
+              mv temp_extract/server .
+            fi
+
+            # Start services with PM2
+            echo "🚀 Starting services..."
+            export NODE_ENV=production
+
+            if [ -d "client" ]; then
+              if pm2 list | grep -q "qr-order-client"; then
+                pm2 restart qr-order-client --update-env
+              else
+                pm2 start ecosystem.config.js --only qr-order-client
+              fi
+            fi
+
+            if [ -d "server" ]; then
+              if pm2 list | grep -q "qr-order-server"; then
+                pm2 restart qr-order-server --update-env
+              else
+                pm2 start ecosystem.config.js --only qr-order-server
+              fi
+            fi
+
+            # Health check
+            echo "🔍 Performing health checks..."
+            sleep 5
+
+            if [ -d "server" ]; then
+              if curl -s http://localhost:4000/healthz | grep -q "ok"; then
+                echo "✅ Server health check passed"
+              else
+                echo "❌ Server health check failed! Rolling back..."
+                rm -rf server
+                [ -d "$BACKUP_DIR/server" ] && cp -r "$BACKUP_DIR/server" .
+                pm2 restart qr-order-server || pm2 start ecosystem.config.js --only qr-order-server
+                exit 1
+              fi
+            fi
+
+            if [ -d "client" ]; then
+              if pm2 list | grep -q "qr-order-client.*online"; then
+                echo "✅ Client started successfully"
+              else
+                echo "❌ Client failed to start! Rolling back..."
+                rm -rf client
+                [ -d "$BACKUP_DIR/client" ] && cp -r "$BACKUP_DIR/client" .
+                pm2 restart qr-order-client || pm2 start ecosystem.config.js --only qr-order-client
+                exit 1
+              fi
+            fi
+
+            # Clean up
+            rm -rf temp_extract /tmp/deployment-*.tar.gz
+
+            # Save PM2 config
+            pm2 save
+
+            echo "✅ Deployment completed successfully!"

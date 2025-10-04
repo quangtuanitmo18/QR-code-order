@@ -66,7 +66,7 @@ export default function TermsOfServicePage() {
             <header className="flex items-center gap-3">
               <IconGavel className="h-6 w-6" />
               <h2 className="text-2xl font-semibold md:text-3xl">
-                Intellectual Property 1
+                Intellectual Property
               </h2>
             </header>
             <p className="mt-4 leading-8 text-muted-foreground">
