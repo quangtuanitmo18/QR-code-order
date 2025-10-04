@@ -19,7 +19,7 @@ on:
 
 jobs:
   ci:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       server-changed: ${{ steps.check-server.outputs.server }}
       client-changed: ${{ steps.check-client.outputs.client }}
@@ -69,7 +69,7 @@ jobs:
           fi
 
       # CLIENT PROCESS
-      - name: Process client
+      - name: Install client dependencies
         if: steps.check-client.outputs.client == 'true'
         run: |
           cd client
@@ -79,9 +79,21 @@ jobs:
           echo "🔍 Linting client code..."
           npm run lint
 
-          echo "🔒 Running security scan on client..."
-          npx snyk test --severity-threshold=high || echo "Security vulnerabilities found, but proceeding with build"
+      # CLIENT SECURITY SCAN - Using official Snyk action
+      - name: Client security scan
+        if: steps.check-client.outputs.client == 'true'
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        with:
+          args: --severity-threshold=high
+          file: ./client/package.json
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN || '' }}
 
+      - name: Build client
+        if: steps.check-client.outputs.client == 'true'
+        run: |
+          cd client
           echo "🔨 Building client..."
           export NODE_OPTIONS="--max-old-space-size=4096"
           export CI=true
@@ -90,7 +102,7 @@ jobs:
           npm run build --no-progress
 
       # SERVER PROCESS
-      - name: Process server
+      - name: Install server dependencies
         if: steps.check-server.outputs.server == 'true'
         run: |
           cd server
@@ -100,9 +112,21 @@ jobs:
           echo "🔍 Linting server code..."
           npm run lint
 
-          echo "🔒 Running security scan on server..."
-          npx snyk test --severity-threshold=high || echo "Security vulnerabilities found, but proceeding with build"
+      # SERVER SECURITY SCAN - Using official Snyk action
+      - name: Server security scan
+        if: steps.check-server.outputs.server == 'true'
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        with:
+          args: --severity-threshold=high
+          file: ./server/package.json
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN || '' }}
 
+      - name: Build server
+        if: steps.check-server.outputs.server == 'true'
+        run: |
+          cd server
           echo "🔨 Building server..."
           npm run build
 
