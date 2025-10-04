@@ -60,11 +60,11 @@ jobs:
       - name: Create environment files for CI
         run: |
           if [[ "${{ steps.check-client.outputs.client }}" == "true" ]]; then
-            echo "${{ secrets.CLIENT_ENV_CI }}" > client/.env
+            echo "${{ secrets.CLIENT_ENV_PROD }}" > client/.env
           fi
 
           if [[ "${{ steps.check-server.outputs.server }}" == "true" ]]; then
-            echo "${{ secrets.SERVER_ENV_CI }}" > server/.env
+            echo "${{ secrets.SERVER_ENV_PROD }}" > server/.env
           fi
 
       # CLIENT PROCESS
@@ -195,7 +195,7 @@ jobs:
           overwrite: true
 
       - name: Deploy to Production
-        uses: appleboy/ssh-action@v4
+        uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
