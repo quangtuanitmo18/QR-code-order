@@ -139,7 +139,7 @@ jobs:
       # UPLOAD ARTIFACT
       - name: Upload deployment artifact
         if: success() && (github.ref == 'refs/heads/deploy' || github.event_name == 'workflow_dispatch')
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: deployment-package
           path: deployment-*.tar.gz
@@ -152,7 +152,7 @@ jobs:
 
     steps:
       - name: Download deployment package
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: deployment-package
 
