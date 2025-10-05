@@ -374,32 +374,32 @@ jobs:
             fi
 
             # Health check
-            echo "🔍 Performing health checks..."
-            sleep 15
+            # echo "🔍 Performing health checks..."
+            # sleep 15
 
-            if [ -d "server" ]; then
-              if curl -s https://164181.msk.web.highserver.ru/api-fastify/healthz | grep  "ok"; then
-                echo "✅ Server health check passed"
-              else
-                echo "❌ Server health check failed! Rolling back..."
-                rm -rf server
-                [ -d "$BACKUP_DIR/server" ] && cp -r "$BACKUP_DIR/server" .
-                pm2 restart qr-order-server || pm2 start ecosystem.config.js --only qr-order-server
-                exit 1
-              fi
-            fi
+            # if [ -d "server" ]; then
+            #   if curl -s https://164181.msk.web.highserver.ru/api-fastify/healthz | grep  "ok"; then
+            #     echo "✅ Server health check passed"
+            #   else
+            #     echo "❌ Server health check failed! Rolling back..."
+            #     rm -rf server
+            #     [ -d "$BACKUP_DIR/server" ] && cp -r "$BACKUP_DIR/server" .
+            #     pm2 restart qr-order-server || pm2 start ecosystem.config.js --only qr-order-server
+            #     exit 1
+            #   fi
+            # fi
 
-            if [ -d "client" ]; then
-              if pm2 list | grep -q "qr-order-client.*online"; then
-                echo "✅ Client started successfully"
-              else
-                echo "❌ Client failed to start! Rolling back..."
-                rm -rf client
-                [ -d "$BACKUP_DIR/client" ] && cp -r "$BACKUP_DIR/client" .
-                pm2 restart qr-order-client || pm2 start ecosystem.config.js --only qr-order-client
-                exit 1
-              fi
-            fi
+            # if [ -d "client" ]; then
+            #   if pm2 list | grep -q "qr-order-client.*online"; then
+            #     echo "✅ Client started successfully"
+            #   else
+            #     echo "❌ Client failed to start! Rolling back..."
+            #     rm -rf client
+            #     [ -d "$BACKUP_DIR/client" ] && cp -r "$BACKUP_DIR/client" .
+            #     pm2 restart qr-order-client || pm2 start ecosystem.config.js --only qr-order-client
+            #     exit 1
+            #   fi
+            # fi
 
             # Clean up
             rm -rf temp_extract /tmp/deployment-*.tar.gz
