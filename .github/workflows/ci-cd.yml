@@ -84,8 +84,8 @@ jobs:
         uses: snyk/actions/node@master
         continue-on-error: true
         with:
-          args: --severity-threshold=high
-          file: ./client/package.json
+          command: test
+          args: --severity-threshold=high ./client
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN || '' }}
 
@@ -117,8 +117,8 @@ jobs:
         uses: snyk/actions/node@master
         continue-on-error: true
         with:
-          args: --severity-threshold=high
-          file: ./server/package.json
+          command: test
+          args: --severity-threshold=high ./server
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN || '' }}
 
