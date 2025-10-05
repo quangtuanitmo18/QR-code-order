@@ -79,7 +79,17 @@ jobs:
           npm run lint
 
       # CLIENT SECURITY SCAN - Using official Snyk action
-      - name: Client security scan
+      - name: Client SAST scan
+        if: steps.check-client.outputs.client == 'true'
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        with:
+          command: code test
+          args: --severity-threshold=high ./client
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN || '' }}
+
+      - name: Client SCA scan
         if: steps.check-client.outputs.client == 'true'
         uses: snyk/actions/node@master
         continue-on-error: true
@@ -112,7 +122,17 @@ jobs:
           npm run lint
 
       # SERVER SECURITY SCAN - Using official Snyk action
-      - name: Server security scan
+      - name: Server SAST scan
+        if: steps.check-server.outputs.server == 'true'
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        with:
+          command: code test
+          args: --severity-threshold=high ./server
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN || '' }}
+
+      - name: Server SCA scan
         if: steps.check-server.outputs.server == 'true'
         uses: snyk/actions/node@master
         continue-on-error: true

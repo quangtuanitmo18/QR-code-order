@@ -3,3 +3,6 @@
 *.docx
 
 server/prisma/dev.db
+
+# backups
+/backups
