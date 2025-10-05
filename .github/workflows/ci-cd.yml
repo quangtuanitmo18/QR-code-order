@@ -85,7 +85,7 @@ jobs:
         continue-on-error: true
         with:
           command: code test
-          args: --severity-threshold=high ./client
+          args: ./client
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN || '' }}
 
@@ -128,7 +128,7 @@ jobs:
         continue-on-error: true
         with:
           command: code test
-          args: --severity-threshold=high ./server
+          args: ./server
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN || '' }}
 
@@ -290,7 +290,12 @@ jobs:
             cd "$DEPLOY_PATH"
             echo "📦 Extracting deployment package..."
             mkdir -p temp_extract
-            tar -xzf /tmp/deployment-*.tar.gz -C temp_extract
+
+
+            # Tìm file deployment mới nhất
+            LATEST_DEPLOYMENT=$(ls -t /tmp/deployment-*.tar.gz | head -1)
+            echo "📦 Using latest deployment package: $LATEST_DEPLOYMENT"
+            tar -xzf "$LATEST_DEPLOYMENT" -C temp_extract
 
             # Add environment files
             if [ -d "temp_extract/client" ]; then

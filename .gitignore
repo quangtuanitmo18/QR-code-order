@@ -6,3 +6,4 @@ server/prisma/dev.db
 
 # backups
 /backups
+/temp_extract
