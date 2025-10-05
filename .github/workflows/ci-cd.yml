@@ -312,14 +312,14 @@ jobs:
             if [ -d "temp_extract/client" ]; then
               echo "📦 Installing client dependencies..."
               cd temp_extract/client
-              npm ci --production
+              npm ci 
               cd ../..
             fi
 
             if [ -d "temp_extract/server" ]; then
               echo "📦 Installing server dependencies..."
               cd temp_extract/server
-              npm ci --production
+              npm ci 
               cd ../..
             fi
 
@@ -378,7 +378,7 @@ jobs:
             sleep 15
 
             if [ -d "server" ]; then
-              if curl -s https://164181.msk.web.highserver.ru/api-fastify/healthz | grep -q "ok"; then
+              if curl -s https://164181.msk.web.highserver.ru/api-fastify/healthz | grep  "ok"; then
                 echo "✅ Server health check passed"
               else
                 echo "❌ Server health check failed! Rolling back..."
