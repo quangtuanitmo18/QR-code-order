@@ -171,7 +171,7 @@ jobs:
           # Copy server files if changed
           if [[ "${{ steps.check-server.outputs.server }}" == "true" ]]; then
             mkdir -p artifacts/server
-            cp -r server/dist server/package.json server/package-lock.json artifacts/server/
+            cp -r server/dist server/package.json server/package-lock.json server/prisma artifacts/server/
             echo "✅ Server files packaged"
           fi
 
