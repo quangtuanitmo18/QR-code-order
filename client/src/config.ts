@@ -30,7 +30,7 @@ const configProject = configSchema.safeParse({
 });
 if (!configProject.success) {
   console.error(configProject.error.errors);
-  throw new Error("Các khai báo biến môi trường không hợp lệ");
+  throw new Error("Invalid environment variables");
 }
 
 const envConfig = configProject.data;
@@ -40,4 +40,4 @@ export default envConfig;
 export type Locale = (typeof locales)[number];
 
 export const locales = ["en", "vi"] as const;
-export const defaultLocale: Locale = "vi";
+export const defaultLocale: Locale = "en";

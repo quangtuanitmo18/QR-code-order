@@ -233,8 +233,8 @@ export default function AddOrder() {
                   alt={dish.name}
                   height={100}
                   width={100}
-                  unoptimized
                   quality={100}
+                  unoptimized
                   className="object-cover w-[80px] h-[80px] rounded-md"
                 />
               </div>
