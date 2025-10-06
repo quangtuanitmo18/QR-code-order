@@ -19,12 +19,15 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
       {
+        protocol: "https",
         hostname: "api-bigboy.duthanhduoc.com",
         pathname: "/**",
       },
+
       {
+        protocol: "https",
         hostname: "164181.msk.web.highserver.ru",
-        pathname: "/**",
+        pathname: "/api-fastify/static/**",
       },
       {
         hostname: "via.placeholder.com",
