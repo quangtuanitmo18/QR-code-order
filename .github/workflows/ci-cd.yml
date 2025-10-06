@@ -171,7 +171,7 @@ jobs:
           # Copy server files if changed
           if [[ "${{ steps.check-server.outputs.server }}" == "true" ]]; then
             mkdir -p artifacts/server
-            cp -r server/dist server/package.json server/package-lock.json server/prisma artifacts/server/
+            cp -r server/dist server/package.json server/package-lock.json server/prisma server/uploads artifacts/server/
             echo "✅ Server files packaged"
           fi
 
@@ -350,11 +350,18 @@ jobs:
             if [ -d "temp_extract/server" ]; then
               echo "🔄 Updating server..."
               
-              # Bước 1: Chỉ backup file database SQLite
+              # Bước 1: Backup file database SQLite và thư mục uploads
               if [ -f "server/prisma/dev.db" ]; then
                 echo "📦 Backing up Prisma database file..."
                 mkdir -p temp_prisma_backup
                 cp server/prisma/dev.db temp_prisma_backup/
+              fi
+              
+              # Backup thư mục uploads nếu tồn tại
+              if [ -d "server/uploads" ]; then
+                echo "📦 Backing up uploads directory..."
+                mkdir -p temp_uploads_backup
+                cp -r server/uploads temp_uploads_backup/
               fi
               
               # Bước 2: Xóa hoàn toàn thư mục server và tạo lại
@@ -370,8 +377,16 @@ jobs:
                 cp temp_prisma_backup/dev.db server/prisma/
               fi
               
+              # Bước 5: Khôi phục thư mục uploads nếu có
+              if [ -d "temp_uploads_backup/uploads" ]; then
+                echo "🔄 Restoring uploads directory..."
+                # Xóa thư mục uploads mới (nếu có) và thay thế bằng bản backup
+                rm -rf server/uploads
+                cp -r temp_uploads_backup/uploads server/
+              fi
+              
               # Xóa backup tạm
-              rm -rf temp_prisma_backup
+              rm -rf temp_prisma_backup temp_uploads_backup
             fi
 
 
