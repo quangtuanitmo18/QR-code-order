@@ -6,3 +6,5 @@ dist/
 /logs
 
 /prisma/dev.db
+
+/uploads

@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
       {
+        hostname: "127.0.0.1",
+        pathname: "/**",
+      },
+      {
         hostname: "api-bigboy.duthanhduoc.com",
         pathname: "/**",
       },
