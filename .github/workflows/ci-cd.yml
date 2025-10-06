@@ -56,7 +56,7 @@ jobs:
               - 'client/**'
               - 'ecosystem.config.js'
 
-      # Tạo file .env cho CI
+      # Create environment files for CI
       - name: Create environment files for CI
         run: |
           if [[ "${{ steps.check-client.outputs.client }}" == "true" ]]; then
@@ -292,7 +292,7 @@ jobs:
             mkdir -p temp_extract
 
 
-            # Tìm file deployment mới nhất
+            # Search for the latest deployment file
             LATEST_DEPLOYMENT=$(ls -t /tmp/deployment-*.tar.gz | head -1)
             echo "📦 Using latest deployment package: $LATEST_DEPLOYMENT"
             tar -xzf "$LATEST_DEPLOYMENT" -C temp_extract
@@ -349,43 +349,43 @@ jobs:
 
             if [ -d "temp_extract/server" ]; then
               echo "🔄 Updating server..."
-              
-              # Bước 1: Backup file database SQLite và thư mục uploads
+
+              # Step 1: Backup Prisma database file and uploads directory
               if [ -f "server/prisma/dev.db" ]; then
                 echo "📦 Backing up Prisma database file..."
                 mkdir -p temp_prisma_backup
                 cp server/prisma/dev.db temp_prisma_backup/
               fi
-              
-              # Backup thư mục uploads nếu tồn tại
+
+              # Backup uploads directory if it exists
               if [ -d "server/uploads" ]; then
                 echo "📦 Backing up uploads directory..."
                 mkdir -p temp_uploads_backup
                 cp -r server/uploads temp_uploads_backup/
               fi
               
-              # Bước 2: Xóa hoàn toàn thư mục server và tạo lại
+              # Step 2: Remove the server directory completely and recreate it
               rm -rf server
               mkdir -p server/prisma
-              
-              # Bước 3: Di chuyển toàn bộ code mới từ temp_extract
+
+              # Step 3: Move all new code from temp_extract
               cp -r temp_extract/server/. server/
-              
-              # Bước 4: Khôi phục file database nếu đã có trước đó
+
+              # Step 4: Restore database file if it existed before
               if [ -f "temp_prisma_backup/dev.db" ]; then
                 echo "🔄 Restoring Prisma database file..."
                 cp temp_prisma_backup/dev.db server/prisma/
               fi
               
-              # Bước 5: Khôi phục thư mục uploads nếu có
+              # Step 5: Restore uploads directory if it exists
               if [ -d "temp_uploads_backup/uploads" ]; then
                 echo "🔄 Restoring uploads directory..."
-                # Xóa thư mục uploads mới (nếu có) và thay thế bằng bản backup
+                # Remove new uploads directory (if it exists) and replace with backup
                 rm -rf server/uploads
                 cp -r temp_uploads_backup/uploads server/
               fi
-              
-              # Xóa backup tạm
+
+              # Remove temporary backups
               rm -rf temp_prisma_backup temp_uploads_backup
             fi
 
