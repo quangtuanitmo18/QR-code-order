@@ -10,8 +10,7 @@ export default function PrivacyPolicyPage() {
               Privacy Policy
             </h1>
             <p className="mt-4 text-lg text-muted-foreground">
-              Learn how we collect, use, and protect your information, and how
-              it may be shared with third parties, including advertisers.
+              Learn how we collect, use, and protect your information.
             </p>
           </div>
         </div>
