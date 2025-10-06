@@ -83,9 +83,9 @@ export default async function Home(props: {
                   width={150}
                   height={150}
                   quality={80}
-                  loading="lazy"
                   alt={dish.name}
                   className="object-cover w-[150px] h-[150px] rounded-md"
+                  unoptimized
                 />
               </div>
               <div className="space-y-1">

@@ -392,7 +392,6 @@ jobs:
 
             # Start services with PM2
             echo "🚀 Starting services..."
-            export NODE_ENV=production
 
             if [ -d "client" ]; then
               if pm2 list | grep -q "qr-order-client"; then
