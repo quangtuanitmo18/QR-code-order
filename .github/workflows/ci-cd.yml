@@ -362,7 +362,7 @@ jobs:
               mkdir -p server/prisma
               
               # Bước 3: Di chuyển toàn bộ code mới từ temp_extract
-              cp -r temp_extract/server/* server/
+              cp -r temp_extract/server/. server/
               
               # Bước 4: Khôi phục file database nếu đã có trước đó
               if [ -f "temp_prisma_backup/dev.db" ]; then
