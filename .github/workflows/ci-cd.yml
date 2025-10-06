@@ -357,12 +357,9 @@ jobs:
                 cp server/prisma/dev.db temp_prisma_backup/
               fi
               
-              # Bước 2: Xóa thư mục server nhưng giữ lại thư mục prisma/dev.db
-              if [ -d "server" ]; then
-                find server -mindepth 1 -not -path "server/prisma/dev.db" -delete
-              else
-                mkdir -p server
-              fi
+              # Bước 2: Xóa hoàn toàn thư mục server và tạo lại
+              rm -rf server
+              mkdir -p server/prisma
               
               # Bước 3: Di chuyển toàn bộ code mới từ temp_extract
               cp -r temp_extract/server/* server/
@@ -370,14 +367,12 @@ jobs:
               # Bước 4: Khôi phục file database nếu đã có trước đó
               if [ -f "temp_prisma_backup/dev.db" ]; then
                 echo "🔄 Restoring Prisma database file..."
-                mkdir -p server/prisma
                 cp temp_prisma_backup/dev.db server/prisma/
               fi
               
               # Xóa backup tạm
               rm -rf temp_prisma_backup
             fi
-
 
 
             # Start services with PM2
