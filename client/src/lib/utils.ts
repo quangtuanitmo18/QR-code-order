@@ -247,6 +247,18 @@ export const formatDateTimeToLocaleString = (date: string | Date) => {
   );
 };
 
+export function getImagePath(url: string): string {
+  if (url.includes(envConfig.NEXT_PUBLIC_URL)) {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.pathname;
+    } catch (e) {
+      return url;
+    }
+  }
+  return url;
+}
+
 export const formatDateTimeToTimeString = (date: string | Date) => {
   return format(date instanceof Date ? date : new Date(date), "HH:mm:ss");
 };
