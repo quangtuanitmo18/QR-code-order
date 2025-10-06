@@ -353,6 +353,13 @@ jobs:
               mv temp_extract/server .
             fi
 
+            if [ -d "server" ]; then
+              echo "🔄 Updating database schema with Prisma..."
+              cd server
+              npx prisma db push
+              cd ..
+            fi
+
             # Start services with PM2
             echo "🚀 Starting services..."
             export NODE_ENV=production
