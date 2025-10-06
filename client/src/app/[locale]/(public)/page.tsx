@@ -2,7 +2,7 @@ import dishApiRequest from "@/apiRequests/dish";
 import envConfig, { Locale } from "@/config";
 import { Link } from "@/i18n/routing";
 import { htmlToTextForDescription } from "@/lib/server-utils";
-import { formatCurrency, generateSlugUrl, getImagePath } from "@/lib/utils";
+import { formatCurrency, generateSlugUrl } from "@/lib/utils";
 import { DishListResType } from "@/schemaValidations/dish.schema";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import Image from "next/image";
@@ -79,7 +79,7 @@ export default async function Home(props: {
             >
               <div className="flex-shrink-0">
                 <Image
-                  src={getImagePath(dish.image)}
+                  src={dish.image}
                   width={150}
                   height={150}
                   quality={80}

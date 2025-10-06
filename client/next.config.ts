@@ -31,8 +31,6 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
-    dangerouslyAllowSVG: true,
-    contentSecurityPolicy: "default-src 'self';",
   },
   output: "standalone",
   productionBrowserSourceMaps: false,
