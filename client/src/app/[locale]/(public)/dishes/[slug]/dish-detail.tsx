@@ -21,7 +21,7 @@ export default async function DishDetail({
         src={dish.image}
         width={700}
         height={700}
-        quality={100}
+        quality={70}
         alt={dish.name}
         className="object-cover w-full h-full max-w-[1080px] max-h-[1080px] rounded-md"
         unoptimized
