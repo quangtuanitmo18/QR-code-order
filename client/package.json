@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
-    "@next/bundle-analyzer": "15.0.2",
+    "@next/bundle-analyzer": "15.5.3",
     "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-avatar": "^1.1.1",
     "@radix-ui/react-dialog": "^1.1.2",
