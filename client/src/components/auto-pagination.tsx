@@ -6,7 +6,7 @@ import {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious
+  PaginationPrevious,
 } from '@/components/ui/pagination'
 import { cn } from '@/lib/utils'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -45,7 +45,7 @@ export default function AutoPagination({
   pageSize,
   pathname = '/',
   isLink = true,
-  onClick = (pageNumber) => {}
+  onClick = (pageNumber) => {},
 }: Props) {
   const renderPagination = () => {
     let dotAfter = false
@@ -87,10 +87,7 @@ export default function AutoPagination({
         } else if (page > RANGE * 2 + 1 && page < pageSize - RANGE * 2) {
           if (pageNumber < page - RANGE && pageNumber > RANGE) {
             return renderDotBefore(index)
-          } else if (
-            pageNumber > page + RANGE &&
-            pageNumber < pageSize - RANGE + 1
-          ) {
+          } else if (pageNumber > page + RANGE && pageNumber < pageSize - RANGE + 1) {
             return renderDotAfter(index)
           }
         } else if (
@@ -107,8 +104,8 @@ export default function AutoPagination({
                 href={{
                   pathname,
                   query: {
-                    page: pageNumber
-                  }
+                    page: pageNumber,
+                  },
                 }}
                 isActive={pageNumber === page}
               >
@@ -121,7 +118,7 @@ export default function AutoPagination({
                   onClick(pageNumber)
                 }}
                 variant={pageNumber === page ? 'outline' : 'ghost'}
-                className='w-9 h-9 p-0'
+                className="h-9 w-9 p-0"
               >
                 {pageNumber}
               </Button>
@@ -139,11 +136,11 @@ export default function AutoPagination({
               href={{
                 pathname,
                 query: {
-                  page: page - 1
-                }
+                  page: page - 1,
+                },
               }}
               className={cn({
-                'cursor-not-allowed': page === 1
+                'cursor-not-allowed': page === 1,
               })}
               onClick={(e) => {
                 if (page === 1) {
@@ -155,13 +152,13 @@ export default function AutoPagination({
           {!isLink && (
             <Button
               disabled={page === 1}
-              className='h-9 p-0 px-2'
+              className="h-9 p-0 px-2"
               variant={'ghost'}
               onClick={() => {
                 onClick(page - 1)
               }}
             >
-              <ChevronLeft className='w-5 h-5' /> Previous
+              <ChevronLeft className="h-5 w-5" /> Previous
             </Button>
           )}
         </PaginationItem>
@@ -173,11 +170,11 @@ export default function AutoPagination({
               href={{
                 pathname,
                 query: {
-                  page: page + 1
-                }
+                  page: page + 1,
+                },
               }}
               className={cn({
-                'cursor-not-allowed': page === pageSize
+                'cursor-not-allowed': page === pageSize,
               })}
               onClick={(e) => {
                 if (page === pageSize) {
@@ -189,13 +186,13 @@ export default function AutoPagination({
           {!isLink && (
             <Button
               disabled={page === pageSize}
-              className='h-9 p-0 px-2'
+              className="h-9 p-0 px-2"
               variant={'ghost'}
               onClick={() => {
                 onClick(page + 1)
               }}
             >
-              Next <ChevronRight className='w-5 h-5' />
+              Next <ChevronRight className="h-5 w-5" />
             </Button>
           )}
         </PaginationItem>

@@ -1,44 +1,38 @@
-import AppProvider from "@/components/app-provider";
-import { ThemeProvider } from "@/components/theme-provider";
-import { Toaster } from "@/components/ui/toaster";
-import { Locale } from "@/config";
-import { cn } from "@/lib/utils";
-import { NextIntlClientProvider } from "next-intl";
-import {
-  getMessages,
-  getTranslations,
-  setRequestLocale,
-} from "next-intl/server";
-import { Inter as FontSans } from "next/font/google";
-import NextTopLoader from "nextjs-toploader";
-import "./globals.css";
+import AppProvider from '@/components/app-provider'
+import { ThemeProvider } from '@/components/theme-provider'
+import { Toaster } from '@/components/ui/toaster'
+import { Locale } from '@/config'
+import { cn } from '@/lib/utils'
+import { NextIntlClientProvider } from 'next-intl'
+import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
+import { Inter as FontSans } from 'next/font/google'
+import NextTopLoader from 'nextjs-toploader'
+import './globals.css'
 // import Footer from '@/components/footer'
-import { baseOpenGraph } from "@/shared-metadata";
+import { baseOpenGraph } from '@/shared-metadata'
 // import GoogleTag from '@/components/google-tag'
-import { routing } from "@/i18n/routing";
-import dynamic from "next/dynamic";
-import { notFound } from "next/navigation";
+import { routing } from '@/i18n/routing'
+import dynamic from 'next/dynamic'
+import { notFound } from 'next/navigation'
 
 // const NextTopLoader = dynamic(() => import('nextjs-toploader'), { ssr: false })
-const GoogleTag = dynamic(() => import("@/components/google-tag"));
-const Footer = dynamic(() => import("@/components/footer"));
+const GoogleTag = dynamic(() => import('@/components/google-tag'))
+const Footer = dynamic(() => import('@/components/footer'))
 
 const fontSans = FontSans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
-export async function generateMetadata(props: {
-  params: Promise<{ locale: Locale }>;
-}) {
-  const params = await props.params;
+  subsets: ['latin'],
+  variable: '--font-sans',
+})
+export async function generateMetadata(props: { params: Promise<{ locale: Locale }> }) {
+  const params = await props.params
 
-  const { locale } = params;
+  const { locale } = params
 
-  const t = await getTranslations({ locale, namespace: "Brand" });
+  const t = await getTranslations({ locale, namespace: 'Brand' })
   return {
     title: {
-      template: `%s | ${t("title")}`,
-      default: t("defaultTitle"),
+      template: `%s | ${t('title')}`,
+      default: t('defaultTitle'),
     },
     openGraph: {
       ...baseOpenGraph,
@@ -46,39 +40,34 @@ export async function generateMetadata(props: {
     // other: {
     //   'google-site-verification': 'KKr5Sgn6rrXntMUp1nDIoQR7mJQujE4BExrlgcFvGTg'
     // }
-  };
+  }
 }
 
 export function generateStaticParams() {
-  return routing.locales.map((locale) => ({ locale }));
+  return routing.locales.map((locale) => ({ locale }))
 }
 
 export default async function RootLayout(
   props: Readonly<{
-    children: React.ReactNode;
-    params: Promise<{ locale: string }>;
+    children: React.ReactNode
+    params: Promise<{ locale: string }>
   }>
 ) {
-  const params = await props.params;
+  const params = await props.params
 
-  const { locale } = params;
+  const { locale } = params
 
-  const { children } = props;
+  const { children } = props
 
   // Ensure that the incoming `locale` is valid
   if (!routing.locales.includes(locale as any)) {
-    notFound();
+    notFound()
   }
-  setRequestLocale(locale);
-  const messages = await getMessages();
+  setRequestLocale(locale)
+  const messages = await getMessages()
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body
-        className={cn(
-          "min-h-screen bg-background font-sans antialiased",
-          fontSans.variable
-        )}
-      >
+      <body className={cn('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
         <NextTopLoader showSpinner={false} color="hsl(var(--foreground))" />
         <NextIntlClientProvider messages={messages}>
           <AppProvider>
@@ -97,5 +86,5 @@ export default async function RootLayout(
         <GoogleTag />
       </body>
     </html>
-  );
+  )
 }

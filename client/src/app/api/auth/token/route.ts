@@ -17,28 +17,28 @@ export async function POST(request: Request) {
       httpOnly: true,
       sameSite: 'lax',
       secure: true,
-      expires: decodedAccessToken.exp * 1000
+      expires: decodedAccessToken.exp * 1000,
     })
     cookieStore.set('refreshToken', refreshToken, {
       path: '/',
       httpOnly: true,
       sameSite: 'lax',
       secure: true,
-      expires: decodedRefreshToken.exp * 1000
+      expires: decodedRefreshToken.exp * 1000,
     })
     return Response.json(body)
   } catch (error) {
     if (error instanceof HttpError) {
       return Response.json(error.payload, {
-        status: error.status
+        status: error.status,
       })
     } else {
       return Response.json(
         {
-          message: 'Có lỗi xảy ra'
+          message: 'Có lỗi xảy ra',
         },
         {
-          status: 500
+          status: 500,
         }
       )
     }

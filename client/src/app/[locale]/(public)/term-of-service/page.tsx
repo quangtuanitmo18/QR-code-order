@@ -23,13 +23,11 @@ export default function TermsOfServicePage() {
           <article className="rounded-2xl border bg-card/60 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/60 md:p-8">
             <header className="flex items-center gap-3">
               <IconDocument className="h-6 w-6" />
-              <h2 className="text-2xl font-semibold md:text-3xl">
-                Introduction
-              </h2>
+              <h2 className="text-2xl font-semibold md:text-3xl">Introduction</h2>
             </header>
             <p className="mt-4 leading-8 text-muted-foreground">
-              Welcome to our Terms of Service. By accessing or using our website
-              and services, you agree to be bound by these terms.
+              Welcome to our Terms of Service. By accessing or using our website and services, you
+              agree to be bound by these terms.
             </p>
           </article>
 
@@ -37,13 +35,11 @@ export default function TermsOfServicePage() {
           <article className="rounded-2xl border bg-card/60 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/60 md:p-8">
             <header className="flex items-center gap-3">
               <IconShield className="h-6 w-6" />
-              <h2 className="text-2xl font-semibold md:text-3xl">
-                Use of Services
-              </h2>
+              <h2 className="text-2xl font-semibold md:text-3xl">Use of Services</h2>
             </header>
             <p className="mt-4 leading-8 text-muted-foreground">
-              You agree to use our services only for lawful purposes and not to
-              distribute unlawful or harmful content or infringe others privacy.
+              You agree to use our services only for lawful purposes and not to distribute unlawful
+              or harmful content or infringe others privacy.
             </p>
             <ul className="mt-4 space-y-3 leading-8 text-muted-foreground">
               <li className="flex items-start gap-3">
@@ -65,14 +61,11 @@ export default function TermsOfServicePage() {
           <article className="rounded-2xl border bg-card/60 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/60 md:p-8">
             <header className="flex items-center gap-3">
               <IconGavel className="h-6 w-6" />
-              <h2 className="text-2xl font-semibold md:text-3xl">
-                Intellectual Property
-              </h2>
+              <h2 className="text-2xl font-semibold md:text-3xl">Intellectual Property</h2>
             </header>
             <p className="mt-4 leading-8 text-muted-foreground">
-              All content on our website—including text, images, graphics,
-              logos, and software—is owned by us or our licensors and is
-              protected by intellectual property laws.
+              All content on our website—including text, images, graphics, logos, and software—is
+              owned by us or our licensors and is protected by intellectual property laws.
             </p>
           </article>
 
@@ -80,14 +73,11 @@ export default function TermsOfServicePage() {
           <article className="rounded-2xl border bg-card/60 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/60 md:p-8">
             <header className="flex items-center gap-3">
               <IconTarget className="h-6 w-6" />
-              <h2 className="text-2xl font-semibold md:text-3xl">
-                Changes to the Terms
-              </h2>
+              <h2 className="text-2xl font-semibold md:text-3xl">Changes to the Terms</h2>
             </header>
             <p className="mt-4 leading-8 text-muted-foreground">
-              We may update these Terms from time to time. Your continued use of
-              the services after changes are posted constitutes acceptance of
-              the updated terms.
+              We may update these Terms from time to time. Your continued use of the services after
+              changes are posted constitutes acceptance of the updated terms.
             </p>
           </article>
 
@@ -98,9 +88,8 @@ export default function TermsOfServicePage() {
               <h2 className="text-2xl font-semibold md:text-3xl">Contact</h2>
             </header>
             <p className="mt-4 leading-8 text-muted-foreground">
-              If you have any questions about these Terms of Service, please
-              contact us via the email address or phone number provided on our
-              website.
+              If you have any questions about these Terms of Service, please contact us via the
+              email address or phone number provided on our website.
             </p>
           </article>
 
@@ -122,7 +111,7 @@ export default function TermsOfServicePage() {
         </div>
       </section>
     </div>
-  );
+  )
 }
 function IconDocument(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -141,7 +130,7 @@ function IconDocument(props: React.SVGProps<SVGSVGElement>) {
       <path d="M16 13H8" />
       <path d="M16 17H8" />
     </svg>
-  );
+  )
 }
 function IconShield(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -157,7 +146,7 @@ function IconShield(props: React.SVGProps<SVGSVGElement>) {
     >
       <path d="M12 22s8-4 8-10V6l-8-4-8 4v6c0 6 8 10 8 10Z" />
     </svg>
-  );
+  )
 }
 function IconGavel(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -176,7 +165,7 @@ function IconGavel(props: React.SVGProps<SVGSVGElement>) {
       <path d="M2 22h7" />
       <path d="M9 7l4-4 4 4-4 4z" />
     </svg>
-  );
+  )
 }
 function IconTarget(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -197,7 +186,7 @@ function IconTarget(props: React.SVGProps<SVGSVGElement>) {
       <circle cx="12" cy="12" r="7" />
       <circle cx="12" cy="12" r="3" />
     </svg>
-  );
+  )
 }
 function IconCheck(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -213,7 +202,7 @@ function IconCheck(props: React.SVGProps<SVGSVGElement>) {
     >
       <path d="m20 6-11 11-5-5" />
     </svg>
-  );
+  )
 }
 function IconMail(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -230,5 +219,5 @@ function IconMail(props: React.SVGProps<SVGSVGElement>) {
       <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
       <path d="m22 6-10 7L2 6" />
     </svg>
-  );
+  )
 }

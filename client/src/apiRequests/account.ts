@@ -1,4 +1,4 @@
-import http from "@/lib/http";
+import http from '@/lib/http'
 import {
   AccountListResType,
   AccountResType,
@@ -12,10 +12,10 @@ import {
   GetListGuestsResType,
   UpdateEmployeeAccountBodyType,
   UpdateMeBodyType,
-} from "@/schemaValidations/account.schema";
-import queryString from "query-string";
+} from '@/schemaValidations/account.schema'
+import queryString from 'query-string'
 
-const prefix = "/accounts";
+const prefix = '/accounts'
 const accountApiRequest = {
   me: () => http.get<AccountResType>(`${prefix}/me`),
   sMe: (accessToken: string) =>
@@ -24,8 +24,7 @@ const accountApiRequest = {
         Authorization: `Bearer ${accessToken}`,
       },
     }),
-  updateMe: (body: UpdateMeBodyType) =>
-    http.put<AccountResType>(`${prefix}/me`, body),
+  updateMe: (body: UpdateMeBodyType) => http.put<AccountResType>(`${prefix}/me`, body),
   changePassword: (body: ChangePasswordBodyType) =>
     http.put<AccountResType>(`${prefix}/change-password`, body),
   sChangePasswordV2: (accessToken: string, body: ChangePasswordV2BodyType) =>
@@ -35,22 +34,15 @@ const accountApiRequest = {
       },
     }),
   changePasswordV2: (body: ChangePasswordV2BodyType) =>
-    http.put<ChangePasswordV2ResType>(
-      `/api${prefix}/change-password-v2`,
-      body,
-      {
-        baseUrl: "",
-      }
-    ),
+    http.put<ChangePasswordV2ResType>(`/api${prefix}/change-password-v2`, body, {
+      baseUrl: '',
+    }),
   list: () => http.get<AccountListResType>(`${prefix}`),
-  addEmployee: (body: CreateEmployeeAccountBodyType) =>
-    http.post<AccountResType>(prefix, body),
+  addEmployee: (body: CreateEmployeeAccountBodyType) => http.post<AccountResType>(prefix, body),
   updateEmployee: (id: number, body: UpdateEmployeeAccountBodyType) =>
     http.put<AccountResType>(`${prefix}/detail/${id}`, body),
-  getEmployee: (id: number) =>
-    http.get<AccountResType>(`${prefix}/detail/${id}`),
-  deleteEmployee: (id: number) =>
-    http.delete<AccountResType>(`${prefix}/detail/${id}`),
+  getEmployee: (id: number) => http.get<AccountResType>(`${prefix}/detail/${id}`),
+  deleteEmployee: (id: number) => http.delete<AccountResType>(`${prefix}/detail/${id}`),
   guestList: (queryParams: GetGuestListQueryParamsType) =>
     http.get<GetListGuestsResType>(
       `${prefix}/guests?` +
@@ -61,6 +53,6 @@ const accountApiRequest = {
     ),
   createGuest: (body: CreateGuestBodyType) =>
     http.post<CreateGuestResType>(`${prefix}/guests`, body),
-};
+}
 
-export default accountApiRequest;
+export default accountApiRequest

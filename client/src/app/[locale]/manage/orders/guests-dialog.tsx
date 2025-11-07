@@ -1,6 +1,19 @@
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import AutoPagination from '@/components/auto-pagination'
 import { useEffect, useState } from 'react'
 import {
@@ -13,7 +26,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable
+  useReactTable,
 } from '@tanstack/react-table'
 import { formatDateTimeToLocaleString, simpleMatchText } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
@@ -28,33 +41,33 @@ export const columns: ColumnDef<GuestItem>[] = [
     accessorKey: 'name',
     header: 'Name',
     cell: ({ row }) => (
-      <div className='capitalize'>
+      <div className="capitalize">
         {row.getValue('name')} | (#{row.original.id})
       </div>
     ),
     filterFn: (row, columnId, filterValue: string) => {
       if (filterValue === undefined) return true
       return simpleMatchText(row.original.name + String(row.original.id), String(filterValue))
-    }
+    },
   },
   {
     accessorKey: 'tableNumber',
     header: 'Table number',
-    cell: ({ row }) => <div className='capitalize'>{row.getValue('tableNumber')}</div>,
+    cell: ({ row }) => <div className="capitalize">{row.getValue('tableNumber')}</div>,
     filterFn: (row, columnId, filterValue: string) => {
       if (filterValue === undefined) return true
       return simpleMatchText(String(row.original.tableNumber), String(filterValue))
-    }
+    },
   },
   {
     accessorKey: 'createdAt',
     header: () => <div>Create</div>,
     cell: ({ row }) => (
-      <div className='flex items-center space-x-4 text-sm'>
+      <div className="flex items-center space-x-4 text-sm">
         {formatDateTimeToLocaleString(row.getValue('createdAt'))}
       </div>
-    )
-  }
+    ),
+  },
 ]
 
 const PAGE_SIZE = 10
@@ -67,7 +80,7 @@ export default function GuestsDialog({ onChoose }: { onChoose: (guest: GuestItem
   const [toDate, setToDate] = useState(initToDate)
   const guestListQuery = useGetGuestListQuery({
     fromDate,
-    toDate
+    toDate,
   })
   const data = guestListQuery.data?.payload.data ?? []
   const [sorting, setSorting] = useState<SortingState>([])
@@ -76,7 +89,7 @@ export default function GuestsDialog({ onChoose }: { onChoose: (guest: GuestItem
   const [rowSelection, setRowSelection] = useState({})
   const [pagination, setPagination] = useState({
     pageIndex: 0, // Gía trị mặc định ban đầu, không có ý nghĩa khi data được fetch bất đồng bộ
-    pageSize: PAGE_SIZE //default page size
+    pageSize: PAGE_SIZE, //default page size
   })
 
   const table = useReactTable({
@@ -97,14 +110,14 @@ export default function GuestsDialog({ onChoose }: { onChoose: (guest: GuestItem
       columnFilters,
       columnVisibility,
       rowSelection,
-      pagination
-    }
+      pagination,
+    },
   })
 
   useEffect(() => {
     table.setPagination({
       pageIndex: 0,
-      pageSize: PAGE_SIZE
+      pageSize: PAGE_SIZE,
     })
   }, [table])
 
@@ -121,53 +134,55 @@ export default function GuestsDialog({ onChoose }: { onChoose: (guest: GuestItem
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant='outline'>Select customer</Button>
+        <Button variant="outline">Select customer</Button>
       </DialogTrigger>
-      <DialogContent className='sm:max-w-[700px] max-h-full overflow-auto'>
+      <DialogContent className="max-h-full overflow-auto sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Select customer</DialogTitle>
         </DialogHeader>
         <div>
-          <div className='w-full'>
-            <div className='flex flex-wrap gap-2'>
-              <div className='flex items-center'>
-                <span className='mr-2'>From</span>
+          <div className="w-full">
+            <div className="flex flex-wrap gap-2">
+              <div className="flex items-center">
+                <span className="mr-2">From</span>
                 <Input
-                  type='datetime-local'
-                  placeholder='From date'
-                  className='text-sm'
+                  type="datetime-local"
+                  placeholder="From date"
+                  className="text-sm"
                   value={format(fromDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
                   onChange={(event) => setFromDate(new Date(event.target.value))}
                 />
               </div>
-              <div className='flex items-center'>
-                <span className='mr-2'>To</span>
+              <div className="flex items-center">
+                <span className="mr-2">To</span>
                 <Input
-                  type='datetime-local'
-                  placeholder='To date'
+                  type="datetime-local"
+                  placeholder="To date"
                   value={format(toDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
                   onChange={(event) => setToDate(new Date(event.target.value))}
                 />
               </div>
-              <Button className='' variant={'outline'} onClick={resetDateFilter}>
+              <Button className="" variant={'outline'} onClick={resetDateFilter}>
                 Reset
               </Button>
             </div>
-            <div className='flex items-center py-4 gap-2'>
+            <div className="flex items-center gap-2 py-4">
               <Input
-                placeholder='Name or Id'
+                placeholder="Name or Id"
                 value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
                 onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
-                className='w-[170px]'
+                className="w-[170px]"
               />
               <Input
-                placeholder='Table number'
+                placeholder="Table number"
                 value={(table.getColumn('tableNumber')?.getFilterValue() as string) ?? ''}
-                onChange={(event) => table.getColumn('tableNumber')?.setFilterValue(event.target.value)}
-                className='w-[80px]'
+                onChange={(event) =>
+                  table.getColumn('tableNumber')?.setFilterValue(event.target.value)
+                }
+                className="w-[80px]"
               />
             </div>
-            <div className='rounded-md border'>
+            <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
@@ -193,7 +208,7 @@ export default function GuestsDialog({ onChoose }: { onChoose: (guest: GuestItem
                         onClick={() => {
                           choose(row.original)
                         }}
-                        className='cursor-pointer'
+                        className="cursor-pointer"
                       >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell key={cell.id}>
@@ -204,7 +219,7 @@ export default function GuestsDialog({ onChoose }: { onChoose: (guest: GuestItem
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={columns.length} className='h-24 text-center'>
+                      <TableCell colSpan={columns.length} className="h-24 text-center">
                         No results.
                       </TableCell>
                     </TableRow>
@@ -212,10 +227,10 @@ export default function GuestsDialog({ onChoose }: { onChoose: (guest: GuestItem
                 </TableBody>
               </Table>
             </div>
-            <div className='flex items-center justify-end space-x-2 py-4'>
-              <div className='text-xs text-muted-foreground py-4 flex-1'>
-                Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of <strong>{data.length}</strong>{' '}
-                results
+            <div className="flex items-center justify-end space-x-2 py-4">
+              <div className="flex-1 py-4 text-xs text-muted-foreground">
+                Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
+                <strong>{data.length}</strong> results
               </div>
 
               <div>
@@ -225,7 +240,7 @@ export default function GuestsDialog({ onChoose }: { onChoose: (guest: GuestItem
                   onClick={(pageNumber) =>
                     table.setPagination({
                       pageIndex: pageNumber - 1,
-                      pageSize: PAGE_SIZE
+                      pageSize: PAGE_SIZE,
                     })
                   }
                   isLink={false}

@@ -1,6 +1,13 @@
 'use client'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -12,7 +19,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { getDishStatus, handleErrorApi } from '@/lib/utils'
 import { CreateDishBody, CreateDishBodyType } from '@/schemaValidations/dish.schema'
 import { DishStatus, DishStatusValues } from '@/constants/type'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { useAddDishMutation } from '@/queries/useDish'
 import { useUploadMediaMutation } from '@/queries/useMedia'
@@ -32,8 +45,8 @@ export default function AddDish() {
       description: '',
       price: 0,
       image: undefined,
-      status: DishStatus.Unavailable
-    }
+      status: DishStatus.Unavailable,
+    },
   })
   const image = form.watch('image')
   const name = form.watch('name')
@@ -58,20 +71,20 @@ export default function AddDish() {
         const imageUrl = uploadImageResult.payload.data
         body = {
           ...values,
-          image: imageUrl
+          image: imageUrl,
         }
       }
       const result = await addDishMutation.mutateAsync(body)
       await revalidateApiRequest('dishes')
       toast({
-        description: result.payload.message
+        description: result.payload.message,
       })
       reset()
       setOpen(false)
     } catch (error) {
       handleErrorApi({
         error,
-        setError: form.setError
+        setError: form.setError,
       })
     }
   }
@@ -86,39 +99,41 @@ export default function AddDish() {
       open={open}
     >
       <DialogTrigger asChild>
-        <Button size='sm' className='h-7 gap-1'>
-          <PlusCircle className='h-3.5 w-3.5' />
-          <span className='sr-only sm:not-sr-only sm:whitespace-nowrap'>Add dish</span>
+        <Button size="sm" className="h-7 gap-1">
+          <PlusCircle className="h-3.5 w-3.5" />
+          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add dish</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className='sm:max-w-[600px] max-h-screen overflow-auto'>
+      <DialogContent className="max-h-screen overflow-auto sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Add dish</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
             noValidate
-            className='grid auto-rows-max items-start gap-4 md:gap-8'
-            id='add-dish-form'
+            className="grid auto-rows-max items-start gap-4 md:gap-8"
+            id="add-dish-form"
             onSubmit={form.handleSubmit(onSubmit, (e) => {
               console.log(e)
             })}
             onReset={reset}
           >
-            <div className='grid gap-4 py-4'>
+            <div className="grid gap-4 py-4">
               <FormField
                 control={form.control}
-                name='image'
+                name="image"
                 render={({ field }) => (
                   <FormItem>
-                    <div className='flex gap-2 items-start justify-start'>
-                      <Avatar className='aspect-square w-[100px] h-[100px] rounded-md object-cover'>
+                    <div className="flex items-start justify-start gap-2">
+                      <Avatar className="aspect-square h-[100px] w-[100px] rounded-md object-cover">
                         <AvatarImage src={previewAvatarFromFile} />
-                        <AvatarFallback className='rounded-none'>{name || 'Dish Image'}</AvatarFallback>
+                        <AvatarFallback className="rounded-none">
+                          {name || 'Dish Image'}
+                        </AvatarFallback>
                       </Avatar>
                       <input
-                        type='file'
-                        accept='image/*'
+                        type="file"
+                        accept="image/*"
                         ref={imageInputRef}
                         onChange={(e) => {
                           const file = e.target.files?.[0]
@@ -127,15 +142,15 @@ export default function AddDish() {
                             field.onChange('http://localhost:3000/' + file.name)
                           }
                         }}
-                        className='hidden'
+                        className="hidden"
                       />
                       <button
-                        className='flex aspect-square w-[100px] items-center justify-center rounded-md border border-dashed'
-                        type='button'
+                        className="flex aspect-square w-[100px] items-center justify-center rounded-md border border-dashed"
+                        type="button"
                         onClick={() => imageInputRef.current?.click()}
                       >
-                        <Upload className='h-4 w-4 text-muted-foreground' />
-                        <span className='sr-only'>Upload</span>
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                        <span className="sr-only">Upload</span>
                       </button>
                     </div>
                   </FormItem>
@@ -144,13 +159,13 @@ export default function AddDish() {
 
               <FormField
                 control={form.control}
-                name='name'
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='name'>Dish name</Label>
-                      <div className='col-span-3 w-full space-y-2'>
-                        <Input id='name' className='w-full' {...field} />
+                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                      <Label htmlFor="name">Dish name</Label>
+                      <div className="col-span-3 w-full space-y-2">
+                        <Input id="name" className="w-full" {...field} />
                         <FormMessage />
                       </div>
                     </div>
@@ -159,13 +174,13 @@ export default function AddDish() {
               />
               <FormField
                 control={form.control}
-                name='price'
+                name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='price'>Price</Label>
-                      <div className='col-span-3 w-full space-y-2'>
-                        <Input id='price' className='w-full' {...field} type='number' />
+                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                      <Label htmlFor="price">Price</Label>
+                      <div className="col-span-3 w-full space-y-2">
+                        <Input id="price" className="w-full" {...field} type="number" />
                         <FormMessage />
                       </div>
                     </div>
@@ -174,13 +189,13 @@ export default function AddDish() {
               />
               <FormField
                 control={form.control}
-                name='description'
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='description'>Description</Label>
-                      <div className='col-span-3 w-full space-y-2'>
-                        <Textarea id='description' className='w-full' {...field} />
+                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                      <Label htmlFor="description">Description</Label>
+                      <div className="col-span-3 w-full space-y-2">
+                        <Textarea id="description" className="w-full" {...field} />
                         <FormMessage />
                       </div>
                     </div>
@@ -189,16 +204,16 @@ export default function AddDish() {
               />
               <FormField
                 control={form.control}
-                name='status'
+                name="status"
                 render={({ field }) => (
                   <FormItem>
-                    <div className='grid grid-cols-4 items-center justify-items-start gap-4'>
-                      <Label htmlFor='description'>Status</Label>
-                      <div className='col-span-3 w-full space-y-2'>
+                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                      <Label htmlFor="description">Status</Label>
+                      <div className="col-span-3 w-full space-y-2">
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder='Select status' />
+                              <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -220,7 +235,7 @@ export default function AddDish() {
           </form>
         </Form>
         <DialogFooter>
-          <Button type='submit' form='add-dish-form'>
+          <Button type="submit" form="add-dish-form">
             Add
           </Button>
         </DialogFooter>

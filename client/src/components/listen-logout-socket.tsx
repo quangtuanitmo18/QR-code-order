@@ -23,7 +23,7 @@ export default function ListenLogoutSocket() {
         router.push('/')
       } catch (error: any) {
         handleErrorApi({
-          error
+          error,
         })
       }
     }
@@ -31,14 +31,6 @@ export default function ListenLogoutSocket() {
     return () => {
       socket?.off('logout', onLogout)
     }
-  }, [
-    socket,
-    pathname,
-    setRole,
-    router,
-    isPending,
-    mutateAsync,
-    disconnectSocket
-  ])
+  }, [socket, pathname, setRole, router, isPending, mutateAsync, disconnectSocket])
   return null
 }

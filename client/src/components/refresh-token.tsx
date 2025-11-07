@@ -23,7 +23,7 @@ export default function RefreshToken() {
           disconnectSocket()
           router.push('/login')
         },
-        force
+        force,
       })
     }
 

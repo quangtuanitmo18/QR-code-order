@@ -6,8 +6,8 @@ export const metadata: Metadata = {
   title: 'Refresh token redirect',
   description: 'Refresh token redirect',
   robots: {
-    index: false
-  }
+    index: false,
+  },
 }
 
 export default function RefreshTokenPage() {

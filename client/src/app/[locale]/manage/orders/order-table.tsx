@@ -8,11 +8,22 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable
+  useReactTable,
 } from '@tanstack/react-table'
 import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { GetOrdersResType, PayGuestOrdersResType, UpdateOrderResType } from '@/schemaValidations/order.schema'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  GetOrdersResType,
+  PayGuestOrdersResType,
+  UpdateOrderResType,
+} from '@/schemaValidations/order.schema'
 import AddOrder from '@/app/[locale]/manage/orders/add-order'
 import EditOrder from '@/app/[locale]/manage/orders/edit-order'
 import { createContext, useEffect, useMemo, useState } from 'react'
@@ -46,7 +57,7 @@ export const OrderTableContext = createContext({
     status: (typeof OrderStatusValues)[number]
     quantity: number
   }) => {},
-  orderObjectByGuestId: {} as OrderObjectByGuestID
+  orderObjectByGuestId: {} as OrderObjectByGuestID,
 })
 
 export type StatusCountObject = Record<(typeof OrderStatusValues)[number], number>
@@ -72,7 +83,7 @@ export default function OrderTable() {
   const [orderIdEdit, setOrderIdEdit] = useState<number | undefined>()
   const orderListQuery = useGetOrderListQuery({
     fromDate,
-    toDate
+    toDate,
   })
   const refetchOrderList = orderListQuery.refetch
   const orderList = orderListQuery.data?.payload.data ?? []
@@ -85,7 +96,7 @@ export default function OrderTable() {
   const [rowSelection, setRowSelection] = useState({})
   const [pagination, setPagination] = useState({
     pageIndex, // Gía trị mặc định ban đầu, không có ý nghĩa khi data được fetch bất đồng bộ
-    pageSize: PAGE_SIZE //default page size
+    pageSize: PAGE_SIZE, //default page size
   })
   const updateOrderMutation = useUpdateOrderMutation()
   const { statics, orderObjectByGuestId, servingGuestByTableNumber } = useOrderService(orderList)
@@ -100,7 +111,7 @@ export default function OrderTable() {
       await updateOrderMutation.mutateAsync(body)
     } catch (error) {
       handleErrorApi({
-        error
+        error,
       })
     }
   }
@@ -123,14 +134,14 @@ export default function OrderTable() {
       columnFilters,
       columnVisibility,
       rowSelection,
-      pagination
-    }
+      pagination,
+    },
   })
 
   useEffect(() => {
     table.setPagination({
       pageIndex,
-      pageSize: PAGE_SIZE
+      pageSize: PAGE_SIZE,
     })
   }, [table, pageIndex])
 
@@ -162,10 +173,10 @@ export default function OrderTable() {
     function onUpdateOrder(data: UpdateOrderResType['data']) {
       const {
         dishSnapshot: { name },
-        quantity
+        quantity,
       } = data
       toast({
-        description: `Dish ${name} (Qty: ${quantity}) has just been updated to status "${getOrderStatus(data.status)}"`
+        description: `Dish ${name} (Qty: ${quantity}) has just been updated to status "${getOrderStatus(data.status)}"`,
       })
 
       refetch()
@@ -174,7 +185,7 @@ export default function OrderTable() {
     function onNewOrder(data: GuestCreateOrdersResType['data']) {
       const { guest } = data[0]
       toast({
-        description: `${guest?.name} at table ${guest?.tableNumber} has just placed ${data.length} orders`
+        description: `${guest?.name} at table ${guest?.tableNumber} has just placed ${data.length} orders`,
       })
 
       refetch()
@@ -183,7 +194,7 @@ export default function OrderTable() {
     function onPayment(data: PayGuestOrdersResType['data']) {
       const { guest } = data[0]
       toast({
-        description: `${guest?.name} at table ${guest?.tableNumber} has successfully paid for ${data.length} orders`
+        description: `${guest?.name} at table ${guest?.tableNumber} has successfully paid for ${data.length} orders`,
       })
 
       refetch()
@@ -210,68 +221,72 @@ export default function OrderTable() {
         orderIdEdit,
         setOrderIdEdit,
         changeStatus,
-        orderObjectByGuestId
+        orderObjectByGuestId,
       }}
     >
-      <div className='w-full'>
+      <div className="w-full">
         <EditOrder id={orderIdEdit} setId={setOrderIdEdit} onSubmitSuccess={() => {}} />
-        <div className=' flex items-center'>
-          <div className='flex flex-wrap gap-2'>
-            <div className='flex items-center'>
-              <span className='mr-2'>From</span>
+        <div className="flex items-center">
+          <div className="flex flex-wrap gap-2">
+            <div className="flex items-center">
+              <span className="mr-2">From</span>
               <Input
-                type='datetime-local'
-                placeholder='From date'
-                className='text-sm'
+                type="datetime-local"
+                placeholder="From date"
+                className="text-sm"
                 value={format(fromDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
                 onChange={(event) => setFromDate(new Date(event.target.value))}
               />
             </div>
-            <div className='flex items-center'>
-              <span className='mr-2'>To</span>
+            <div className="flex items-center">
+              <span className="mr-2">To</span>
               <Input
-                type='datetime-local'
-                placeholder='To date'
+                type="datetime-local"
+                placeholder="To date"
                 value={format(toDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
                 onChange={(event) => setToDate(new Date(event.target.value))}
               />
             </div>
-            <Button className='' variant={'outline'} onClick={resetDateFilter}>
+            <Button className="" variant={'outline'} onClick={resetDateFilter}>
               Reset
             </Button>
           </div>
-          <div className='ml-auto'>
+          <div className="ml-auto">
             <AddOrder />
           </div>
         </div>
-        <div className='flex flex-wrap items-center gap-4 py-4'>
+        <div className="flex flex-wrap items-center gap-4 py-4">
           <Input
-            placeholder='Customer name'
+            placeholder="Customer name"
             value={(table.getColumn('guestName')?.getFilterValue() as string) ?? ''}
             onChange={(event) => table.getColumn('guestName')?.setFilterValue(event.target.value)}
-            className='max-w-[100px]'
+            className="max-w-[100px]"
           />
           <Input
-            placeholder='Table number'
+            placeholder="Table number"
             value={(table.getColumn('tableNumber')?.getFilterValue() as string) ?? ''}
             onChange={(event) => table.getColumn('tableNumber')?.setFilterValue(event.target.value)}
-            className='max-w-[80px]'
+            className="max-w-[80px]"
           />
           <Popover open={openStatusFilter} onOpenChange={setOpenStatusFilter}>
             <PopoverTrigger asChild>
               <Button
-                variant='outline'
-                role='combobox'
+                variant="outline"
+                role="combobox"
                 aria-expanded={openStatusFilter}
-                className='w-[150px] text-sm justify-between'
+                className="w-[150px] justify-between text-sm"
               >
                 {table.getColumn('status')?.getFilterValue()
-                  ? getOrderStatus(table.getColumn('status')?.getFilterValue() as (typeof OrderStatusValues)[number])
+                  ? getOrderStatus(
+                      table
+                        .getColumn('status')
+                        ?.getFilterValue() as (typeof OrderStatusValues)[number]
+                    )
                   : 'Status'}
-                <ChevronsUpDown className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
-            <PopoverContent className='w-[200px] p-0'>
+            <PopoverContent className="w-[200px] p-0">
               <Command>
                 <CommandGroup>
                   <CommandList>
@@ -283,7 +298,9 @@ export default function OrderTable() {
                           table
                             .getColumn('status')
                             ?.setFilterValue(
-                              currentValue === table.getColumn('status')?.getFilterValue() ? '' : currentValue
+                              currentValue === table.getColumn('status')?.getFilterValue()
+                                ? ''
+                                : currentValue
                             )
                           setOpenStatusFilter(false)
                         }}
@@ -291,7 +308,9 @@ export default function OrderTable() {
                         <Check
                           className={cn(
                             'mr-2 h-4 w-4',
-                            table.getColumn('status')?.getFilterValue() === status ? 'opacity-100' : 'opacity-0'
+                            table.getColumn('status')?.getFilterValue() === status
+                              ? 'opacity-100'
+                              : 'opacity-0'
                           )}
                         />
                         {getOrderStatus(status)}
@@ -310,7 +329,7 @@ export default function OrderTable() {
         />
         {orderListQuery.isPending && <TableSkeleton />}
         {!orderListQuery.isPending && (
-          <div className='rounded-md border'>
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
@@ -332,13 +351,15 @@ export default function OrderTable() {
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
                       ))}
                     </TableRow>
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={orderTableColumns.length} className='h-24 text-center'>
+                    <TableCell colSpan={orderTableColumns.length} className="h-24 text-center">
                       No results.
                     </TableCell>
                   </TableRow>
@@ -347,17 +368,17 @@ export default function OrderTable() {
             </Table>
           </div>
         )}
-        <div className='flex items-center justify-end space-x-2 py-4'>
-          <div className='text-xs text-muted-foreground py-4 flex-1'>
-            Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of <strong>{orderList.length}</strong>{' '}
-            results
+        <div className="flex items-center justify-end space-x-2 py-4">
+          <div className="flex-1 py-4 text-xs text-muted-foreground">
+            Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
+            <strong>{orderList.length}</strong> results
           </div>
 
           <div>
             <AutoPagination
               page={table.getState().pagination.pageIndex + 1}
               pageSize={table.getPageCount()}
-              pathname='/manage/orders'
+              pathname="/manage/orders"
             />
           </div>
         </div>

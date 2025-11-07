@@ -1,6 +1,19 @@
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import AutoPagination from '@/components/auto-pagination'
 import { useEffect, useState } from 'react'
 import {
@@ -13,7 +26,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable
+  useReactTable,
 } from '@tanstack/react-table'
 import { cn, getTableStatus, simpleMatchText } from '@/lib/utils'
 import { Input } from '@/components/ui/input'
@@ -27,22 +40,22 @@ export const columns: ColumnDef<TableItem>[] = [
   {
     accessorKey: 'number',
     header: 'Number of tables',
-    cell: ({ row }) => <div className='capitalize'>{row.getValue('number')}</div>,
+    cell: ({ row }) => <div className="capitalize">{row.getValue('number')}</div>,
     filterFn: (row, columnId, filterValue: string) => {
       if (filterValue === undefined) return true
       return simpleMatchText(String(row.original.number), String(filterValue))
-    }
+    },
   },
   {
     accessorKey: 'capacity',
     header: 'Capacity',
-    cell: ({ row }) => <div className='capitalize'>{row.getValue('capacity')}</div>
+    cell: ({ row }) => <div className="capitalize">{row.getValue('capacity')}</div>,
   },
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: ({ row }) => <div>{getTableStatus(row.getValue('status'))}</div>
-  }
+    cell: ({ row }) => <div>{getTableStatus(row.getValue('status'))}</div>,
+  },
 ]
 
 const PAGE_SIZE = 10
@@ -57,7 +70,7 @@ export function TablesDialog({ onChoose }: { onChoose: (table: TableItem) => voi
   const [rowSelection, setRowSelection] = useState({})
   const [pagination, setPagination] = useState({
     pageIndex: 0, // Gía trị mặc định ban đầu, không có ý nghĩa khi data được fetch bất đồng bộ
-    pageSize: PAGE_SIZE //default page size
+    pageSize: PAGE_SIZE, //default page size
   })
 
   const table = useReactTable({
@@ -78,14 +91,14 @@ export function TablesDialog({ onChoose }: { onChoose: (table: TableItem) => voi
       columnFilters,
       columnVisibility,
       rowSelection,
-      pagination
-    }
+      pagination,
+    },
   })
 
   useEffect(() => {
     table.setPagination({
       pageIndex: 0,
-      pageSize: PAGE_SIZE
+      pageSize: PAGE_SIZE,
     })
   }, [table])
 
@@ -97,23 +110,23 @@ export function TablesDialog({ onChoose }: { onChoose: (table: TableItem) => voi
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant='outline'>Change</Button>
+        <Button variant="outline">Change</Button>
       </DialogTrigger>
-      <DialogContent className='sm:max-w-[600px] max-h-full overflow-auto'>
+      <DialogContent className="max-h-full overflow-auto sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Select table</DialogTitle>
         </DialogHeader>
         <div>
-          <div className='w-full'>
-            <div className='flex items-center py-4'>
+          <div className="w-full">
+            <div className="flex items-center py-4">
               <Input
-                placeholder='Table number'
+                placeholder="Table number"
                 value={(table.getColumn('number')?.getFilterValue() as string) ?? ''}
                 onChange={(event) => table.getColumn('number')?.setFilterValue(event.target.value)}
-                className='w-[80px]'
+                className="w-[80px]"
               />
             </div>
-            <div className='rounded-md border'>
+            <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   {table.getHeaderGroups().map((headerGroup) => (
@@ -148,7 +161,7 @@ export function TablesDialog({ onChoose }: { onChoose: (table: TableItem) => voi
                           'cursor-pointer':
                             row.original.status === TableStatus.Available ||
                             row.original.status === TableStatus.Reserved,
-                          'cursor-not-allowed': row.original.status === TableStatus.Hidden
+                          'cursor-not-allowed': row.original.status === TableStatus.Hidden,
                         })}
                       >
                         {row.getVisibleCells().map((cell) => (
@@ -160,7 +173,7 @@ export function TablesDialog({ onChoose }: { onChoose: (table: TableItem) => voi
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={columns.length} className='h-24 text-center'>
+                      <TableCell colSpan={columns.length} className="h-24 text-center">
                         No results.
                       </TableCell>
                     </TableRow>
@@ -168,10 +181,10 @@ export function TablesDialog({ onChoose }: { onChoose: (table: TableItem) => voi
                 </TableBody>
               </Table>
             </div>
-            <div className='flex items-center justify-end space-x-2 py-4'>
-              <div className='text-xs text-muted-foreground py-4 flex-1'>
-                Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of <strong>{data.length}</strong>{' '}
-                results
+            <div className="flex items-center justify-end space-x-2 py-4">
+              <div className="flex-1 py-4 text-xs text-muted-foreground">
+                Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
+                <strong>{data.length}</strong> results
               </div>
               <div>
                 <AutoPagination
@@ -180,7 +193,7 @@ export function TablesDialog({ onChoose }: { onChoose: (table: TableItem) => voi
                   onClick={(pageNumber) =>
                     table.setPagination({
                       pageIndex: pageNumber - 1,
-                      pageSize: PAGE_SIZE
+                      pageSize: PAGE_SIZE,
                     })
                   }
                   isLink={false}

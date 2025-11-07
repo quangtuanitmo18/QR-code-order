@@ -6,7 +6,7 @@ export const GuestLoginBody = z
   .object({
     name: z.string().min(2).max(50),
     tableNumber: z.number(),
-    token: z.string()
+    token: z.string(),
   })
   .strict()
 
@@ -22,10 +22,10 @@ export const GuestLoginRes = z.object({
       role: z.enum([Role.Guest]),
       tableNumber: z.number().nullable(),
       createdAt: z.date(),
-      updatedAt: z.date()
-    })
+      updatedAt: z.date(),
+    }),
   }),
-  message: z.string()
+  message: z.string(),
 })
 
 export type GuestLoginResType = z.TypeOf<typeof GuestLoginRes>
@@ -33,7 +33,7 @@ export type GuestLoginResType = z.TypeOf<typeof GuestLoginRes>
 export const GuestCreateOrdersBody = z.array(
   z.object({
     dishId: z.number(),
-    quantity: z.number()
+    quantity: z.number(),
   })
 )
 
@@ -41,7 +41,7 @@ export type GuestCreateOrdersBodyType = z.TypeOf<typeof GuestCreateOrdersBody>
 
 export const GuestCreateOrdersRes = z.object({
   message: z.string(),
-  data: z.array(OrderSchema)
+  data: z.array(OrderSchema),
 })
 
 export type GuestCreateOrdersResType = z.TypeOf<typeof GuestCreateOrdersRes>

@@ -1,9 +1,6 @@
 'use client'
 
-import {
-  checkAndRefreshToken,
-  getRefreshTokenFromLocalStorage
-} from '@/lib/utils'
+import { checkAndRefreshToken, getRefreshTokenFromLocalStorage } from '@/lib/utils'
 import { useRouter } from '@/i18n/routing'
 import { useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
@@ -14,14 +11,11 @@ export default function RefreshToken() {
   const refreshTokenFromUrl = searchParams.get('refreshToken')
   const redirectPathname = searchParams.get('redirect')
   useEffect(() => {
-    if (
-      refreshTokenFromUrl &&
-      refreshTokenFromUrl === getRefreshTokenFromLocalStorage()
-    ) {
+    if (refreshTokenFromUrl && refreshTokenFromUrl === getRefreshTokenFromLocalStorage()) {
       checkAndRefreshToken({
         onSuccess: () => {
           router.push(redirectPathname || '/')
-        }
+        },
       })
     } else {
       router.push('/')

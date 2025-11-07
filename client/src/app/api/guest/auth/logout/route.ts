@@ -10,27 +10,27 @@ export async function POST(request: Request) {
   if (!accessToken || !refreshToken) {
     return Response.json(
       {
-        message: 'Không nhận được access token hoặc refresh token'
+        message: 'Không nhận được access token hoặc refresh token',
       },
       {
-        status: 200
+        status: 200,
       }
     )
   }
   try {
     const result = await guestApiRequest.sLogout({
       accessToken,
-      refreshToken
+      refreshToken,
     })
     return Response.json(result.payload)
   } catch (error) {
     console.log(error)
     return Response.json(
       {
-        message: 'Lỗi khi gọi API đến server backend'
+        message: 'Lỗi khi gọi API đến server backend',
       },
       {
-        status: 200
+        status: 200,
       }
     )
   }

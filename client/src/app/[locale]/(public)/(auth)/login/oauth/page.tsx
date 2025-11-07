@@ -5,8 +5,8 @@ export const metadata: Metadata = {
   title: 'Google Login Redirect',
   description: 'Google Login Redirect',
   robots: {
-    index: false
-  }
+    index: false,
+  },
 }
 
 export default function OAuthPage() {

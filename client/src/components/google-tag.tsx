@@ -1,5 +1,5 @@
-import Script from "next/script";
-import { Fragment } from "react";
+import Script from 'next/script'
+import { Fragment } from 'react'
 
 export default function GoogleTag() {
   return (
@@ -17,5 +17,5 @@ export default function GoogleTag() {
         }}
       />
     </Fragment>
-  );
+  )
 }

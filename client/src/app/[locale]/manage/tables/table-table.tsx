@@ -11,7 +11,7 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable
+  useReactTable,
 } from '@tanstack/react-table'
 import { Button } from '@/components/ui/button'
 
@@ -21,10 +21,17 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
 import { createContext, useContext, useEffect, useState } from 'react'
 import {
   AlertDialog,
@@ -34,7 +41,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle
+  AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { getTableStatus, handleErrorApi } from '@/lib/utils'
 import { useSearchParams } from 'next/navigation'
@@ -57,28 +64,28 @@ const TableTableContext = createContext<{
   setTableIdEdit: (value: number | undefined) => {},
   tableIdEdit: undefined,
   tableDelete: null,
-  setTableDelete: (value: TableItem | null) => {}
+  setTableDelete: (value: TableItem | null) => {},
 })
 
 export const columns: ColumnDef<TableItem>[] = [
   {
     accessorKey: 'number',
     header: 'Table number',
-    cell: ({ row }) => <div className='capitalize'>{row.getValue('number')}</div>,
+    cell: ({ row }) => <div className="capitalize">{row.getValue('number')}</div>,
     filterFn: (rows, columnId, filterValue) => {
       if (!filterValue) return true
       return String(filterValue) === String(rows.getValue('number'))
-    }
+    },
   },
   {
     accessorKey: 'capacity',
     header: 'Capacity',
-    cell: ({ row }) => <div className='capitalize'>{row.getValue('capacity')}</div>
+    cell: ({ row }) => <div className="capitalize">{row.getValue('capacity')}</div>,
   },
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: ({ row }) => <div>{getTableStatus(row.getValue('status'))}</div>
+    cell: ({ row }) => <div>{getTableStatus(row.getValue('status'))}</div>,
   },
   {
     accessorKey: 'token',
@@ -87,7 +94,7 @@ export const columns: ColumnDef<TableItem>[] = [
       <div>
         <QRCodeTable token={row.getValue('token')} tableNumber={row.getValue('number')} />
       </div>
-    )
+    ),
   },
   {
     id: 'actions',
@@ -104,12 +111,12 @@ export const columns: ColumnDef<TableItem>[] = [
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant='ghost' className='h-8 w-8 p-0'>
-              <span className='sr-only'>Open menu</span>
-              <DotsHorizontalIcon className='h-4 w-4' />
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <DotsHorizontalIcon className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align='end'>
+          <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={openEditTable}>Edit</DropdownMenuItem>
@@ -117,13 +124,13 @@ export const columns: ColumnDef<TableItem>[] = [
           </DropdownMenuContent>
         </DropdownMenu>
       )
-    }
-  }
+    },
+  },
 ]
 
 function AlertDialogDeleteTable({
   tableDelete,
-  setTableDelete
+  setTableDelete,
 }: {
   tableDelete: TableItem | null
   setTableDelete: (value: TableItem | null) => void
@@ -135,11 +142,11 @@ function AlertDialogDeleteTable({
         const result = await mutateAsync(tableDelete.number)
         setTableDelete(null)
         toast({
-          title: result.payload.message
+          title: result.payload.message,
         })
       } catch (error) {
         handleErrorApi({
-          error
+          error,
         })
       }
     }
@@ -157,8 +164,11 @@ function AlertDialogDeleteTable({
         <AlertDialogHeader>
           <AlertDialogTitle>Delete table?</AlertDialogTitle>
           <AlertDialogDescription>
-            Table <span className='bg-foreground text-primary-foreground rounded px-1'>{tableDelete?.number}</span> will
-            be permanently deleted.
+            Table{' '}
+            <span className="rounded bg-foreground px-1 text-primary-foreground">
+              {tableDelete?.number}
+            </span>{' '}
+            will be permanently deleted.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -186,7 +196,7 @@ export default function TableTable() {
   const [rowSelection, setRowSelection] = useState({})
   const [pagination, setPagination] = useState({
     pageIndex, // Gía trị mặc định ban đầu, không có ý nghĩa khi data được fetch bất đồng bộ
-    pageSize: PAGE_SIZE //default page size
+    pageSize: PAGE_SIZE, //default page size
   })
 
   const table = useReactTable({
@@ -207,36 +217,38 @@ export default function TableTable() {
       columnFilters,
       columnVisibility,
       rowSelection,
-      pagination
-    }
+      pagination,
+    },
   })
 
   useEffect(() => {
     table.setPagination({
       pageIndex,
-      pageSize: PAGE_SIZE
+      pageSize: PAGE_SIZE,
     })
   }, [table, pageIndex])
 
   return (
-    <TableTableContext.Provider value={{ tableIdEdit, setTableIdEdit, tableDelete, setTableDelete }}>
-      <div className='w-full'>
+    <TableTableContext.Provider
+      value={{ tableIdEdit, setTableIdEdit, tableDelete, setTableDelete }}
+    >
+      <div className="w-full">
         <EditTable id={tableIdEdit} setId={setTableIdEdit} />
         <AlertDialogDeleteTable tableDelete={tableDelete} setTableDelete={setTableDelete} />
-        <div className='flex items-center py-4'>
+        <div className="flex items-center py-4">
           <Input
-            placeholder='Filter table'
+            placeholder="Filter table"
             value={(table.getColumn('number')?.getFilterValue() as string) ?? ''}
             onChange={(event) => {
               table.getColumn('number')?.setFilterValue(event.target.value)
             }}
-            className='max-w-sm'
+            className="max-w-sm"
           />
-          <div className='ml-auto flex items-center gap-2'>
+          <div className="ml-auto flex items-center gap-2">
             <AddTable />
           </div>
         </div>
-        <div className='rounded-md border'>
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
@@ -244,7 +256,9 @@ export default function TableTable() {
                   {headerGroup.headers.map((header) => {
                     return (
                       <TableHead key={header.id}>
-                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(header.column.columnDef.header, header.getContext())}
                       </TableHead>
                     )
                   })}
@@ -256,13 +270,15 @@ export default function TableTable() {
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className='h-24 text-center'>
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
                     No results.
                   </TableCell>
                 </TableRow>
@@ -270,17 +286,17 @@ export default function TableTable() {
             </TableBody>
           </Table>
         </div>
-        <div className='flex items-center justify-end space-x-2 py-4'>
-          <div className='text-xs text-muted-foreground py-4 flex-1'>
-            Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of <strong>{data.length}</strong>{' '}
-            results
+        <div className="flex items-center justify-end space-x-2 py-4">
+          <div className="flex-1 py-4 text-xs text-muted-foreground">
+            Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
+            <strong>{data.length}</strong> results
           </div>
 
           <div>
             <AutoPagination
               page={table.getState().pagination.pageIndex + 1}
               pageSize={table.getPageCount()}
-              pathname='/manage/tables'
+              pathname="/manage/tables"
             />
           </div>
         </div>

@@ -12,7 +12,7 @@ const DishSnapshotSchema = z.object({
   status: z.enum(DishStatusValues),
   dishId: z.number().nullable(),
   createdAt: z.date(),
-  updatedAt: z.date()
+  updatedAt: z.date(),
 })
 export const OrderSchema = z.object({
   id: z.number(),
@@ -23,7 +23,7 @@ export const OrderSchema = z.object({
       name: z.string(),
       tableNumber: z.number().nullable(),
       createdAt: z.date(),
-      updatedAt: z.date()
+      updatedAt: z.date(),
     })
     .nullable(),
   tableNumber: z.number().nullable(),
@@ -34,40 +34,40 @@ export const OrderSchema = z.object({
   orderHandler: AccountSchema.nullable(),
   status: z.enum(OrderStatusValues),
   createdAt: z.date(),
-  updatedAt: z.date()
+  updatedAt: z.date(),
 })
 
 export const UpdateOrderBody = z.object({
   status: z.enum(OrderStatusValues),
   dishId: z.number(),
-  quantity: z.number()
+  quantity: z.number(),
 })
 
 export type UpdateOrderBodyType = z.TypeOf<typeof UpdateOrderBody>
 
 export const OrderParam = z.object({
-  orderId: z.coerce.number()
+  orderId: z.coerce.number(),
 })
 
 export type OrderParamType = z.TypeOf<typeof OrderParam>
 
 export const UpdateOrderRes = z.object({
   message: z.string(),
-  data: OrderSchema
+  data: OrderSchema,
 })
 
 export type UpdateOrderResType = z.TypeOf<typeof UpdateOrderRes>
 
 export const GetOrdersQueryParams = z.object({
   fromDate: z.coerce.date().optional(),
-  toDate: z.coerce.date().optional()
+  toDate: z.coerce.date().optional(),
 })
 
 export type GetOrdersQueryParamsType = z.TypeOf<typeof GetOrdersQueryParams>
 
 export const GetOrdersRes = z.object({
   message: z.string(),
-  data: z.array(OrderSchema)
+  data: z.array(OrderSchema),
 })
 
 export type GetOrdersResType = z.TypeOf<typeof GetOrdersRes>
@@ -75,14 +75,14 @@ export type GetOrdersResType = z.TypeOf<typeof GetOrdersRes>
 export const GetOrderDetailRes = z.object({
   message: z.string(),
   data: OrderSchema.extend({
-    table: TableSchema
-  })
+    table: TableSchema,
+  }),
 })
 
 export type GetOrderDetailResType = z.TypeOf<typeof GetOrderDetailRes>
 
 export const PayGuestOrdersBody = z.object({
-  guestId: z.number()
+  guestId: z.number(),
 })
 
 export type PayGuestOrdersBodyType = z.TypeOf<typeof PayGuestOrdersBody>
@@ -97,9 +97,9 @@ export const CreateOrdersBody = z
     orders: z.array(
       z.object({
         dishId: z.number(),
-        quantity: z.number()
+        quantity: z.number(),
       })
-    )
+    ),
   })
   .strict()
 
@@ -107,7 +107,7 @@ export type CreateOrdersBodyType = z.TypeOf<typeof CreateOrdersBody>
 
 export const CreateOrdersRes = z.object({
   message: z.string(),
-  data: z.array(OrderSchema)
+  data: z.array(OrderSchema),
 })
 
 export type CreateOrdersResType = z.TypeOf<typeof CreateOrdersRes>

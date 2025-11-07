@@ -13,8 +13,8 @@ export const metadata: Metadata = {
   title: 'Google Login Redirect',
   description: 'Google Login Redirect',
   robots: {
-    index: false
-  }
+    index: false,
+  },
 }
 
 export default function Oauth() {
@@ -40,7 +40,7 @@ export default function Oauth() {
           })
           .catch((e) => {
             toast({
-              description: e.message || 'Có lỗi xảy ra'
+              description: e.message || 'Có lỗi xảy ra',
             })
           })
         count.current++
@@ -49,20 +49,12 @@ export default function Oauth() {
       if (count.current === 0) {
         setTimeout(() => {
           toast({
-            description: message || 'Có lỗi xảy ra'
+            description: message || 'Có lỗi xảy ra',
           })
         })
         count.current++
       }
     }
-  }, [
-    accessToken,
-    refreshToken,
-    setRole,
-    router,
-    setSocket,
-    message,
-    mutateAsync
-  ])
+  }, [accessToken, refreshToken, setRole, router, setSocket, message, mutateAsync])
   return null
 }

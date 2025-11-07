@@ -1,7 +1,7 @@
 import {
   OrderObjectByGuestID,
   ServingGuestByTableNumber,
-  Statics
+  Statics,
 } from '@/app/[locale]/manage/orders/order-table'
 import { OrderStatus } from '@/constants/type'
 import { GetOrdersResType } from '@/schemaValidations/order.schema'
@@ -15,9 +15,9 @@ export const useOrderService = (orderList: GetOrdersResType['data']) => {
         Processing: 0,
         Delivered: 0,
         Paid: 0,
-        Rejected: 0
+        Rejected: 0,
       },
-      table: {}
+      table: {},
     }
     const orderObjectByGuestId: OrderObjectByGuestID = {}
     const guestByTableNumber: ServingGuestByTableNumber = {}
@@ -31,9 +31,7 @@ export const useOrderService = (orderList: GetOrdersResType['data']) => {
         statics.table[order.tableNumber][order.guestId] = {
           ...statics.table[order.tableNumber]?.[order.guestId],
           [order.status]:
-            (statics.table[order.tableNumber]?.[order.guestId]?.[
-              order.status
-            ] ?? 0) + 1
+            (statics.table[order.tableNumber]?.[order.guestId]?.[order.status] ?? 0) + 1,
         }
       }
 
@@ -50,8 +48,7 @@ export const useOrderService = (orderList: GetOrdersResType['data']) => {
         if (!guestByTableNumber[order.tableNumber]) {
           guestByTableNumber[order.tableNumber] = {}
         }
-        guestByTableNumber[order.tableNumber][order.guestId] =
-          orderObjectByGuestId[order.guestId]
+        guestByTableNumber[order.tableNumber][order.guestId] = orderObjectByGuestId[order.guestId]
       }
     })
 
@@ -64,11 +61,9 @@ export const useOrderService = (orderList: GetOrdersResType['data']) => {
       for (const guestId in guestObject) {
         const guestOrders = guestObject[guestId]
         const isServingGuest = guestOrders.some((order) =>
-          [
-            OrderStatus.Pending,
-            OrderStatus.Processing,
-            OrderStatus.Delivered
-          ].includes(order.status as any)
+          [OrderStatus.Pending, OrderStatus.Processing, OrderStatus.Delivered].includes(
+            order.status as any
+          )
         )
         if (isServingGuest) {
           servingGuestObject[Number(guestId)] = guestOrders
@@ -81,7 +76,7 @@ export const useOrderService = (orderList: GetOrdersResType['data']) => {
     return {
       statics,
       orderObjectByGuestId,
-      servingGuestByTableNumber
+      servingGuestByTableNumber,
     }
   }, [orderList])
   return result

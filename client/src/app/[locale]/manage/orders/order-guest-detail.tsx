@@ -1,6 +1,6 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { OrderStatus } from "@/constants/type";
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { OrderStatus } from '@/constants/type'
 import {
   OrderStatusIcon,
   formatCurrency,
@@ -8,51 +8,46 @@ import {
   formatDateTimeToTimeString,
   getOrderStatus,
   handleErrorApi,
-} from "@/lib/utils";
-import { usePayForGuestMutation } from "@/queries/useOrder";
-import {
-  GetOrdersResType,
-  PayGuestOrdersResType,
-} from "@/schemaValidations/order.schema";
-import Image from "next/image";
-import { Fragment } from "react";
+} from '@/lib/utils'
+import { usePayForGuestMutation } from '@/queries/useOrder'
+import { GetOrdersResType, PayGuestOrdersResType } from '@/schemaValidations/order.schema'
+import Image from 'next/image'
+import { Fragment } from 'react'
 
-type Guest = GetOrdersResType["data"][0]["guest"];
-type Orders = GetOrdersResType["data"];
+type Guest = GetOrdersResType['data'][0]['guest']
+type Orders = GetOrdersResType['data']
 export default function OrderGuestDetail({
   guest,
   orders,
   onPaySuccess,
 }: {
-  guest: Guest;
-  orders: Orders;
-  onPaySuccess?: (data: PayGuestOrdersResType) => void;
+  guest: Guest
+  orders: Orders
+  onPaySuccess?: (data: PayGuestOrdersResType) => void
 }) {
   const ordersFilterToPurchase = guest
     ? orders.filter(
-        (order) =>
-          order.status !== OrderStatus.Paid &&
-          order.status !== OrderStatus.Rejected
+        (order) => order.status !== OrderStatus.Paid && order.status !== OrderStatus.Rejected
       )
-    : [];
+    : []
   const purchasedOrderFilter = guest
     ? orders.filter((order) => order.status === OrderStatus.Paid)
-    : [];
-  const payForGuestMutation = usePayForGuestMutation();
+    : []
+  const payForGuestMutation = usePayForGuestMutation()
 
   const pay = async () => {
-    if (payForGuestMutation.isPending || !guest) return;
+    if (payForGuestMutation.isPending || !guest) return
     try {
       const result = await payForGuestMutation.mutateAsync({
         guestId: guest.id,
-      });
-      onPaySuccess && onPaySuccess(result.payload);
+      })
+      onPaySuccess && onPaySuccess(result.payload)
     } catch (error) {
       handleErrorApi({
         error,
-      });
+      })
     }
-  };
+  }
   return (
     <div className="space-y-2 text-sm">
       {guest && (
@@ -77,23 +72,23 @@ export default function OrderGuestDetail({
         <div className="font-semibold">Order:</div>
         {orders.map((order, index) => {
           return (
-            <div key={order.id} className="flex gap-2 items-center text-xs">
+            <div key={order.id} className="flex items-center gap-2 text-xs">
               <span className="w-[10px]">{index + 1}</span>
               <span title={getOrderStatus(order.status)}>
                 {order.status === OrderStatus.Pending && (
-                  <OrderStatusIcon.Pending className="w-4 h-4" />
+                  <OrderStatusIcon.Pending className="h-4 w-4" />
                 )}
                 {order.status === OrderStatus.Processing && (
-                  <OrderStatusIcon.Processing className="w-4 h-4" />
+                  <OrderStatusIcon.Processing className="h-4 w-4" />
                 )}
                 {order.status === OrderStatus.Rejected && (
-                  <OrderStatusIcon.Rejected className="w-4 h-4 text-red-400" />
+                  <OrderStatusIcon.Rejected className="h-4 w-4 text-red-400" />
                 )}
                 {order.status === OrderStatus.Delivered && (
-                  <OrderStatusIcon.Delivered className="w-4 h-4" />
+                  <OrderStatusIcon.Delivered className="h-4 w-4" />
                 )}
                 {order.status === OrderStatus.Paid && (
-                  <OrderStatusIcon.Paid className="w-4 h-4 text-yellow-400" />
+                  <OrderStatusIcon.Paid className="h-4 w-4 text-yellow-400" />
                 )}
               </span>
               <Image
@@ -105,16 +100,10 @@ export default function OrderGuestDetail({
                 unoptimized
                 className="h-[30px] w-[30px] rounded object-cover"
               />
-              <span
-                className="truncate w-[70px] sm:w-[100px]"
-                title={order.dishSnapshot.name}
-              >
+              <span className="w-[70px] truncate sm:w-[100px]" title={order.dishSnapshot.name}>
                 {order.dishSnapshot.name}
               </span>
-              <span
-                className="font-semibold"
-                title={`Total: ${order.quantity}`}
-              >
+              <span className="font-semibold" title={`Total: ${order.quantity}`}>
                 x{order.quantity}
               </span>
               <span className="italic">
@@ -139,7 +128,7 @@ export default function OrderGuestDetail({
                 {formatDateTimeToTimeString(order.createdAt)}
               </span>
             </div>
-          );
+          )
         })}
       </div>
 
@@ -150,7 +139,7 @@ export default function OrderGuestDetail({
           <span>
             {formatCurrency(
               ordersFilterToPurchase.reduce((acc, order) => {
-                return acc + order.quantity * order.dishSnapshot.price;
+                return acc + order.quantity * order.dishSnapshot.price
               }, 0)
             )}
           </span>
@@ -158,11 +147,11 @@ export default function OrderGuestDetail({
       </div>
       <div className="space-x-1">
         <span className="font-semibold">Paid:</span>
-        <Badge variant={"outline"}>
+        <Badge variant={'outline'}>
           <span>
             {formatCurrency(
               purchasedOrderFilter.reduce((acc, order) => {
-                return acc + order.quantity * order.dishSnapshot.price;
+                return acc + order.quantity * order.dishSnapshot.price
               }, 0)
             )}
           </span>
@@ -172,8 +161,8 @@ export default function OrderGuestDetail({
       <div>
         <Button
           className="w-full"
-          size={"sm"}
-          variant={"secondary"}
+          size={'sm'}
+          variant={'secondary'}
           disabled={ordersFilterToPurchase.length === 0}
           onClick={pay}
         >
@@ -181,5 +170,5 @@ export default function OrderGuestDetail({
         </Button>
       </div>
     </div>
-  );
+  )
 }

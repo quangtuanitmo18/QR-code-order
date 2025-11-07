@@ -1,51 +1,51 @@
-import envConfig from "@/config";
-import NextBundleAnalyzer from "@next/bundle-analyzer";
-import { SentryBuildOptions, withSentryConfig } from "@sentry/nextjs";
-import type { NextConfig } from "next";
-import createNextIntlPlugin from "next-intl/plugin";
+import envConfig from '@/config'
+import NextBundleAnalyzer from '@next/bundle-analyzer'
+import { SentryBuildOptions, withSentryConfig } from '@sentry/nextjs'
+import type { NextConfig } from 'next'
+import createNextIntlPlugin from 'next-intl/plugin'
 
-const isCI = process.env.CI === "true";
+const isCI = process.env.CI === 'true'
 
-const withNextIntl = createNextIntlPlugin();
+const withNextIntl = createNextIntlPlugin()
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        hostname: "localhost",
-        pathname: "/**",
+        hostname: 'localhost',
+        pathname: '/**',
       },
       {
-        hostname: "127.0.0.1",
-        pathname: "/**",
+        hostname: '127.0.0.1',
+        pathname: '/**',
       },
       {
-        protocol: "https",
-        hostname: "api-bigboy.duthanhduoc.com",
-        pathname: "/**",
+        protocol: 'https',
+        hostname: 'api-bigboy.duthanhduoc.com',
+        pathname: '/**',
       },
 
       {
-        protocol: "https",
-        hostname: "164181.msk.web.highserver.ru",
-        pathname: "/api-fastify/static/**",
+        protocol: 'https',
+        hostname: '164181.msk.web.highserver.ru',
+        pathname: '/api-fastify/static/**',
       },
       {
-        hostname: "via.placeholder.com",
-        pathname: "/**",
+        hostname: 'via.placeholder.com',
+        pathname: '/**',
       },
     ],
   },
-  output: "standalone",
+  output: 'standalone',
   productionBrowserSourceMaps: false,
 
   experimental: {},
   // Add the new turbopack configuration
   turbopack: {},
-};
+}
 
 const withBundleAnalyzer = NextBundleAnalyzer({
-  enabled: process.env.ANALYZE === "true",
-});
+  enabled: process.env.ANALYZE === 'true',
+})
 
 // Rest of your configuration remains the same
 const sentryWebpackPluginOptions: SentryBuildOptions = {
@@ -53,19 +53,17 @@ const sentryWebpackPluginOptions: SentryBuildOptions = {
   org: envConfig.SENTRY_ORG,
   project: envConfig.SENTRY_PROJECT,
 
-  release: envConfig.NEXT_PUBLIC_RELEASE
-    ? { name: envConfig.NEXT_PUBLIC_RELEASE }
-    : undefined,
+  release: envConfig.NEXT_PUBLIC_RELEASE ? { name: envConfig.NEXT_PUBLIC_RELEASE } : undefined,
   sourcemaps: {
     disable: true,
-    assets: ["**/*.js", "**/*.js.map"],
-    ignore: ["**/node_modules/**"],
+    assets: ['**/*.js', '**/*.js.map'],
+    ignore: ['**/node_modules/**'],
     deleteSourcemapsAfterUpload: false,
   },
   silent: true,
-};
+}
 
 export default withSentryConfig(
   withBundleAnalyzer(withNextIntl(nextConfig)),
   sentryWebpackPluginOptions
-);
+)

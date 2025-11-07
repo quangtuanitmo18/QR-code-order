@@ -8,16 +8,16 @@ export async function POST(request: Request) {
   if (!refreshToken) {
     return Response.json(
       {
-        message: 'Không tìm thấy refreshToken'
+        message: 'Không tìm thấy refreshToken',
       },
       {
-        status: 401
+        status: 401,
       }
     )
   }
   try {
     const { payload } = await authApiRequest.sRefreshToken({
-      refreshToken
+      refreshToken,
     })
 
     const decodedAccessToken = jwt.decode(payload.data.accessToken) as {
@@ -31,24 +31,24 @@ export async function POST(request: Request) {
       httpOnly: true,
       sameSite: 'lax',
       secure: true,
-      expires: decodedAccessToken.exp * 1000
+      expires: decodedAccessToken.exp * 1000,
     })
     cookieStore.set('refreshToken', payload.data.refreshToken, {
       path: '/',
       httpOnly: true,
       sameSite: 'lax',
       secure: true,
-      expires: decodedRefreshToken.exp * 1000
+      expires: decodedRefreshToken.exp * 1000,
     })
     return Response.json(payload)
   } catch (error: any) {
     console.log(error)
     return Response.json(
       {
-        message: error.message ?? 'Có lỗi xảy ra'
+        message: error.message ?? 'Có lỗi xảy ra',
       },
       {
-        status: 401
+        status: 401,
       }
     )
   }

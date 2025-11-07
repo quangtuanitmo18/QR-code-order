@@ -30,33 +30,30 @@ export default function About() {
       </section>
 
       {/* Content blocks */}
-      <section className="mx-auto max-w-6xl px-4 py-12 md:px-6 lg:px-8 md:py-20 lg:py-24">
+      <section className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-20 lg:px-8 lg:py-24">
         <div className="grid gap-10 lg:grid-cols-[1fr_420px]">
           {/* Narrative */}
           <div className="mx-auto grid max-w-3xl gap-8">
             <ArticleCard icon={IconHeart} title="Our Story">
-              Founded in 2010, Big Boy has a simple mission: to serve delicious,
-              high-quality food that brings people together. Our passion for
-              exceptional ingredients and creative recipes has made us a beloved
-              local establishment, known for our commitment to crafting meals
-              that nourish both body and soul.
+              Founded in 2010, Big Boy has a simple mission: to serve delicious, high-quality food
+              that brings people together. Our passion for exceptional ingredients and creative
+              recipes has made us a beloved local establishment, known for our commitment to
+              crafting meals that nourish both body and soul.
             </ArticleCard>
 
             <ArticleCard icon={IconLeaf} title="Our Values">
-              At the heart of Big Boy is a deep dedication to sustainability,
-              community, and culinary excellence. We source ingredients from
-              local farmers and producers to ensure freshness while supporting
-              the local economy. Our team is passionate about creating dishes
-              that not only delight the palate but also nourish the body, with a
-              focus on wholesome, minimally processed foods.
+              At the heart of Big Boy is a deep dedication to sustainability, community, and
+              culinary excellence. We source ingredients from local farmers and producers to ensure
+              freshness while supporting the local economy. Our team is passionate about creating
+              dishes that not only delight the palate but also nourish the body, with a focus on
+              wholesome, minimally processed foods.
             </ArticleCard>
 
             <ArticleCard icon={IconStar} title="Our Commitment">
-              We believe great food has the power to bring people together and
-              create lasting memories. That’s why we’re committed to delivering
-              an exceptional dining experience—from the moment you walk through
-              our doors to the last bite. Our talented chefs work tirelessly to
-              showcase the best of seasonal, locally sourced ingredients,
+              We believe great food has the power to bring people together and create lasting
+              memories. That’s why we’re committed to delivering an exceptional dining
+              experience—from the moment you walk through our doors to the last bite. Our talented
+              chefs work tirelessly to showcase the best of seasonal, locally sourced ingredients,
               ensuring every plate is a celebration of flavor and quality.
             </ArticleCard>
 
@@ -98,7 +95,7 @@ export default function About() {
       <section className="mx-auto max-w-6xl px-4 pb-16 md:px-6 lg:px-8">
         <div className="rounded-2xl border bg-card/60 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/60 md:p-8">
           <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-            <address className="not-italic text-sm text-muted-foreground">
+            <address className="text-sm not-italic text-muted-foreground">
               No. 1 Nguyen Van Linh, Hai Chau District, Da Nang City, Vietnam
             </address>
             <div className="flex flex-wrap gap-3 text-sm">
@@ -119,7 +116,7 @@ export default function About() {
         </div>
       </section>
     </div>
-  );
+  )
 }
 
 /* --- UI Building Blocks --- */
@@ -127,11 +124,9 @@ function StatCard({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border bg-card/60 p-5 text-center shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/60">
       <div className="text-2xl font-bold md:text-3xl">{value}</div>
-      <div className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">
-        {label}
-      </div>
+      <div className="mt-1 text-xs uppercase tracking-wide text-muted-foreground">{label}</div>
     </div>
-  );
+  )
 }
 
 function ArticleCard({
@@ -139,9 +134,9 @@ function ArticleCard({
   icon: Icon,
   children,
 }: {
-  title: string;
-  icon: (p: React.SVGProps<SVGSVGElement>) => JSX.Element;
-  children: React.ReactNode;
+  title: string
+  icon: (p: React.SVGProps<SVGSVGElement>) => JSX.Element
+  children: React.ReactNode
 }) {
   return (
     <article className="rounded-2xl border bg-card/60 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/60 md:p-8">
@@ -151,7 +146,7 @@ function ArticleCard({
       </header>
       <div className="mt-4 leading-8 text-muted-foreground">{children}</div>
     </article>
-  );
+  )
 }
 
 function GalleryTile({ caption }: { caption: string }) {
@@ -163,7 +158,7 @@ function GalleryTile({ caption }: { caption: string }) {
         {caption}
       </figcaption>
     </figure>
-  );
+  )
 }
 
 /* --- Minimal inline icons --- */
@@ -181,7 +176,7 @@ function IconHeart(props: React.SVGProps<SVGSVGElement>) {
     >
       <path d="M20.8 8.6A5.4 5.4 0 0 0 12 7.3a5.4 5.4 0 1 0-8.8 6.3L12 21l8.8-7.4a5.4 5.4 0 0 0 0-5Z" />
     </svg>
-  );
+  )
 }
 function IconLeaf(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -198,7 +193,7 @@ function IconLeaf(props: React.SVGProps<SVGSVGElement>) {
       <path d="M11 21C4 21 3 14 3 14S4 3 21 3c0 0 0 10-10 10" />
       <path d="M12 22V12" />
     </svg>
-  );
+  )
 }
 function IconStar(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -214,7 +209,7 @@ function IconStar(props: React.SVGProps<SVGSVGElement>) {
     >
       <path d="m12 2 3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.56 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z" />
     </svg>
-  );
+  )
 }
 function IconPhone(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -230,7 +225,7 @@ function IconPhone(props: React.SVGProps<SVGSVGElement>) {
     >
       <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.86 19.86 0 0 1-8.64-3.07 19.5 19.5 0 0 1-6-6 19.86 19.86 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.34 1.77.64 2.6a2 2 0 0 1-.45 2.11L8 9a16 16 0 0 0 7 7l.57-1.3a2 2 0 0 1 2.11-.45c.83.3 1.7.52 2.6.64A2 2 0 0 1 22 16.92z" />
     </svg>
-  );
+  )
 }
 function IconMail(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -247,5 +242,5 @@ function IconMail(props: React.SVGProps<SVGSVGElement>) {
       <path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" />
       <path d="m22 6-10 7L2 6" />
     </svg>
-  );
+  )
 }

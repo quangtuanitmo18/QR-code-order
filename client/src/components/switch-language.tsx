@@ -5,7 +5,7 @@ import {
   SelectGroup,
   SelectItem,
   SelectTrigger,
-  SelectValue
+  SelectValue,
 } from '@/components/ui/select'
 import { Locale, locales } from '@/config'
 import { useLocale, useTranslations } from 'next-intl'
@@ -21,12 +21,12 @@ export default function SwitchLanguage() {
       value={locale}
       onValueChange={(value) => {
         router.replace(pathname, {
-          locale: value as Locale
+          locale: value as Locale,
         })
         router.refresh()
       }}
     >
-      <SelectTrigger className='w-[140px]'>
+      <SelectTrigger className="w-[140px]">
         <SelectValue placeholder={t('title')} />
       </SelectTrigger>
       <SelectContent>

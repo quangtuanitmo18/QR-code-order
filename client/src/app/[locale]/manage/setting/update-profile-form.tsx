@@ -25,8 +25,8 @@ export default function UpdateProfileForm() {
     resolver: zodResolver(UpdateMeBody),
     defaultValues: {
       name: '',
-      avatar: undefined
-    }
+      avatar: undefined,
+    },
   })
 
   const avatar = form.watch('avatar')
@@ -36,7 +36,7 @@ export default function UpdateProfileForm() {
       const { name, avatar } = data.payload.data
       form.reset({
         name,
-        avatar: avatar ?? undefined
+        avatar: avatar ?? undefined,
       })
     }
   }, [form, data])
@@ -64,18 +64,18 @@ export default function UpdateProfileForm() {
         const imageUrl = uploadImageResult.payload.data
         body = {
           ...values,
-          avatar: imageUrl
+          avatar: imageUrl,
         }
       }
       const result = await updateMeMutation.mutateAsync(body)
       toast({
-        description: result.payload.message
+        description: result.payload.message,
       })
       refetch()
     } catch (error) {
       handleErrorApi({
         error,
-        setError: form.setError
+        setError: form.setError,
       })
     }
   }
@@ -83,32 +83,32 @@ export default function UpdateProfileForm() {
     <Form {...form}>
       <form
         noValidate
-        className='grid auto-rows-max items-start gap-4 md:gap-8'
+        className="grid auto-rows-max items-start gap-4 md:gap-8"
         onReset={reset}
         onSubmit={form.handleSubmit(onSubmit, (e) => {
           console.log(e)
         })}
       >
-        <Card x-chunk='dashboard-07-chunk-0'>
+        <Card x-chunk="dashboard-07-chunk-0">
           <CardHeader>
             <CardTitle>Profile</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className='grid gap-6'>
+            <div className="grid gap-6">
               <FormField
                 control={form.control}
-                name='avatar'
+                name="avatar"
                 render={({ field }) => (
                   <FormItem>
-                    <div className='flex gap-2 items-start justify-start'>
-                      <Avatar className='aspect-square w-[100px] h-[100px] rounded-md object-cover'>
+                    <div className="flex items-start justify-start gap-2">
+                      <Avatar className="aspect-square h-[100px] w-[100px] rounded-md object-cover">
                         <AvatarImage src={previewAvatar} />
-                        <AvatarFallback className='rounded-none'>{name}</AvatarFallback>
+                        <AvatarFallback className="rounded-none">{name}</AvatarFallback>
                       </Avatar>
                       <input
-                        type='file'
-                        accept='image/*'
-                        className='hidden'
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
                         ref={avatarInputRef}
                         onChange={(e) => {
                           const file = e.target.files?.[0]
@@ -119,12 +119,12 @@ export default function UpdateProfileForm() {
                         }}
                       />
                       <button
-                        className='flex aspect-square w-[100px] items-center justify-center rounded-md border border-dashed'
-                        type='button'
+                        className="flex aspect-square w-[100px] items-center justify-center rounded-md border border-dashed"
+                        type="button"
                         onClick={() => avatarInputRef.current?.click()}
                       >
-                        <Upload className='h-4 w-4 text-muted-foreground' />
-                        <span className='sr-only'>Upload</span>
+                        <Upload className="h-4 w-4 text-muted-foreground" />
+                        <span className="sr-only">Upload</span>
                       </button>
                     </div>
                   </FormItem>
@@ -133,23 +133,23 @@ export default function UpdateProfileForm() {
 
               <FormField
                 control={form.control}
-                name='name'
+                name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <div className='grid gap-3'>
-                      <Label htmlFor='name'>Name</Label>
-                      <Input id='name' type='text' className='w-full' {...field} />
+                    <div className="grid gap-3">
+                      <Label htmlFor="name">Name</Label>
+                      <Input id="name" type="text" className="w-full" {...field} />
                       <FormMessage />
                     </div>
                   </FormItem>
                 )}
               />
 
-              <div className=' items-center gap-2 md:ml-auto flex'>
-                <Button variant='outline' size='sm' type='reset'>
+              <div className="flex items-center gap-2 md:ml-auto">
+                <Button variant="outline" size="sm" type="reset">
                   Cancel
                 </Button>
-                <Button size='sm' type='submit'>
+                <Button size="sm" type="submit">
                   Save
                 </Button>
               </div>

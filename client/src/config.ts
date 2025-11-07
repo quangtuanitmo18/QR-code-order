@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod'
 
 const configSchema = z.object({
   NEXT_PUBLIC_API_ENDPOINT: z.string(),
@@ -12,7 +12,7 @@ const configSchema = z.object({
   SENTRY_ORG: z.string().optional(),
   SENTRY_PROJECT: z.string().optional(),
   SENTRY_URL: z.string().url().optional(),
-});
+})
 
 const configProject = configSchema.safeParse({
   NEXT_PUBLIC_API_ENDPOINT: process.env.NEXT_PUBLIC_API_ENDPOINT,
@@ -27,17 +27,17 @@ const configProject = configSchema.safeParse({
   SENTRY_ORG: process.env.SENTRY_ORG,
   SENTRY_PROJECT: process.env.SENTRY_PROJECT,
   SENTRY_URL: process.env.SENTRY_URL,
-});
+})
 if (!configProject.success) {
-  console.error(configProject.error.errors);
-  throw new Error("Invalid environment variables");
+  console.error(configProject.error.errors)
+  throw new Error('Invalid environment variables')
 }
 
-const envConfig = configProject.data;
+const envConfig = configProject.data
 
-export default envConfig;
+export default envConfig
 
-export type Locale = (typeof locales)[number];
+export type Locale = (typeof locales)[number]
 
-export const locales = ["en", "vi"] as const;
-export const defaultLocale: Locale = "en";
+export const locales = ['en', 'vi'] as const
+export const defaultLocale: Locale = 'en'

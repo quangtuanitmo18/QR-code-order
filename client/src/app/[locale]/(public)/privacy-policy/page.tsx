@@ -23,15 +23,12 @@ export default function PrivacyPolicyPage() {
           <article className="rounded-2xl border bg-card/60 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/60 md:p-8">
             <header className="flex items-center gap-3">
               <IconShield className="h-6 w-6" />
-              <h2 className="text-2xl font-semibold md:text-3xl">
-                Data We Collect
-              </h2>
+              <h2 className="text-2xl font-semibold md:text-3xl">Data We Collect</h2>
             </header>
             <p className="mt-4 leading-8 text-muted-foreground">
-              We collect personal information you provide when creating an
-              account, placing orders, or contacting us. This may include your
-              name. We also automatically collect certain information when you
-              access our website, such as your IP address and browser type.
+              We collect personal information you provide when creating an account, placing orders,
+              or contacting us. This may include your name. We also automatically collect certain
+              information when you access our website, such as your IP address and browser type.
             </p>
           </article>
 
@@ -39,9 +36,7 @@ export default function PrivacyPolicyPage() {
           <article className="rounded-2xl border bg-card/60 p-6 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-card/60 md:p-8">
             <header className="flex items-center gap-3">
               <IconTarget className="h-6 w-6" />
-              <h2 className="text-2xl font-semibold md:text-3xl">
-                Purposes of Use
-              </h2>
+              <h2 className="text-2xl font-semibold md:text-3xl">Purposes of Use</h2>
             </header>
             <p className="mt-4 leading-8 text-muted-foreground">
               We use your personal information for the following purposes:
@@ -50,21 +45,17 @@ export default function PrivacyPolicyPage() {
               <li className="flex items-start gap-3">
                 <IconCheck className="mt-1 h-5 w-5 flex-none" />
                 <span>
-                  <span className="font-medium text-foreground">
-                    To process your orders:
-                  </span>{" "}
-                  We use your contact and payment details to confirm and fulfill
-                  orders, and to send invoices and shipping information.
+                  <span className="font-medium text-foreground">To process your orders:</span> We
+                  use your contact and payment details to confirm and fulfill orders, and to send
+                  invoices and shipping information.
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <IconCheck className="mt-1 h-5 w-5 flex-none" />
                 <span>
-                  <span className="font-medium text-foreground">
-                    To provide customer support:
-                  </span>{" "}
-                  We use your contact information to answer questions, resolve
-                  issues, and provide technical support.
+                  <span className="font-medium text-foreground">To provide customer support:</span>{' '}
+                  We use your contact information to answer questions, resolve issues, and provide
+                  technical support.
                 </span>
               </li>
               <li className="flex items-start gap-3">
@@ -72,20 +63,16 @@ export default function PrivacyPolicyPage() {
                 <span>
                   <span className="font-medium text-foreground">
                     To send marketing communications:
-                  </span>{" "}
-                  With your consent, we may use your email address to share
-                  information about new products, services, promotions, and
-                  special events.
+                  </span>{' '}
+                  With your consent, we may use your email address to share information about new
+                  products, services, promotions, and special events.
                 </span>
               </li>
               <li className="flex items-start gap-3">
                 <IconCheck className="mt-1 h-5 w-5 flex-none" />
                 <span>
-                  <span className="font-medium text-foreground">
-                    To improve our services:
-                  </span>{" "}
-                  We use aggregated and anonymized data to analyze trends and
-                  enhance our services.
+                  <span className="font-medium text-foreground">To improve our services:</span> We
+                  use aggregated and anonymized data to analyze trends and enhance our services.
                 </span>
               </li>
             </ul>
@@ -109,7 +96,7 @@ export default function PrivacyPolicyPage() {
         </div>
       </section>
     </div>
-  );
+  )
 }
 
 /* ---- Minimal inline icons (no external deps) ---- */
@@ -127,7 +114,7 @@ function IconShield(props: React.SVGProps<SVGSVGElement>) {
     >
       <path d="M12 22s8-4 8-10V6l-8-4-8 4v6c0 6 8 10 8 10Z" />
     </svg>
-  );
+  )
 }
 function IconTarget(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -148,7 +135,7 @@ function IconTarget(props: React.SVGProps<SVGSVGElement>) {
       <circle cx="12" cy="12" r="7" />
       <circle cx="12" cy="12" r="3" />
     </svg>
-  );
+  )
 }
 function IconCheck(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -164,5 +151,5 @@ function IconCheck(props: React.SVGProps<SVGSVGElement>) {
     >
       <path d="m20 6-11 11-5-5" />
     </svg>
-  );
+  )
 }

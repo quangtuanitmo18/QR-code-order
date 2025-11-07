@@ -1,28 +1,20 @@
-import { Link } from "@/i18n/routing";
-import { Beef } from "lucide-react";
+import { Link } from '@/i18n/routing'
+import { Beef } from 'lucide-react'
 
 export default function Footer() {
   return (
-    <footer className="w-full p-4 md:p-8 text-muted-foreground border-t">
-      <div className=" flex flex-col items-center justify-between gap-4 md:flex-row md:gap-0">
+    <footer className="w-full border-t p-4 text-muted-foreground md:p-8">
+      <div className="flex flex-col items-center justify-between gap-4 md:flex-row md:gap-0">
         <div className="flex flex-col items-center gap-2 md:flex-row md:gap-4">
-          <Link href="/" className="flex items-center gap-2 " prefetch={false}>
+          <Link href="/" className="flex items-center gap-2" prefetch={false}>
             <Beef className="h-6 w-6 hover:text-foreground" />
             <span className="text-sm font-medium">Big Boy Restaurant</span>
           </Link>
-          <div className="flex flex-col sm:flex-row items-center gap-4 text-sm">
-            <Link
-              href="/term-of-service"
-              className="hover:underline"
-              prefetch={false}
-            >
+          <div className="flex flex-col items-center gap-4 text-sm sm:flex-row">
+            <Link href="/term-of-service" className="hover:underline" prefetch={false}>
               Terms of Service
             </Link>
-            <Link
-              href="/privacy-policy"
-              className="hover:underline"
-              prefetch={false}
-            >
+            <Link href="/privacy-policy" className="hover:underline" prefetch={false}>
               Privacy Policy
             </Link>
             <Link href="/about" className="hover:underline" prefetch={false}>
@@ -41,7 +33,7 @@ export default function Footer() {
             <svg
               role="img"
               viewBox="0 0 24 24"
-              className="w-5 h-5 fill-current"
+              className="h-5 w-5 fill-current"
               xmlns="http://www.w3.org/2000/svg"
             >
               <title>Facebook</title>
@@ -60,7 +52,7 @@ export default function Footer() {
               role="img"
               viewBox="0 0 24 24"
               xmlns="http://www.w3.org/2000/svg"
-              className="w-5 h-5 fill-current"
+              className="h-5 w-5 fill-current"
             >
               <title>YouTube</title>
               <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
@@ -77,7 +69,7 @@ export default function Footer() {
             <svg
               role="img"
               viewBox="0 0 24 24"
-              className="w-5 h-5 fill-current"
+              className="h-5 w-5 fill-current"
               xmlns="http://www.w3.org/2000/svg"
             >
               <title>TikTok</title>
@@ -88,5 +80,5 @@ export default function Footer() {
         </div>
       </div>
     </footer>
-  );
+  )
 }
