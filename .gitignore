@@ -7,3 +7,16 @@ server/prisma/dev.db
 # backups
 /backups
 /temp_extract
+
+# Husky
+.husky/_
+
+# Logs
+*.log
+npm-debug.log*
+
+
+# OS
+.DS_Store
+
+node_modules/
