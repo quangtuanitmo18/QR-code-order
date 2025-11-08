@@ -1,6 +1,7 @@
 'use client'
 import ListenLogoutSocket from '@/components/listen-logout-socket'
 import RefreshToken from '@/components/refresh-token'
+import { ViewportProvider } from '@/hooks/useViewport'
 import {
   decodeToken,
   generateSocketInstace,
@@ -101,10 +102,12 @@ export default function AppProvider({ children }: { children: React.ReactNode })
     //   value={{ role, setRole, isAuth, socket, setSocket, disconnectSocket }}
     // >
     <QueryClientProvider client={queryClient}>
-      {children}
-      <RefreshToken />
-      <ListenLogoutSocket />
-      <ReactQueryDevtools initialIsOpen={false} />
+      <ViewportProvider>
+        {children}
+        <RefreshToken />
+        <ListenLogoutSocket />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </ViewportProvider>
     </QueryClientProvider>
     // </AppContext.Provider>
   )

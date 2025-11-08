@@ -54,14 +54,14 @@ export default function GuestLoginForm() {
   }
 
   return (
-    <Card className="mx-auto max-w-sm">
+    <Card className="mx-auto w-full max-w-sm">
       <CardHeader>
-        <CardTitle className="text-2xl">Login as Guest</CardTitle>
+        <CardTitle className="text-xl sm:text-2xl">Login as Guest</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form
-            className="w-full max-w-[600px] flex-shrink-0 space-y-2"
+            className="w-full space-y-2"
             noValidate
             onSubmit={form.handleSubmit(onSubmit, console.log)}
           >
@@ -80,7 +80,7 @@ export default function GuestLoginForm() {
                 )}
               />
 
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full" size="lg">
                 Login
               </Button>
             </div>

@@ -1,0 +1,326 @@
+# Client - General Rules
+
+## Technology Stack
+- **Framework**: Next.js 15.4.1 (App Router, React 18)
+- **Build Tool**: Turbopack (next dev --turbopack)
+- **Language**: TypeScript 5+ with strict mode
+- **Package Manager**: npm
+
+## TypeScript Configuration
+
+### Compiler Options (tsconfig.json)
+```json
+{
+  "compilerOptions": {
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "preserve",
+    "incremental": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "target": "ES2017"
+  }
+}
+```
+
+### TypeScript Rules
+1. ✅ **Always use TypeScript** - Never use plain JavaScript files
+2. ✅ **Strict mode enabled** - Catch errors at compile time
+3. ❌ **Avoid `any` type** - Use proper types or `unknown` if truly dynamic
+4. ✅ **Define interfaces/types** - For all props, parameters, and return values
+5. ✅ **Use type inference** - Let TypeScript infer when obvious
+
+### Type Examples
+```typescript
+// ✅ Good - Proper types
+interface UserProfileProps {
+  userId: number
+  onUpdate?: (user: User) => void
+}
+
+export default function UserProfile({ userId, onUpdate }: UserProfileProps) {
+  // Implementation
+}
+
+// ✅ Good - Type inference
+const items = ['a', 'b', 'c'] // TypeScript infers string[]
+
+// ❌ Bad - Using any
+function processData(data: any) {
+  return data.value
+}
+
+// ✅ Good - Use unknown if type is truly unknown
+function processData(data: unknown) {
+  if (typeof data === 'object' && data !== null && 'value' in data) {
+    return (data as { value: string }).value
+  }
+}
+```
+
+## Project Structure
+
+```
+client/
+├── src/
+│   ├── app/                        # Next.js App Router
+│   │   ├── [locale]/               # Internationalized routes
+│   │   │   ├── (public)/           # Public layout group
+│   │   │   │   ├── (auth)/         # Auth pages (login, refresh-token)
+│   │   │   │   ├── dishes/         # Public dish pages
+│   │   │   │   ├── tables/         # Table-specific pages
+│   │   │   │   └── layout.tsx
+│   │   │   ├── guest/              # Customer pages (menu, orders)
+│   │   │   │   ├── menu/
+│   │   │   │   ├── orders/
+│   │   │   │   └── layout.tsx
+│   │   │   ├── manage/             # Admin/Employee dashboard
+│   │   │   │   ├── dashboard/      # Statistics
+│   │   │   │   ├── accounts/       # Employee management
+│   │   │   │   ├── dishes/         # Menu management
+│   │   │   │   ├── tables/         # Table management
+│   │   │   │   ├── orders/         # Order management
+│   │   │   │   ├── setting/        # Profile settings
+│   │   │   │   └── layout.tsx
+│   │   │   ├── globals.css         # Global styles
+│   │   │   └── layout.tsx          # Root layout
+│   │   └── api/                    # API route handlers
+│   │       ├── auth/               # Auth endpoints
+│   │       ├── accounts/           # Account endpoints
+│   │       ├── guest/              # Guest auth endpoints
+│   │       └── revalidate/         # Cache revalidation
+│   │
+│   ├── apiRequests/                # API client functions
+│   │   ├── account.ts
+│   │   ├── auth.ts
+│   │   ├── dish.ts
+│   │   ├── guest.ts
+│   │   ├── order.ts
+│   │   ├── table.ts
+│   │   ├── media.ts
+│   │   └── indicator.ts
+│   │
+│   ├── components/                 # React components
+│   │   ├── ui/                     # Shadcn UI components
+│   │   ├── app-provider.tsx
+│   │   ├── refresh-token.tsx
+│   │   ├── theme-provider.tsx
+│   │   └── ...
+│   │
+│   ├── lib/                        # Utility libraries
+│   │   ├── http.ts
+│   │   ├── utils.ts
+│   │   └── server-utils.ts
+│   │
+│   ├── queries/                    # Tanstack Query hooks
+│   │   ├── useAuth.tsx
+│   │   ├── useAccount.tsx
+│   │   └── ...
+│   │
+│   ├── schemaValidations/          # Zod validation schemas
+│   │   ├── auth.schema.ts
+│   │   ├── account.schema.ts
+│   │   └── ...
+│   │
+│   ├── types/                      # TypeScript types
+│   ├── constants/                  # Constants and enums
+│   ├── i18n/                       # i18n config
+│   ├── services/                   # Business logic services
+│   ├── config.ts                   # Environment config
+│   ├── middleware.ts               # Next.js middleware
+│   └── shared-metadata.ts          # SEO metadata
+│
+├── messages/                       # i18n translation files
+│   ├── en.json
+│   └── vi.json
+│
+├── public/                         # Static assets
+├── .eslintrc.json
+├── .prettierrc
+├── next.config.ts
+├── tailwind.config.ts
+├── tsconfig.json
+└── package.json
+```
+
+## File Naming Conventions
+
+### Rules
+- **Pages**: `page.tsx` (Next.js convention)
+- **Layouts**: `layout.tsx` (Next.js convention)
+- **Loading**: `loading.tsx` (Next.js convention)
+- **Components**: `kebab-case.tsx` (e.g., `user-profile.tsx`)
+- **Utilities**: `kebab-case.ts` (e.g., `format-date.ts`)
+- **Types**: `kebab-case.types.ts` or `.schema.ts`
+- **Hooks**: `use-camel-case.tsx` (e.g., `useAuth.tsx`)
+
+### Examples
+```
+✅ Good:
+- components/user-profile.tsx
+- components/ui/data-table.tsx
+- lib/format-currency.ts
+- queries/useAccount.tsx
+- schemaValidations/auth.schema.ts
+
+❌ Bad:
+- components/UserProfile.tsx
+- components/ui/DataTable.tsx
+- lib/formatCurrency.ts
+- queries/AccountQuery.tsx
+```
+
+## Path Aliases (Import Paths)
+
+### Always Use @ Alias
+```typescript
+// ✅ Good - Clean and consistent
+import { http } from '@/lib/http'
+import { Button } from '@/components/ui/button'
+import authApiRequest from '@/apiRequests/auth'
+import { LoginBody } from '@/schemaValidations/auth.schema'
+import envConfig from '@/config'
+
+// ❌ Bad - Relative paths are harder to maintain
+import { http } from '../../lib/http'
+import { Button } from '../../../components/ui/button'
+```
+
+## Code Style (Prettier Configuration)
+
+### .prettierrc
+```json
+{
+  "semi": false,
+  "trailingComma": "es5",
+  "singleQuote": true,
+  "printWidth": 100,
+  "tabWidth": 2,
+  "useTabs": false,
+  "arrowParens": "always",
+  "endOfLine": "lf",
+  "plugins": ["prettier-plugin-tailwindcss"]
+}
+```
+
+### Style Examples
+```typescript
+// ✅ Good - Matches Prettier config
+const handleClick = (event: React.MouseEvent) => {
+  console.log('Clicked')
+}
+
+const user = {
+  name: 'John',
+  email: 'john@example.com',
+  role: 'Owner',
+}
+
+// ❌ Bad - Wrong style
+const handleClick = event => {
+  console.log("Clicked");
+};
+```
+
+## ESLint Configuration
+
+### .eslintrc.json
+```json
+{
+  "extends": [
+    "next/core-web-vitals",
+    "plugin:@tanstack/eslint-plugin-query/recommended"
+  ]
+}
+```
+
+## NPM Scripts
+
+```json
+{
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "prettier": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "prettier:fix": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\""
+  }
+}
+```
+
+## Environment Configuration
+
+### config.ts Pattern
+```typescript
+import { z } from 'zod'
+
+const configSchema = z.object({
+  NEXT_PUBLIC_API_ENDPOINT: z.string(),
+  NEXT_PUBLIC_URL: z.string(),
+})
+
+const configProject = configSchema.safeParse({
+  NEXT_PUBLIC_API_ENDPOINT: process.env.NEXT_PUBLIC_API_ENDPOINT,
+  NEXT_PUBLIC_URL: process.env.NEXT_PUBLIC_URL,
+})
+
+if (!configProject.success) {
+  console.error(configProject.error.errors)
+  throw new Error('Environment variables validation failed')
+}
+
+const envConfig = configProject.data
+export default envConfig
+```
+
+## Next.js Configuration
+
+### next.config.ts
+```typescript
+import type { NextConfig } from 'next'
+import createNextIntlPlugin from 'next-intl/plugin'
+import { withSentryConfig } from '@sentry/nextjs'
+
+const withNextIntl = createNextIntlPlugin()
+
+const nextConfig: NextConfig = {
+  output: 'standalone',
+  images: {
+    remotePatterns: [
+      { hostname: 'localhost' },
+      { protocol: 'https', hostname: '164181.msk.web.highserver.ru' }
+    ]
+  }
+}
+
+export default withSentryConfig(withNextIntl(nextConfig), sentryOptions)
+```
+
+## Performance Best Practices
+
+1. ✅ **Prefer Server Components** - Default to server components, use `'use client'` only when needed
+2. ✅ **Code Splitting** - Use `dynamic()` for large client components
+3. ✅ **Image Optimization** - Always use `next/image` instead of `<img>`
+4. ✅ **Font Optimization** - Use `next/font` for custom fonts
+5. ✅ **Static Generation** - Use `generateStaticParams` for dynamic routes when possible
+
+## Common Pitfalls to Avoid
+
+❌ **Don't** use `'use client'` on every component
+✅ **Do** use server components by default
+
+❌ **Don't** fetch data in client components if it can be done on server
+✅ **Do** use server components for data fetching
+
+❌ **Don't** use relative imports (`../../`)
+✅ **Do** use path aliases (`@/`)
+
+❌ **Don't** ignore TypeScript errors
+✅ **Do** fix all type errors before committing
+

@@ -1,20 +1,20 @@
 'use client'
 
-import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import AddDish from '@/app/[locale]/manage/dishes/add-dish'
+import EditDish from '@/app/[locale]/manage/dishes/edit-dish'
+import AutoPagination from '@/components/auto-pagination'
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from '@tanstack/react-table'
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import DOMPurify from 'dompurify'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,26 +32,26 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { createContext, useContext, useEffect, useState } from 'react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { formatCurrency, getDishStatus, handleErrorApi } from '@/lib/utils'
-import { useSearchParams } from 'next/navigation'
-import AutoPagination from '@/components/auto-pagination'
-import { DishListResType } from '@/schemaValidations/dish.schema'
-import EditDish from '@/app/[locale]/manage/dishes/edit-dish'
-import AddDish from '@/app/[locale]/manage/dishes/add-dish'
-import { useDeleteDishMutation, useDishListQuery } from '@/queries/useDish'
 import { toast } from '@/components/ui/use-toast'
+import { formatCurrency, getDishStatus, handleErrorApi } from '@/lib/utils'
+import { useDeleteDishMutation, useDishListQuery } from '@/queries/useDish'
+import { DishListResType } from '@/schemaValidations/dish.schema'
+import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table'
+import DOMPurify from 'dompurify'
+import { useSearchParams } from 'next/navigation'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 type DishItem = DishListResType['data'][0]
 
@@ -244,28 +244,32 @@ export default function DishTable() {
 
   return (
     <DishTableContext.Provider value={{ dishIdEdit, setDishIdEdit, dishDelete, setDishDelete }}>
-      <div className="w-full">
+      <div className="w-full space-y-3 sm:space-y-4">
         <EditDish id={dishIdEdit} setId={setDishIdEdit} />
         <AlertDialogDeleteDish dishDelete={dishDelete} setDishDelete={setDishDelete} />
-        <div className="flex items-center py-4">
+
+        {/* Filter and Add button */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:py-4">
           <Input
             placeholder="Filter name..."
             value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
             onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
-            className="max-w-sm"
+            className="w-full sm:max-w-sm"
           />
-          <div className="ml-auto flex items-center gap-2">
+          <div className="sm:ml-auto">
             <AddDish />
           </div>
         </div>
-        <div className="rounded-md border">
+
+        {/* Table with horizontal scroll on mobile */}
+        <div className="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id}>
+                      <TableHead key={header.id} className="whitespace-nowrap">
                         {header.isPlaceholder
                           ? null
                           : flexRender(header.column.columnDef.header, header.getContext())}
@@ -280,7 +284,7 @@ export default function DishTable() {
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id} className="whitespace-nowrap">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
@@ -296,13 +300,15 @@ export default function DishTable() {
             </TableBody>
           </Table>
         </div>
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 py-4 text-xs text-muted-foreground">
+
+        {/* Pagination */}
+        <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2 sm:py-4">
+          <div className="text-center text-xs text-muted-foreground sm:flex-1 sm:text-left">
             Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
             <strong>{data.length}</strong> results
           </div>
 
-          <div>
+          <div className="flex justify-center">
             <AutoPagination
               page={table.getState().pagination.pageIndex + 1}
               pageSize={table.getPageCount()}

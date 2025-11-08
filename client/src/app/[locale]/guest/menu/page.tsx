@@ -38,8 +38,8 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default async function MenuPage() {
   return (
-    <div className="mx-auto max-w-[400px] space-y-4">
-      <h1 className="text-center text-xl font-bold">🍕 Menu</h1>
+    <div className="mx-auto w-full max-w-[400px] space-y-4 sm:max-w-2xl md:max-w-4xl lg:max-w-6xl">
+      <h1 className="text-center text-xl font-bold sm:text-2xl md:text-3xl">🍕 Menu</h1>
       <MenuOrder />
     </div>
   )

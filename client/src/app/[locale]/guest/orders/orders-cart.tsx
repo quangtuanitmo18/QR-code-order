@@ -103,45 +103,66 @@ export default function OrdersCart() {
   }, [refetch, socket])
   return (
     <>
-      {orders.map((order, index) => (
-        <div key={order.id} className="flex gap-4">
-          <div className="text-sm font-semibold">{index + 1}</div>
-          <div className="relative flex-shrink-0">
-            <Image
-              src={order.dishSnapshot.image}
-              alt={order.dishSnapshot.name}
-              height={100}
-              width={100}
-              quality={100}
-              unoptimized
-              className="h-[80px] w-[80px] rounded-md object-cover"
-            />
-          </div>
-          <div className="space-y-1">
-            <h3 className="text-sm">{order.dishSnapshot.name}</h3>
-            <div className="text-xs font-semibold">
-              {formatCurrency(order.dishSnapshot.price)} x{' '}
-              <Badge className="px-1">{order.quantity}</Badge>
+      <div className="space-y-3 sm:space-y-4">
+        {orders.map((order, index) => (
+          <div
+            key={order.id}
+            className="flex gap-3 rounded-lg border bg-card p-3 shadow-sm sm:gap-4 sm:p-4"
+          >
+            <div className="flex min-w-[24px] items-start pt-1 text-sm font-semibold text-muted-foreground sm:text-base">
+              {index + 1}
+            </div>
+            <div className="relative flex-shrink-0">
+              <Image
+                src={order.dishSnapshot.image}
+                alt={order.dishSnapshot.name}
+                height={120}
+                width={120}
+                quality={75}
+                unoptimized
+                className="h-[80px] w-[80px] rounded-md object-cover sm:h-[100px] sm:w-[100px]"
+              />
+            </div>
+            <div className="flex flex-1 flex-col space-y-1 sm:space-y-2">
+              <h3 className="text-sm font-semibold sm:text-base">{order.dishSnapshot.name}</h3>
+              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold sm:text-sm">
+                <span>{formatCurrency(order.dishSnapshot.price)}</span>
+                <span className="text-muted-foreground">×</span>
+                <Badge className="px-2 py-0.5">{order.quantity}</Badge>
+              </div>
+              <div className="flex items-center pt-1">
+                <Badge variant={'outline'} className="text-xs sm:text-sm">
+                  {getOrderStatus(order.status)}
+                </Badge>
+              </div>
             </div>
           </div>
-          <div className="ml-auto flex flex-shrink-0 items-center justify-center">
-            <Badge variant={'outline'}>{getOrderStatus(order.status)}</Badge>
-          </div>
-        </div>
-      ))}
-      {paid.quantity !== 0 && (
-        <div className="sticky bottom-0">
-          <div className="flex w-full space-x-4 text-xl font-semibold">
-            <span>Order Paid · {paid.quantity} dishes</span>
+        ))}
+      </div>
 
-            <span>{formatCurrency(paid.price)}</span>
+      {/* Summary section */}
+      <div className="space-y-3 pt-4 sm:space-y-4">
+        {paid.quantity !== 0 && (
+          <div className="rounded-lg border border-green-500 bg-green-50 p-4 dark:bg-green-950">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-base font-semibold text-green-700 dark:text-green-300 sm:text-lg">
+                Order Paid · {paid.quantity} dishes
+              </span>
+              <span className="text-lg font-bold text-green-700 dark:text-green-300 sm:text-xl">
+                {formatCurrency(paid.price)}
+              </span>
+            </div>
           </div>
-        </div>
-      )}
-      <div className="sticky bottom-0">
-        <div className="flex w-full space-x-4 text-xl font-semibold">
-          <span>Waiting for paying · {waitingForPaying.quantity} dishes</span>
-          <span>{formatCurrency(waitingForPaying.price)}</span>
+        )}
+        <div className="rounded-lg border border-orange-500 bg-orange-50 p-4 dark:bg-orange-950">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-base font-semibold text-orange-700 dark:text-orange-300 sm:text-lg">
+              Waiting for paying · {waitingForPaying.quantity} dishes
+            </span>
+            <span className="text-lg font-bold text-orange-700 dark:text-orange-300 sm:text-xl">
+              {formatCurrency(waitingForPaying.price)}
+            </span>
+          </div>
         </div>
       </div>
     </>

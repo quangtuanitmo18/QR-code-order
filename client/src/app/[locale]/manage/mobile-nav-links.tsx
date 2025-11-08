@@ -10,9 +10,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { Link, usePathname } from '@/i18n/routing'
 import { cn } from '@/lib/utils'
 import { Package2, PanelLeft } from 'lucide-react'
-import { Link, usePathname } from '@/i18n/routing'
 
 export default function MobileNavLinks() {
   const pathname = usePathname()
@@ -20,12 +20,16 @@ export default function MobileNavLinks() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button size="icon" variant="outline" className="sm:hidden">
+        <Button
+          size="icon"
+          variant="outline"
+          className="min-h-[44px] min-w-[44px] sm:hidden sm:min-h-[40px] sm:min-w-[40px]"
+        >
           <PanelLeft className="h-5 w-5" />
           <span className="sr-only">Toggle Menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="sm:max-w-xs">
+      <SheetContent side="left" className="w-[280px] sm:max-w-xs">
         <SheetHeader className="sr-only">
           <SheetTitle />
           <SheetDescription />
@@ -45,7 +49,7 @@ export default function MobileNavLinks() {
               <Link
                 key={index}
                 href={Item.href}
-                className={cn('flex items-center gap-4 px-2.5 hover:text-foreground', {
+                className={cn('flex min-h-[44px] items-center gap-4 px-2.5 hover:text-foreground', {
                   'text-foreground': isActive,
                   'text-muted-foreground': !isActive,
                 })}

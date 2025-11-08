@@ -1,4 +1,26 @@
 'use client'
+import AddOrder from '@/app/[locale]/manage/orders/add-order'
+import EditOrder from '@/app/[locale]/manage/orders/edit-order'
+import OrderStatics from '@/app/[locale]/manage/orders/order-statics'
+import orderTableColumns from '@/app/[locale]/manage/orders/order-table-columns'
+import { useOrderService } from '@/app/[locale]/manage/orders/order.service'
+import AutoPagination from '@/components/auto-pagination'
+import { Input } from '@/components/ui/input'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { OrderStatusValues } from '@/constants/type'
+import { getOrderStatus, handleErrorApi } from '@/lib/utils'
+import {
+  GetOrdersResType,
+  PayGuestOrdersResType,
+  UpdateOrderResType,
+} from '@/schemaValidations/order.schema'
 import {
   ColumnFiltersState,
   SortingState,
@@ -10,43 +32,21 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { Input } from '@/components/ui/input'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import {
-  GetOrdersResType,
-  PayGuestOrdersResType,
-  UpdateOrderResType,
-} from '@/schemaValidations/order.schema'
-import AddOrder from '@/app/[locale]/manage/orders/add-order'
-import EditOrder from '@/app/[locale]/manage/orders/edit-order'
-import { createContext, useEffect, useMemo, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import AutoPagination from '@/components/auto-pagination'
-import { getOrderStatus, handleErrorApi } from '@/lib/utils'
-import { OrderStatusValues } from '@/constants/type'
-import OrderStatics from '@/app/[locale]/manage/orders/order-statics'
-import orderTableColumns from '@/app/[locale]/manage/orders/order-table-columns'
-import { useOrderService } from '@/app/[locale]/manage/orders/order.service'
 import { Check, ChevronsUpDown } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { createContext, useEffect, useState } from 'react'
 
-import { cn } from '@/lib/utils'
+import TableSkeleton from '@/app/[locale]/manage/orders/table-skeleton'
+import { useAppStore } from '@/components/app-provider'
 import { Button } from '@/components/ui/button'
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { endOfDay, format, startOfDay } from 'date-fns'
-import TableSkeleton from '@/app/[locale]/manage/orders/table-skeleton'
 import { toast } from '@/components/ui/use-toast'
-import { GuestCreateOrdersResType } from '@/schemaValidations/guest.schema'
+import { cn } from '@/lib/utils'
 import { useGetOrderListQuery, useUpdateOrderMutation } from '@/queries/useOrder'
 import { useTableListQuery } from '@/queries/useTable'
-import { useAppStore } from '@/components/app-provider'
+import { GuestCreateOrdersResType } from '@/schemaValidations/guest.schema'
+import { endOfDay, format, startOfDay } from 'date-fns'
 
 export const OrderTableContext = createContext({
   setOrderIdEdit: (value: number | undefined) => {},
@@ -224,49 +224,54 @@ export default function OrderTable() {
         orderObjectByGuestId,
       }}
     >
-      <div className="w-full">
+      <div className="w-full space-y-3 sm:space-y-4">
         <EditOrder id={orderIdEdit} setId={setOrderIdEdit} onSubmitSuccess={() => {}} />
-        <div className="flex items-center">
-          <div className="flex flex-wrap gap-2">
-            <div className="flex items-center">
-              <span className="mr-2">From</span>
+
+        {/* Date filters and Add button */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">From</span>
               <Input
                 type="datetime-local"
                 placeholder="From date"
-                className="text-sm"
+                className="flex-1 text-sm sm:w-auto"
                 value={format(fromDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
                 onChange={(event) => setFromDate(new Date(event.target.value))}
               />
             </div>
-            <div className="flex items-center">
-              <span className="mr-2">To</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">To</span>
               <Input
                 type="datetime-local"
                 placeholder="To date"
+                className="flex-1 text-sm sm:w-auto"
                 value={format(toDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
                 onChange={(event) => setToDate(new Date(event.target.value))}
               />
             </div>
-            <Button className="" variant={'outline'} onClick={resetDateFilter}>
+            <Button variant={'outline'} onClick={resetDateFilter} className="w-full sm:w-auto">
               Reset
             </Button>
           </div>
-          <div className="ml-auto">
+          <div className="sm:ml-auto">
             <AddOrder />
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-4 py-4">
+
+        {/* Search filters */}
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
           <Input
             placeholder="Customer name"
             value={(table.getColumn('guestName')?.getFilterValue() as string) ?? ''}
             onChange={(event) => table.getColumn('guestName')?.setFilterValue(event.target.value)}
-            className="max-w-[100px]"
+            className="w-full sm:max-w-[150px]"
           />
           <Input
             placeholder="Table number"
             value={(table.getColumn('tableNumber')?.getFilterValue() as string) ?? ''}
             onChange={(event) => table.getColumn('tableNumber')?.setFilterValue(event.target.value)}
-            className="max-w-[80px]"
+            className="w-full sm:max-w-[120px]"
           />
           <Popover open={openStatusFilter} onOpenChange={setOpenStatusFilter}>
             <PopoverTrigger asChild>
@@ -274,7 +279,7 @@ export default function OrderTable() {
                 variant="outline"
                 role="combobox"
                 aria-expanded={openStatusFilter}
-                className="w-[150px] justify-between text-sm"
+                className="w-full justify-between text-sm sm:w-[150px]"
               >
                 {table.getColumn('status')?.getFilterValue()
                   ? getOrderStatus(
@@ -329,14 +334,14 @@ export default function OrderTable() {
         />
         {orderListQuery.isPending && <TableSkeleton />}
         {!orderListQuery.isPending && (
-          <div className="rounded-md border">
+          <div className="overflow-x-auto rounded-md border">
             <Table>
               <TableHeader>
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => {
                       return (
-                        <TableHead key={header.id}>
+                        <TableHead key={header.id} className="whitespace-nowrap">
                           {header.isPlaceholder
                             ? null
                             : flexRender(header.column.columnDef.header, header.getContext())}
@@ -351,7 +356,7 @@ export default function OrderTable() {
                   table.getRowModel().rows.map((row) => (
                     <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
+                        <TableCell key={cell.id} className="whitespace-nowrap">
                           {flexRender(cell.column.columnDef.cell, cell.getContext())}
                         </TableCell>
                       ))}
@@ -368,13 +373,13 @@ export default function OrderTable() {
             </Table>
           </div>
         )}
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 py-4 text-xs text-muted-foreground">
+        <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2 sm:py-4">
+          <div className="text-center text-xs text-muted-foreground sm:flex-1 sm:py-4 sm:text-left">
             Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
             <strong>{orderList.length}</strong> results
           </div>
 
-          <div>
+          <div className="flex justify-center">
             <AutoPagination
               page={table.getState().pagination.pageIndex + 1}
               pageSize={table.getPageCount()}

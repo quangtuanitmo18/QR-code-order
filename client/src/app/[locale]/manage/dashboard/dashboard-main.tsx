@@ -1,13 +1,13 @@
 'use client'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { RevenueLineChart } from '@/app/[locale]/manage/dashboard/revenue-line-chart'
 import { DishBarChart } from '@/app/[locale]/manage/dashboard/dish-bar-chart'
-import { formatCurrency } from '@/lib/utils'
-import { Input } from '@/components/ui/input'
+import { RevenueLineChart } from '@/app/[locale]/manage/dashboard/revenue-line-chart'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { formatCurrency } from '@/lib/utils'
+import { useDashboardIndicator } from '@/queries/useIndicator'
 import { endOfDay, format, startOfDay } from 'date-fns'
 import { useState } from 'react'
-import { useDashboardIndicator } from '@/queries/useIndicator'
 
 const initFromDate = startOfDay(new Date())
 const initToDate = endOfDay(new Date())
@@ -31,32 +31,36 @@ export default function DashboardMain() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap gap-2">
-        <div className="flex items-center">
-          <span className="mr-2">From</span>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Date filters */}
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">From</span>
           <Input
             type="datetime-local"
             placeholder="Từ ngày"
-            className="text-sm"
+            className="flex-1 text-sm sm:w-auto"
             value={format(fromDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
             onChange={(event) => setFromDate(new Date(event.target.value))}
           />
         </div>
-        <div className="flex items-center">
-          <span className="mr-2">To</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">To</span>
           <Input
             type="datetime-local"
             placeholder="Đến ngày"
+            className="flex-1 text-sm sm:w-auto"
             value={format(toDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
             onChange={(event) => setToDate(new Date(event.target.value))}
           />
         </div>
-        <Button className="" variant={'outline'} onClick={resetDateFilter}>
+        <Button variant={'outline'} onClick={resetDateFilter} className="w-full sm:w-auto">
           Reset
         </Button>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+
+      {/* Stats cards - responsive grid */}
+      <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -75,7 +79,7 @@ export default function DashboardMain() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(revenue)}</div>
+            <div className="text-xl font-bold sm:text-2xl">{formatCurrency(revenue)}</div>
           </CardContent>
         </Card>
         <Card>
@@ -97,7 +101,7 @@ export default function DashboardMain() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{guestCount}</div>
+            <div className="text-xl font-bold sm:text-2xl">{guestCount}</div>
             {/* <p className='text-xs text-muted-foreground'>Gọi món</p> */}
           </CardContent>
         </Card>
@@ -119,7 +123,7 @@ export default function DashboardMain() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{orderCount}</div>
+            <div className="text-xl font-bold sm:text-2xl">{orderCount}</div>
             {/* <p className='text-xs text-muted-foreground'>Đã thanh toán</p> */}
           </CardContent>
         </Card>
@@ -140,11 +144,13 @@ export default function DashboardMain() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{servingTableCount}</div>
+            <div className="text-xl font-bold sm:text-2xl">{servingTableCount}</div>
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+
+      {/* Charts - responsive grid */}
+      <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-7">
         <div className="lg:col-span-4">
           <RevenueLineChart chartData={revenueByDate} />
         </div>

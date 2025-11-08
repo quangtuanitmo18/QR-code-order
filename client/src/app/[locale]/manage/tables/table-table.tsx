@@ -1,5 +1,6 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import {
   ColumnDef,
@@ -13,8 +14,21 @@ import {
   getSortedRowModel,
   useReactTable,
 } from '@tanstack/react-table'
-import { Button } from '@/components/ui/button'
 
+import AddTable from '@/app/[locale]/manage/tables/add-table'
+import EditTable from '@/app/[locale]/manage/tables/edit-table'
+import AutoPagination from '@/components/auto-pagination'
+import QRCodeTable from '@/components/qrcode-table'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,26 +46,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { createContext, useContext, useEffect, useState } from 'react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { getTableStatus, handleErrorApi } from '@/lib/utils'
-import { useSearchParams } from 'next/navigation'
-import AutoPagination from '@/components/auto-pagination'
-import { TableListResType } from '@/schemaValidations/table.schema'
-import EditTable from '@/app/[locale]/manage/tables/edit-table'
-import AddTable from '@/app/[locale]/manage/tables/add-table'
-import { useDeleteTableMutation, useTableListQuery } from '@/queries/useTable'
-import QRCodeTable from '@/components/qrcode-table'
 import { toast } from '@/components/ui/use-toast'
+import { getTableStatus, handleErrorApi } from '@/lib/utils'
+import { useDeleteTableMutation, useTableListQuery } from '@/queries/useTable'
+import { TableListResType } from '@/schemaValidations/table.schema'
+import { useSearchParams } from 'next/navigation'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 type TableItem = TableListResType['data'][0]
 
@@ -232,30 +232,34 @@ export default function TableTable() {
     <TableTableContext.Provider
       value={{ tableIdEdit, setTableIdEdit, tableDelete, setTableDelete }}
     >
-      <div className="w-full">
+      <div className="w-full space-y-3 sm:space-y-4">
         <EditTable id={tableIdEdit} setId={setTableIdEdit} />
         <AlertDialogDeleteTable tableDelete={tableDelete} setTableDelete={setTableDelete} />
-        <div className="flex items-center py-4">
+
+        {/* Filter and Add button */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:py-4">
           <Input
-            placeholder="Filter table"
+            placeholder="Filter table number"
             value={(table.getColumn('number')?.getFilterValue() as string) ?? ''}
             onChange={(event) => {
               table.getColumn('number')?.setFilterValue(event.target.value)
             }}
-            className="max-w-sm"
+            className="w-full sm:max-w-sm"
           />
-          <div className="ml-auto flex items-center gap-2">
+          <div className="sm:ml-auto">
             <AddTable />
           </div>
         </div>
-        <div className="rounded-md border">
+
+        {/* Table with horizontal scroll on mobile */}
+        <div className="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id}>
+                      <TableHead key={header.id} className="whitespace-nowrap">
                         {header.isPlaceholder
                           ? null
                           : flexRender(header.column.columnDef.header, header.getContext())}
@@ -270,7 +274,7 @@ export default function TableTable() {
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id} className="whitespace-nowrap">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
@@ -286,13 +290,15 @@ export default function TableTable() {
             </TableBody>
           </Table>
         </div>
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 py-4 text-xs text-muted-foreground">
+
+        {/* Pagination */}
+        <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2 sm:py-4">
+          <div className="text-center text-xs text-muted-foreground sm:flex-1 sm:text-left">
             Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
             <strong>{data.length}</strong> results
           </div>
 
-          <div>
+          <div className="flex justify-center">
             <AutoPagination
               page={table.getState().pagination.pageIndex + 1}
               pageSize={table.getPageCount()}

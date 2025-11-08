@@ -16,6 +16,20 @@ import {
 
 import { Button } from '@/components/ui/button'
 
+import AddEmployee from '@/app/[locale]/manage/accounts/add-employee'
+import EditEmployee from '@/app/[locale]/manage/accounts/edit-employee'
+import AutoPagination from '@/components/auto-pagination'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,26 +47,12 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { AccountListResType, AccountType } from '@/schemaValidations/account.schema'
-import AddEmployee from '@/app/[locale]/manage/accounts/add-employee'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import EditEmployee from '@/app/[locale]/manage/accounts/edit-employee'
-import { createContext, useContext, useEffect, useState } from 'react'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { useSearchParams } from 'next/navigation'
-import AutoPagination from '@/components/auto-pagination'
-import { useDeleteAccountMutation, useGetAccountList } from '@/queries/useAccount'
 import { toast } from '@/components/ui/use-toast'
 import { handleErrorApi } from '@/lib/utils'
+import { useDeleteAccountMutation, useGetAccountList } from '@/queries/useAccount'
+import { AccountListResType, AccountType } from '@/schemaValidations/account.schema'
+import { useSearchParams } from 'next/navigation'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 type AccountItem = AccountListResType['data'][0]
 
@@ -245,31 +245,35 @@ export default function AccountTable() {
         setEmployeeDelete,
       }}
     >
-      <div className="w-full">
+      <div className="w-full space-y-3 sm:space-y-4">
         <EditEmployee id={employeeIdEdit} setId={setEmployeeIdEdit} onSubmitSuccess={() => {}} />
         <AlertDialogDeleteAccount
           employeeDelete={employeeDelete}
           setEmployeeDelete={setEmployeeDelete}
         />
-        <div className="flex items-center py-4">
+
+        {/* Filter and Add button */}
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:py-4">
           <Input
             placeholder="Filter email..."
             value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
             onChange={(event) => table.getColumn('email')?.setFilterValue(event.target.value)}
-            className="max-w-sm"
+            className="w-full sm:max-w-sm"
           />
-          <div className="ml-auto flex items-center gap-2">
+          <div className="sm:ml-auto">
             <AddEmployee />
           </div>
         </div>
-        <div className="rounded-md border">
+
+        {/* Table with horizontal scroll on mobile */}
+        <div className="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id}>
+                      <TableHead key={header.id} className="whitespace-nowrap">
                         {header.isPlaceholder
                           ? null
                           : flexRender(header.column.columnDef.header, header.getContext())}
@@ -284,7 +288,7 @@ export default function AccountTable() {
                 table.getRowModel().rows.map((row) => (
                   <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
+                      <TableCell key={cell.id} className="whitespace-nowrap">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
                     ))}
@@ -300,13 +304,15 @@ export default function AccountTable() {
             </TableBody>
           </Table>
         </div>
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 py-4 text-xs text-muted-foreground">
+
+        {/* Pagination */}
+        <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2 sm:py-4">
+          <div className="text-center text-xs text-muted-foreground sm:flex-1 sm:text-left">
             Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
             <strong>{data.length}</strong> results
           </div>
 
-          <div>
+          <div className="flex justify-center">
             <AutoPagination
               page={table.getState().pagination.pageIndex + 1}
               pageSize={table.getPageCount()}

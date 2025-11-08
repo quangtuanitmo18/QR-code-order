@@ -42,52 +42,63 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
     return <div>Something went wrong</div>
   }
   return (
-    <div className="w-full space-y-4">
-      <section className="relative z-10">
+    <div className="w-full space-y-6 sm:space-y-8">
+      {/* Hero Banner */}
+      <section className="relative z-10 min-h-[200px] sm:min-h-[250px] md:min-h-[300px]">
         <span className="absolute left-0 top-0 z-10 h-full w-full bg-black opacity-50"></span>
         <Image
           src="/banner.png"
-          width={400}
-          height={200}
-          quality={80}
-          loading="lazy"
+          width={1920}
+          height={600}
+          quality={85}
+          priority
           alt="Banner"
           className="absolute left-0 top-0 h-full w-full object-cover"
         />
-        <div className="relative z-20 px-4 py-10 sm:px-10 md:px-20 md:py-20">
-          <h1 className="text-center text-xl font-bold sm:text-2xl md:text-4xl lg:text-5xl">
+        <div className="relative z-20 flex h-full min-h-[200px] flex-col items-center justify-center px-4 py-10 sm:min-h-[250px] sm:px-10 sm:py-16 md:min-h-[300px] md:px-20 md:py-20">
+          <h1 className="text-center text-2xl font-bold text-white sm:text-3xl md:text-4xl lg:text-5xl">
             {t('title')}
           </h1>
-          <p className="mt-4 text-center text-sm sm:text-base">{t('slogan')}</p>
+          <p className="mt-3 text-center text-sm text-white/90 sm:mt-4 sm:text-base md:text-lg">
+            {t('slogan')}
+          </p>
         </div>
       </section>
-      <section className="space-y-10 py-16">
-        <h2 className="text-center text-2xl font-bold">{t('h2')}</h2>
-        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2">
+
+      {/* Dishes Section */}
+      <section className="space-y-6 px-4 py-8 sm:space-y-8 sm:px-6 sm:py-12 md:px-8 md:py-16">
+        <h2 className="text-center text-2xl font-bold sm:text-3xl md:text-4xl">{t('h2')}</h2>
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 lg:gap-8">
           {dishList.map((dish) => (
             <Link
               href={`/dishes/${generateSlugUrl({
                 name: dish.name,
                 id: dish.id,
               })}`}
-              className="w flex gap-4"
+              className="group flex gap-3 rounded-lg border bg-card p-3 shadow-sm transition-all hover:shadow-lg sm:flex-col sm:gap-4 sm:p-4"
               key={dish.id}
             >
-              <div className="flex-shrink-0">
+              <div className="relative flex-shrink-0 overflow-hidden rounded-md sm:w-full">
                 <Image
                   src={dish.image}
-                  width={150}
-                  height={150}
+                  width={300}
+                  height={300}
                   quality={80}
                   alt={dish.name}
-                  className="h-[150px] w-[150px] rounded-md object-cover"
+                  className="h-[100px] w-[100px] object-cover transition-transform group-hover:scale-105 sm:h-[200px] sm:w-full md:h-[250px]"
                   unoptimized
                 />
               </div>
-              <div className="space-y-1">
-                <h3 className="text-xl font-semibold">{dish.name}</h3>
-                <p className="">{dish.description}</p>
-                <p className="font-semibold">{formatCurrency(dish.price)}</p>
+              <div className="flex flex-1 flex-col space-y-1 sm:space-y-2">
+                <h3 className="text-base font-semibold group-hover:text-primary sm:text-lg md:text-xl">
+                  {dish.name}
+                </h3>
+                <p className="line-clamp-2 text-xs text-muted-foreground sm:line-clamp-3 sm:text-sm">
+                  {dish.description}
+                </p>
+                <p className="mt-auto text-sm font-bold text-primary sm:text-base">
+                  {formatCurrency(dish.price)}
+                </p>
               </div>
             </Link>
           ))}

@@ -32,12 +32,12 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 
 export default function AccountsPage() {
   return (
-    <main className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-      <div className="space-y-2">
+    <main className="grid flex-1 items-start gap-4 p-3 sm:p-4 sm:px-6 sm:py-0 md:gap-8">
+      <div className="space-y-2 sm:space-y-4">
         <Card x-chunk="dashboard-06-chunk-0">
           <CardHeader>
-            <CardTitle>Orders</CardTitle>
-            <CardDescription>Orders Management</CardDescription>
+            <CardTitle className="text-xl sm:text-2xl">Orders</CardTitle>
+            <CardDescription className="text-sm sm:text-base">Orders Management</CardDescription>
           </CardHeader>
           <CardContent>
             <Suspense>

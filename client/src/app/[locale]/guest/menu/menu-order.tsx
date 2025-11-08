@@ -52,47 +52,57 @@ export default function MenuOrder() {
   }
   return (
     <>
-      {dishes
-        .filter((dish) => dish.status !== DishStatus.Hidden)
-        .map((dish) => (
-          <div
-            key={dish.id}
-            className={cn('flex gap-4', {
-              'pointer-events-none': dish.status === DishStatus.Unavailable,
-            })}
-          >
-            <div className="relative flex-shrink-0">
-              {dish.status === DishStatus.Unavailable && (
-                <span className="absolute inset-0 flex items-center justify-center text-sm">
-                  Unavailable
-                </span>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {dishes
+          .filter((dish) => dish.status !== DishStatus.Hidden)
+          .map((dish) => (
+            <div
+              key={dish.id}
+              className={cn(
+                'flex gap-3 rounded-lg border bg-card p-3 shadow-sm sm:flex-col sm:gap-4 sm:p-4',
+                {
+                  'pointer-events-none opacity-60': dish.status === DishStatus.Unavailable,
+                }
               )}
-              <Image
-                src={dish.image}
-                alt={dish.name}
-                height={100}
-                width={100}
-                quality={70}
-                unoptimized
-                className="h-[80px] w-[80px] rounded-md object-cover"
-              />
+            >
+              <div className="relative flex-shrink-0 sm:w-full">
+                {dish.status === DishStatus.Unavailable && (
+                  <span className="absolute inset-0 flex items-center justify-center rounded-md bg-black/50 text-sm font-semibold text-white">
+                    Unavailable
+                  </span>
+                )}
+                <Image
+                  src={dish.image}
+                  alt={dish.name}
+                  height={200}
+                  width={200}
+                  quality={75}
+                  unoptimized
+                  className="h-[80px] w-[80px] rounded-md object-cover sm:h-[180px] sm:w-full md:h-[200px]"
+                />
+              </div>
+              <div className="flex flex-1 flex-col space-y-1 sm:space-y-2">
+                <h3 className="text-sm font-semibold sm:text-base">{dish.name}</h3>
+                <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">
+                  {dish.description}
+                </p>
+                <p className="text-sm font-bold text-primary sm:text-base">
+                  {formatCurrency(dish.price)}
+                </p>
+              </div>
+              <div className="flex flex-shrink-0 items-center justify-center sm:mt-auto sm:justify-start">
+                <Quantity
+                  onChange={(value) => handleQuantityChange(dish.id, value)}
+                  value={orders.find((order) => order.dishId === dish.id)?.quantity ?? 0}
+                />
+              </div>
             </div>
-            <div className="space-y-1">
-              <h3 className="text-sm">{dish.name}</h3>
-              <p className="text-xs">{dish.description}</p>
-              <p className="text-xs font-semibold">{formatCurrency(dish.price)}</p>
-            </div>
-            <div className="ml-auto flex flex-shrink-0 items-center justify-center">
-              <Quantity
-                onChange={(value) => handleQuantityChange(dish.id, value)}
-                value={orders.find((order) => order.dishId === dish.id)?.quantity ?? 0}
-              />
-            </div>
-          </div>
-        ))}
-      <div className="sticky bottom-0">
+          ))}
+      </div>
+      <div className="sticky bottom-0 bg-background pb-4 pt-4">
         <Button
-          className="w-full justify-between"
+          className="w-full justify-between shadow-lg"
+          size="lg"
           onClick={handleOrder}
           disabled={orders.length === 0}
         >
