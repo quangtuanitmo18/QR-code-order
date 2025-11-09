@@ -11,25 +11,18 @@
     "server:build": "cd server && npm run build",
     "client:lint": "cd client && npm run lint",
     "server:lint": "cd server && npm run lint",
-    "client:prettier": "cd client && npm run prettier:fix",
-    "server:prettier": "cd server && npm run prettier:fix"
+    "client:prettier": "cd client && npx prettier --write --ignore-unknown",
+    "server:prettier": "cd server && npx prettier --write --ignore-unknown"
   },
   "devDependencies": {
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
-    "prettier": "^3.6.2"
+    "prettier": "^3.6.2",
+    "prettier-plugin-tailwindcss": "^0.6.11"
   },
   "lint-staged": {
-    "client/**/*.{ts,tsx,js,jsx}": [
-      "cd client && npm run prettier:fix",
-      "cd client && npm run lint"
-    ],
-    "server/**/*.{ts,js}": [
-      "cd server && npm run prettier:fix",
-      "cd server && npm run lint"
-    ],
-    "**/*.{json,md,yml,yaml}": [
-      "prettier --write"
-    ]
+    "client/**/*.{ts,tsx,js,jsx}": "npm run client:prettier --",
+    "server/**/*.{ts,js}": "npm run server:prettier --",
+    "*.{json,md,yml,yaml}": "npx prettier --write"
   }
 }
