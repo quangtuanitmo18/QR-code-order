@@ -6,6 +6,7 @@ import {
   guestLogoutController,
   guestRefreshTokenController
 } from '@/controllers/guest.controller'
+import { createPaymentController } from '@/controllers/payment.controller'
 import { requireGuestHook, requireLoginedHook } from '@/hooks/auth.hooks'
 import {
   LogoutBody,
@@ -28,6 +29,7 @@ import {
   GuestLoginRes,
   GuestLoginResType
 } from '@/schemaValidations/guest.schema'
+import { CreatePaymentBody, CreatePaymentBodyType, CreatePaymentRes, CreatePaymentResType } from '@/schemaValidations/payment.schema'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 
 export default async function guestRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
@@ -145,6 +147,38 @@ export default async function guestRoutes(fastify: FastifyInstance, options: Fas
       reply.send({
         message: 'Get the list of orders successfully!',
         data: result as GuestGetOrdersResType['data']
+      })
+    }
+  )
+  fastify.post<{
+    Reply: CreatePaymentResType
+    Body: CreatePaymentBodyType
+  }>(
+    '/orders/create-payment',
+    {
+      schema: {
+        response: {
+          200: CreatePaymentRes
+        },
+        body: CreatePaymentBody
+      },
+      preValidation: fastify.auth([requireLoginedHook, requireGuestHook])
+    },
+    async (request, reply) => {
+      const guestId = request.decodedAccessToken?.userId as number
+      const ipAddr = request.ip || '127.0.0.1'
+
+      const result = await createPaymentController({
+        guestId,
+        paymentMethod: request.body.paymentMethod,
+        note: request.body.note,
+        currency: request.body.currency as 'USD' | 'VND' | undefined,
+        ipAddr
+      })
+
+      reply.send({
+        message: 'Payment created successfully',
+        data: result as CreatePaymentResType['data']
       })
     }
   )

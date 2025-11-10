@@ -111,3 +111,37 @@ export const CreateOrdersRes = z.object({
 })
 
 export type CreateOrdersResType = z.TypeOf<typeof CreateOrdersRes>
+
+// vnpay
+export const CreateVNPayPaymentBody = z.object({
+  guestId: z.number(),
+  returnUrl: z.string().url().optional()
+})
+
+export type CreateVNPayPaymentBodyType = z.TypeOf<typeof CreateVNPayPaymentBody>
+
+export const CreateVNPayPaymentRes = z.object({
+  message: z.string(),
+  data: z.object({
+    paymentUrl: z.string()
+  })
+})
+
+export type CreateVNPayPaymentResType = z.TypeOf<typeof CreateVNPayPaymentRes>
+
+export const VerifyVNPayReturnQuery = z.object({
+  vnp_Amount: z.string(),
+  vnp_BankCode: z.string().optional(),
+  vnp_BankTranNo: z.string().optional(),
+  vnp_CardType: z.string().optional(),
+  vnp_OrderInfo: z.string(),
+  vnp_PayDate: z.string(),
+  vnp_ResponseCode: z.string(),
+  vnp_TmnCode: z.string(),
+  vnp_TransactionNo: z.string(),
+  vnp_TransactionStatus: z.string(),
+  vnp_TxnRef: z.string(),
+  vnp_SecureHash: z.string()
+})
+
+export type VerifyVNPayReturnQueryType = z.TypeOf<typeof VerifyVNPayReturnQuery>  

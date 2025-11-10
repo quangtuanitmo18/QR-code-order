@@ -133,6 +133,7 @@ export default async function orderRoutes(fastify: FastifyInstance, options: Fas
     }
   )
 
+  // Cash
   fastify.post<{ Body: PayGuestOrdersBodyType; Reply: PayGuestOrdersResType }>(
     '/pay',
     {
@@ -146,8 +147,10 @@ export default async function orderRoutes(fastify: FastifyInstance, options: Fas
     async (request, reply) => {
       const result = await payOrdersController({
         guestId: request.body.guestId,
-        orderHandlerId: request.decodedAccessToken?.userId as number
+        orderHandlerId: request.decodedAccessToken?.userId as number,
+        paymentMethod: 'Cash', // Owner/Employee chỉ thanh toán tiền mặt
       })
+      
       if (result.socketId) {
         fastify.io.to(result.socketId).to(ManagerRoom).emit('payment', result.orders)
       } else {

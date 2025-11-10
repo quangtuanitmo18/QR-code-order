@@ -46,3 +46,40 @@ export const OrderStatusValues = [
 ] as const
 
 export const ManagerRoom = 'manager' as const
+
+// payment
+export const PaymentMethod = {
+  Cash: 'Cash',
+  VNPay: 'VNPay',
+  Stripe: 'Stripe',
+  Momo: 'Momo',
+  ZaloPay: 'ZaloPay',
+  BankTransfer: 'BankTransfer'
+} as const
+
+export const PaymentMethodValues = [
+  PaymentMethod.Cash,
+  PaymentMethod.VNPay,
+  // PaymentMethod.Stripe,
+  // PaymentMethod.Momo,
+] as const
+
+export const PaymentStatus = {
+  Pending: 'Pending',         
+  Processing: 'Processing',   
+  RequiresAction: 'RequiresAction', 
+  Success: 'Success',         
+  Failed: 'Failed',           
+  Cancelled: 'Cancelled',     
+  Refunded: 'Refunded'        
+} as const
+
+export const PaymentStatusValues = [
+  PaymentStatus.Pending,
+  PaymentStatus.Processing,
+  PaymentStatus.RequiresAction,
+  PaymentStatus.Success,
+  PaymentStatus.Failed,
+  PaymentStatus.Cancelled,
+  PaymentStatus.Refunded
+] as const

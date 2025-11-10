@@ -1,6 +1,7 @@
-import { DishStatus, OrderStatus, TableStatus } from '@/constants/type'
+import { DishStatus, OrderStatus, PaymentMethod, TableStatus } from '@/constants/type'
 import prisma from '@/database'
 import { CreateOrdersBodyType, UpdateOrderBodyType } from '@/schemaValidations/order.schema'
+import { createPaymentController } from './payment.controller'
 
 export const createOrdersController = async (orderHandlerId: number, body: CreateOrdersBodyType) => {
   const { guestId, orders } = body
@@ -106,60 +107,37 @@ export const getOrdersController = async ({ fromDate, toDate }: { fromDate?: Dat
   return orders
 }
 
-// Controller thanh toán các hóa đơn dựa trên guestId
-export const payOrdersController = async ({ guestId, orderHandlerId }: { guestId: number; orderHandlerId: number }) => {
-  const orders = await prisma.order.findMany({
-    where: {
-      guestId,
-      status: {
-        in: [OrderStatus.Pending, OrderStatus.Processing, OrderStatus.Delivered]
-      }
+// Controller pay orders by guestId
+export const payOrdersController = async ({
+  guestId,
+  orderHandlerId,
+  paymentMethod = PaymentMethod.Cash,
+  note
+}: {
+  guestId: number
+  orderHandlerId: number
+  paymentMethod?: string
+  note?: string
+}) => {
+  const result = await createPaymentController({
+    guestId,
+    paymentMethod,
+    note: note ? [note] : undefined,
+    currency: 'USD',
+    ipAddr: '127.0.0.1',
+    paymentHandlerId: orderHandlerId
+  })
+
+  // For Cash payment, always return orders
+  if ('orders' in result && result.orders) {
+    return {
+      orders: result.orders,
+      socketId: result.socketId
     }
-  })
-  if (orders.length === 0) {
-    throw new Error('No orders need to be paid')
   }
-  await prisma.$transaction(async (tx) => {
-    const orderIds = orders.map((order) => order.id)
-    const updatedOrders = await tx.order.updateMany({
-      where: {
-        id: {
-          in: orderIds
-        }
-      },
-      data: {
-        status: OrderStatus.Paid,
-        orderHandlerId
-      }
-    })
-    return updatedOrders
-  })
-  const [ordersResult, sockerRecord] = await Promise.all([
-    prisma.order.findMany({
-      where: {
-        id: {
-          in: orders.map((order) => order.id)
-        }
-      },
-      include: {
-        dishSnapshot: true,
-        orderHandler: true,
-        guest: true
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    }),
-    prisma.socket.findUnique({
-      where: {
-        guestId
-      }
-    })
-  ])
-  return {
-    orders: ordersResult,
-    socketId: sockerRecord?.socketId
-  }
+  
+  // Should not reach here for Cash payment
+  throw new Error('Cash payment must return orders')
 }
 
 export const getOrderDetailController = (orderId: number) => {
@@ -237,3 +215,4 @@ export const updateOrderController = async (
     socketId: socketRecord?.socketId
   }
 }
+

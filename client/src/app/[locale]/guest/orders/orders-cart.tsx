@@ -1,19 +1,35 @@
 'use client'
 
+import guestApiRequest from '@/apiRequests/guest'
 import { useAppStore } from '@/components/app-provider'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { toast } from '@/components/ui/use-toast'
-import { OrderStatus } from '@/constants/type'
+import { OrderStatus, PaymentMethod } from '@/constants/type'
+import { useRouter } from '@/i18n/routing'
+import { convertUSDtoVND, formatUSD, formatVND } from '@/lib/currency'
 import { formatCurrency, getOrderStatus } from '@/lib/utils'
 import { useGuestGetOrderListQuery } from '@/queries/useGuest'
 import { PayGuestOrdersResType, UpdateOrderResType } from '@/schemaValidations/order.schema'
 import Image from 'next/image'
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 export default function OrdersCart() {
   const { data, refetch } = useGuestGetOrderListQuery()
   const orders = useMemo(() => data?.payload.data ?? [], [data])
   const socket = useAppStore((state) => state.socket)
+  const router = useRouter()
+  const [amountVND, setAmountVND] = useState<number | null>(null)
+  const [formattedAmountUSD, setFormattedAmountUSD] = useState<string | null>(null)
+  const [formattedAmountVND, setFormattedAmountVND] = useState<string | null>(null)
+  // Payment state
+  const [isPaymentLoading, setIsPaymentLoading] = useState(false)
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>(
+    PaymentMethod.Cash
+  )
+
   const { waitingForPaying, paid } = useMemo(() => {
     return orders.reduce(
       (result, order) => {
@@ -26,8 +42,8 @@ export default function OrdersCart() {
             ...result,
             waitingForPaying: {
               price: result.waitingForPaying.price + order.dishSnapshot.price * order.quantity,
-              quantity: result.waitingForPaying.quantity + order.quantity,
-            },
+              quantity: result.waitingForPaying.quantity + order.quantity
+            }
           }
         }
         if (order.status === OrderStatus.Paid) {
@@ -35,8 +51,8 @@ export default function OrdersCart() {
             ...result,
             paid: {
               price: result.paid.price + order.dishSnapshot.price * order.quantity,
-              quantity: result.paid.quantity + order.quantity,
-            },
+              quantity: result.paid.quantity + order.quantity
+            }
           }
         }
         return result
@@ -44,15 +60,63 @@ export default function OrdersCart() {
       {
         waitingForPaying: {
           price: 0,
-          quantity: 0,
+          quantity: 0
         },
         paid: {
           price: 0,
-          quantity: 0,
-        },
+          quantity: 0
+        }
       }
     )
   }, [orders])
+
+  const handlePayment = async () => {
+    try {
+      setIsPaymentLoading(true)
+
+      const result = await guestApiRequest.createPayment({
+        paymentMethod: selectedPaymentMethod as any,
+        currency: 'USD'
+      })
+
+      if (result.payload.data.paymentUrl) {
+        window.location.href = result.payload.data.paymentUrl
+      } else {
+        // cash payment dont need payment url
+        toast({
+          title: 'Payment Successful',
+          description: `Paid ${formattedAmountUSD} (${formattedAmountVND})`,
+          variant: 'default'
+        })
+        refetch()
+        setIsPaymentLoading(false)
+        router.push('/guest/orders')
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Payment Error',
+        description: error.message || 'Failed to process payment',
+        variant: 'destructive'
+      })
+      setIsPaymentLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    const fetchAmount = async () => {
+      try {
+        const amountVND = await convertUSDtoVND(waitingForPaying.price)
+        setAmountVND(amountVND)
+        const formattedAmountUSD =  formatUSD(waitingForPaying.price)
+        setFormattedAmountUSD(formattedAmountUSD)
+        const formattedAmountVND =  formatVND(amountVND)
+        setFormattedAmountVND(formattedAmountVND)
+      } catch (error) {
+        console.error('Failed to fetch amount:', error)
+      }
+    }
+    fetchAmount()
+  }, [waitingForPaying.price])
 
   useEffect(() => {
     if (socket?.connected) {
@@ -70,12 +134,12 @@ export default function OrdersCart() {
     function onUpdateOrder(data: UpdateOrderResType['data']) {
       const {
         dishSnapshot: { name },
-        quantity,
+        quantity
       } = data
       toast({
         description: `Dish ${name} (Qty: ${quantity}) has just been updated to status "${getOrderStatus(
           data.status
-        )}"`,
+        )}"`
       })
       refetch()
     }
@@ -83,9 +147,8 @@ export default function OrdersCart() {
     function onPayment(data: PayGuestOrdersResType['data']) {
       const { guest } = data[0]
       toast({
-        description: `${guest?.name} at table ${guest?.tableNumber} has successfully paid for ${data.length} orders`,
+        description: `${guest?.name} at table ${guest?.tableNumber} has successfully paid for ${data.length} orders`
       })
-
       refetch()
     }
 
@@ -101,8 +164,10 @@ export default function OrdersCart() {
       socket?.off('payment', onPayment)
     }
   }, [refetch, socket])
+
   return (
     <>
+      {/* Order List */}
       <div className="space-y-3 sm:space-y-4">
         {orders.map((order, index) => (
           <div
@@ -140,30 +205,60 @@ export default function OrdersCart() {
         ))}
       </div>
 
-      {/* Summary section */}
-      <div className="space-y-3 pt-4 sm:space-y-4">
-        {paid.quantity !== 0 && (
-          <div className="rounded-lg border border-green-500 bg-green-50 p-4 dark:bg-green-950">
+    {/* Summary section */}
+    <div className="space-y-3 pt-4 sm:space-y-4">
+        {waitingForPaying.quantity > 0 && (
+          <div className="rounded-lg border border-orange-500 bg-orange-50 p-4 dark:bg-orange-950">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-base font-semibold text-green-700 dark:text-green-300 sm:text-lg">
-                Order Paid · {paid.quantity} dishes
+              <span className="text-base font-semibold text-orange-700 dark:text-orange-300 sm:text-lg">
+                Waiting for paying · {waitingForPaying.quantity} dishes
               </span>
-              <span className="text-lg font-bold text-green-700 dark:text-green-300 sm:text-xl">
-                {formatCurrency(paid.price)}
-              </span>
+              <div className="flex flex-col items-end">
+                <span className="text-lg font-bold text-orange-700 dark:text-orange-300 sm:text-xl">
+                  {formattedAmountUSD}
+                </span>
+                <span className="text-sm text-orange-600 dark:text-orange-400">
+                  ≈ {formattedAmountVND}
+                </span>
+              </div>
             </div>
+
+            {/* Payment Method Selection */}
+            <div className="mt-4 space-y-3">
+              <Label className="text-sm font-semibold text-orange-700 dark:text-orange-300">
+                Select Payment Method:
+              </Label>
+              <RadioGroup value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value={PaymentMethod.Cash} id="cash" />
+                  <Label htmlFor="cash" className="cursor-pointer">
+                    💵 Cash Payment
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value={PaymentMethod.VNPay} id="vnpay" />
+                  <Label htmlFor="vnpay" className="cursor-pointer">
+                    💳 VNPay (Auto convert to VND)
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Payment Button */}
+            <Button
+              onClick={handlePayment}
+              disabled={isPaymentLoading}
+              className="mt-4 w-full"
+              size="lg"
+            >
+              {isPaymentLoading
+                ? 'Processing...'
+                : selectedPaymentMethod === PaymentMethod.Cash
+                ? `Pay ${formattedAmountUSD}`
+                : `Pay ${formattedAmountVND}`}
+            </Button>
           </div>
         )}
-        <div className="rounded-lg border border-orange-500 bg-orange-50 p-4 dark:bg-orange-950">
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-base font-semibold text-orange-700 dark:text-orange-300 sm:text-lg">
-              Waiting for paying · {waitingForPaying.quantity} dishes
-            </span>
-            <span className="text-lg font-bold text-orange-700 dark:text-orange-300 sm:text-xl">
-              {formatCurrency(waitingForPaying.price)}
-            </span>
-          </div>
-        </div>
       </div>
     </>
   )

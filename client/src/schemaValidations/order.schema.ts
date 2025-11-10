@@ -111,3 +111,14 @@ export const CreateOrdersRes = z.object({
 })
 
 export type CreateOrdersResType = z.TypeOf<typeof CreateOrdersRes>
+
+// vnpay
+
+export const CreateVNPayPaymentRes = z.object({
+  message: z.string(),
+  data: z.object({
+    paymentUrl: z.string()
+  })
+})
+
+export type CreateVNPayPaymentResType = z.TypeOf<typeof CreateVNPayPaymentRes>

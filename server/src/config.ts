@@ -43,7 +43,11 @@ const configSchema = z.object({
   SENTRY_DSN: z.string(),
   SENTRY_RELEASE: z.string(),
   SERVER_NAME: z.string(),
-  SENTRY_HEARTBEAT_URL: z.string().url()
+  SENTRY_HEARTBEAT_URL: z.string().url(),
+  VNPAY_TMN_CODE: z.string(),
+  VNPAY_SECURE_SECRET: z.string(),
+  VNPAY_URL: z.string(),
+  VNPAY_RETURN_URL: z.string()
 })
 
 const configServer = configSchema.safeParse(process.env)
