@@ -1,8 +1,10 @@
-import envConfig from '@/config';
-import { OrderStatus, PaymentMethod, PaymentStatus } from '@/constants/type';
-import prisma from '@/database';
-import { convertUSDtoVND, getLiveExchangeRate } from '@/utils/currency';
-import { buildVNPayPaymentUrl, verifyVNPayReturn } from '@/utils/vnpay';
+import envConfig from '@/config'
+import { OrderStatus, PaymentMethod, PaymentStatus } from '@/constants/type'
+import prisma from '@/database'
+import { convertUSDtoVND, getLiveExchangeRate } from '@/utils/currency'
+import { createStripeCheckoutSession, getStripeSession, stripe } from '@/utils/stripe'
+import { buildVNPayPaymentUrl, verifyVNPayReturn } from '@/utils/vnpay'
+import Stripe from 'stripe'
 
 // Create a payment (unified for all methods)
 export const createPaymentController = async ({
@@ -45,15 +47,15 @@ export const createPaymentController = async ({
 
   const guest = orders[0].guest
   const transactionRef = `PAY_${guestId}_${Date.now()}`
-  
+
   // Description includes both USD and VND for clarity
- const description = `Payment $${totalAmountUSD.toFixed(2)} - ${orders.length} dishes - ${guest?.name}`
+  const description = `Payment $${totalAmountUSD.toFixed(2)} - ${orders.length} dishes - ${guest?.name}`
 
   // Handle based on payment method
   if (paymentMethod === PaymentMethod.Cash) {
     return await processCashPayment({
       guestId,
-      totalAmount: totalAmountUSD,  
+      totalAmount: totalAmountUSD,
       currency,
       transactionRef,
       description,
@@ -65,12 +67,21 @@ export const createPaymentController = async ({
   } else if (paymentMethod === PaymentMethod.VNPay) {
     return await processVNPayPayment({
       guestId,
-      totalAmountUSD,  
+      totalAmountUSD,
       currency,
       transactionRef,
       description,
       note,
       ipAddr,
+      orders,
+      guest
+    })
+  } else if (paymentMethod === PaymentMethod.Stripe) {
+    return await processStripePayment({
+      guestId,
+      totalAmountUSD,
+      transactionRef,
+      description,
       orders,
       guest
     })
@@ -93,20 +104,22 @@ const processCashPayment = async ({
 }: any) => {
   const exchangeRate = currency === 'USD' ? await getLiveExchangeRate() : 1
   const amountVND = currency === 'USD' ? await convertUSDtoVND(totalAmount) : totalAmount
-  
+
   const result = await prisma.$transaction(async (tx) => {
     // Create payment record with USD
-    const payment = await tx.payment.create({ 
+    const payment = await tx.payment.create({
       data: {
         guestId,
         tableNumber: guest?.tableNumber,
-        amount: totalAmount,     
-        currency: currency,        
+        amount: totalAmount,
+        currency: currency,
         paymentMethod: PaymentMethod.Cash,
         status: PaymentStatus.Success,
         transactionRef,
         description,
-        note: note ? `${note} | VND: ${amountVND.toLocaleString()} | Rate: ${exchangeRate}` : `VND: ${amountVND.toLocaleString()} | Rate: ${exchangeRate}`,
+        note: note
+          ? `${note} | VND: ${amountVND.toLocaleString()} | Rate: ${exchangeRate}`
+          : `VND: ${amountVND.toLocaleString()} | Rate: ${exchangeRate}`,
         metadata: JSON.stringify({
           originalAmount: totalAmount,
           originalCurrency: currency,
@@ -179,11 +192,11 @@ const processVNPayPayment = async ({
 
   // Build VNPay payment URL with VND amount
   const paymentUrl = await buildVNPayPaymentUrl({
-    amount: totalAmountVND, 
+    amount: totalAmountVND,
     orderId: transactionRef,
     orderInfo: description,
     ipAddr,
-    returnUrl:  envConfig.VNPAY_RETURN_URL
+    returnUrl: envConfig.VNPAY_RETURN_URL
   })
 
   // Create pending payment record with USD
@@ -191,8 +204,8 @@ const processVNPayPayment = async ({
     data: {
       guestId,
       tableNumber: guest?.tableNumber,
-      amount: totalAmountUSD,    
-      currency: currency,        
+      amount: totalAmountUSD,
+      currency: currency,
       paymentMethod: PaymentMethod.VNPay,
       status: PaymentStatus.Pending,
       transactionRef,
@@ -200,7 +213,9 @@ const processVNPayPayment = async ({
       returnUrl: envConfig.VNPAY_RETURN_URL,
       ipAddress: ipAddr,
       description,
-      note: note ? `${note} | VND: ${totalAmountVND.toLocaleString()} | Rate: ${exchangeRate}` : `VND: ${totalAmountVND.toLocaleString()} | Rate: ${exchangeRate}`,
+      note: note
+        ? `${note} | VND: ${totalAmountVND.toLocaleString()} | Rate: ${exchangeRate}`
+        : `VND: ${totalAmountVND.toLocaleString()} | Rate: ${exchangeRate}`,
       metadata: JSON.stringify({
         originalAmount: totalAmountUSD,
         originalCurrency: currency,
@@ -221,11 +236,54 @@ const processVNPayPayment = async ({
   }
 }
 
+// Process Stripe Payment
+const processStripePayment = async ({ guestId, totalAmountUSD, transactionRef, description, orders, guest }: any) => {
+  // Convert USD to cents (Stripe requires integer cents)
+  const amountInCents = Math.round(totalAmountUSD * 100)
+
+  // Create Stripe Checkout Session
+  const session = await createStripeCheckoutSession({
+    amount: amountInCents,
+    transactionRef,
+    description,
+    returnUrl: envConfig.STRIPE_RETURN_URL,
+    guestEmail: undefined // No email field in Guest model
+  })
+
+  // Create pending payment record
+  const payment = await prisma.payment.create({
+    data: {
+      guestId,
+      tableNumber: guest?.tableNumber,
+      amount: totalAmountUSD, // Store in USD (original)
+      currency: 'USD',
+      paymentMethod: PaymentMethod.Stripe,
+      status: PaymentStatus.Pending,
+      transactionRef,
+      externalSessionId: session.id,
+      paymentUrl: session.url,
+      returnUrl: envConfig.STRIPE_RETURN_URL,
+      description,
+      metadata: JSON.stringify({
+        stripeSessionId: session.id,
+        amountInCents,
+        expiresAt: new Date(session.expires_at * 1000).toISOString()
+      })
+    }
+  })
+
+  console.log('Stripe payment created:', payment.id, payment.transactionRef)
+  console.log('Stripe checkout URL:', session.url)
+
+  return {
+    payment,
+    paymentUrl: session.url,
+    sessionId: session.id
+  }
+}
+
 // Verify VNPay payment and update
-export const verifyVNPayPaymentController = async (
-  query: any,
-  paymentHandlerId?: number
-) => {
+export const verifyVNPayPaymentController = async (query: any, paymentHandlerId?: number) => {
   const verifyResult = await verifyVNPayReturn(query)
   console.log('verifyResult', verifyResult)
 
@@ -336,6 +394,193 @@ export const verifyVNPayPaymentController = async (
     orders: result.orders,
     socketId: socketRecord?.socketId,
     verifyResult
+  }
+}
+
+// Verify Stripe Payment (called by webhook)
+export const verifyStripePaymentController = async (event: Stripe.Event, paymentHandlerId?: number) => {
+  let payment: any = null
+  let transactionRef: string = ''
+
+  // Extract transaction ref based on event type
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object as Stripe.Checkout.Session
+    transactionRef = session.metadata?.transactionRef || ''
+  } else if (event.type === 'payment_intent.succeeded' || event.type === 'payment_intent.payment_failed') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent
+    // For payment intents, we need to get the session to find transaction ref
+    // The payment intent doesn't have the session ID directly, so we find by payment intent ID
+    const existingPayment = await prisma.payment.findFirst({
+      where: {
+        externalTransactionId: paymentIntent.id
+      }
+    })
+
+    if (existingPayment) {
+      transactionRef = existingPayment.transactionRef
+    } else {
+      // If not found by payment intent ID, try to find by checking recent pending Stripe payments
+      // This handles the case where checkout.session.completed hasn't been processed yet
+      const recentPayments = await prisma.payment.findMany({
+        where: {
+          paymentMethod: PaymentMethod.Stripe,
+          status: PaymentStatus.Pending,
+          createdAt: {
+            gte: new Date(Date.now() - 60 * 60 * 1000) // Last hour
+          }
+        },
+        orderBy: {
+          createdAt: 'desc'
+        }
+      })
+
+      // Try to match by fetching each session
+      for (const p of recentPayments) {
+        if (p.externalSessionId) {
+          try {
+            const session = await getStripeSession(p.externalSessionId)
+            if (session.payment_intent === paymentIntent.id) {
+              transactionRef = p.transactionRef
+              break
+            }
+          } catch (err) {
+            // Session might be expired, continue
+          }
+        }
+      }
+    }
+  }
+
+  if (!transactionRef) {
+    throw new Error('Transaction reference not found in event')
+  }
+
+  // Find payment by transaction ref
+  payment = await prisma.payment.findUnique({
+    where: { transactionRef },
+    include: { guest: true }
+  })
+
+  if (!payment) {
+    throw new Error('Payment not found')
+  }
+
+  if (payment.status === PaymentStatus.Success) {
+    // Already processed
+    const orders = await prisma.order.findMany({
+      where: { paymentId: payment.id },
+      include: {
+        dishSnapshot: true,
+        orderHandler: true,
+        guest: true
+      }
+    })
+    return { payment, orders, socketId: null }
+  }
+
+  // Process based on event type
+  const isSuccess = event.type === 'payment_intent.succeeded'
+  const isFailed = event.type === 'payment_intent.payment_failed'
+  const newStatus = isSuccess ? PaymentStatus.Success : isFailed ? PaymentStatus.Failed : payment.status
+
+  // Extract payment details for successful payments
+  let paymentDetails: any = {}
+  if (event.type === 'payment_intent.succeeded') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent
+
+    // Get payment method details
+    let paymentMethod = null
+    if (paymentIntent.payment_method) {
+      try {
+        paymentMethod = await stripe.paymentMethods.retrieve(paymentIntent.payment_method as string)
+      } catch (err) {
+        console.error('Failed to retrieve payment method:', err)
+      }
+    }
+
+    paymentDetails = {
+      externalTransactionId: paymentIntent.id,
+      paymentIntentStatus: paymentIntent.status,
+      last4Digits: paymentMethod?.card?.last4 || null,
+      cardBrand: paymentMethod?.card?.brand || null,
+      cardType: paymentMethod?.card?.funding || null // "credit" | "debit"
+    }
+  } else if (event.type === 'payment_intent.payment_failed') {
+    const paymentIntent = event.data.object as Stripe.PaymentIntent
+    paymentDetails = {
+      externalTransactionId: paymentIntent.id,
+      paymentIntentStatus: paymentIntent.status,
+      responseCode: paymentIntent.last_payment_error?.code || null,
+      responseMessage: paymentIntent.last_payment_error?.message || null
+    }
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    // Update payment
+    const updatedPayment = await tx.payment.update({
+      where: { id: payment.id },
+      data: {
+        status: newStatus,
+        ...paymentDetails,
+        paymentHandlerId,
+        paidAt: isSuccess ? new Date() : null,
+        metadata: JSON.stringify({
+          ...JSON.parse(payment.metadata || '{}'),
+          eventType: event.type,
+          eventId: event.id,
+          processedAt: new Date().toISOString()
+        })
+      }
+    })
+
+    let updatedOrders: any[] = []
+
+    if (isSuccess) {
+      // Get orders for this guest
+      const orders = await tx.order.findMany({
+        where: {
+          guestId: payment.guestId!,
+          status: {
+            in: [OrderStatus.Pending, OrderStatus.Processing, OrderStatus.Delivered]
+          }
+        }
+      })
+
+      // Update orders to Paid
+      await tx.order.updateMany({
+        where: {
+          id: { in: orders.map((order) => order.id) }
+        },
+        data: {
+          status: OrderStatus.Paid,
+          orderHandlerId: paymentHandlerId,
+          paymentId: payment.id
+        }
+      })
+
+      updatedOrders = await tx.order.findMany({
+        where: {
+          id: { in: orders.map((order) => order.id) }
+        },
+        include: {
+          dishSnapshot: true,
+          orderHandler: true,
+          guest: true
+        }
+      })
+    }
+
+    return { payment: updatedPayment, orders: updatedOrders }
+  })
+
+  const socketRecord = await prisma.socket.findUnique({
+    where: { guestId: payment.guestId! }
+  })
+
+  return {
+    payment: result.payment,
+    orders: result.orders,
+    socketId: socketRecord?.socketId
   }
 }
 

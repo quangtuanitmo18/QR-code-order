@@ -47,7 +47,10 @@ const configSchema = z.object({
   VNPAY_TMN_CODE: z.string(),
   VNPAY_SECURE_SECRET: z.string(),
   VNPAY_URL: z.string(),
-  VNPAY_RETURN_URL: z.string()
+  VNPAY_RETURN_URL: z.string(),
+  STRIPE_SECRET_KEY: z.string(),
+  STRIPE_WEBHOOK_SECRET: z.string(),
+  STRIPE_RETURN_URL: z.string().url()
 })
 
 const configServer = configSchema.safeParse(process.env)

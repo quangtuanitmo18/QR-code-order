@@ -60,18 +60,18 @@ export const PaymentMethod = {
 export const PaymentMethodValues = [
   PaymentMethod.Cash,
   PaymentMethod.VNPay,
-  // PaymentMethod.Stripe,
+  PaymentMethod.Stripe
   // PaymentMethod.Momo,
 ] as const
 
 export const PaymentStatus = {
-  Pending: 'Pending',         
-  Processing: 'Processing',   
-  RequiresAction: 'RequiresAction', 
-  Success: 'Success',         
-  Failed: 'Failed',           
-  Cancelled: 'Cancelled',     
-  Refunded: 'Refunded'        
+  Pending: 'Pending',
+  Processing: 'Processing',
+  RequiresAction: 'RequiresAction',
+  Success: 'Success',
+  Failed: 'Failed',
+  Cancelled: 'Cancelled',
+  Refunded: 'Refunded'
 } as const
 
 export const PaymentStatusValues = [

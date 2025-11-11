@@ -26,9 +26,7 @@ export default function OrdersCart() {
   const [formattedAmountVND, setFormattedAmountVND] = useState<string | null>(null)
   // Payment state
   const [isPaymentLoading, setIsPaymentLoading] = useState(false)
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>(
-    PaymentMethod.Cash
-  )
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>(PaymentMethod.Cash)
 
   const { waitingForPaying, paid } = useMemo(() => {
     return orders.reduce(
@@ -42,8 +40,8 @@ export default function OrdersCart() {
             ...result,
             waitingForPaying: {
               price: result.waitingForPaying.price + order.dishSnapshot.price * order.quantity,
-              quantity: result.waitingForPaying.quantity + order.quantity
-            }
+              quantity: result.waitingForPaying.quantity + order.quantity,
+            },
           }
         }
         if (order.status === OrderStatus.Paid) {
@@ -51,8 +49,8 @@ export default function OrdersCart() {
             ...result,
             paid: {
               price: result.paid.price + order.dishSnapshot.price * order.quantity,
-              quantity: result.paid.quantity + order.quantity
-            }
+              quantity: result.paid.quantity + order.quantity,
+            },
           }
         }
         return result
@@ -60,12 +58,12 @@ export default function OrdersCart() {
       {
         waitingForPaying: {
           price: 0,
-          quantity: 0
+          quantity: 0,
         },
         paid: {
           price: 0,
-          quantity: 0
-        }
+          quantity: 0,
+        },
       }
     )
   }, [orders])
@@ -76,7 +74,7 @@ export default function OrdersCart() {
 
       const result = await guestApiRequest.createPayment({
         paymentMethod: selectedPaymentMethod as any,
-        currency: 'USD'
+        currency: 'USD',
       })
 
       if (result.payload.data.paymentUrl) {
@@ -86,7 +84,7 @@ export default function OrdersCart() {
         toast({
           title: 'Payment Successful',
           description: `Paid ${formattedAmountUSD} (${formattedAmountVND})`,
-          variant: 'default'
+          variant: 'default',
         })
         refetch()
         setIsPaymentLoading(false)
@@ -96,7 +94,7 @@ export default function OrdersCart() {
       toast({
         title: 'Payment Error',
         description: error.message || 'Failed to process payment',
-        variant: 'destructive'
+        variant: 'destructive',
       })
       setIsPaymentLoading(false)
     }
@@ -107,9 +105,9 @@ export default function OrdersCart() {
       try {
         const amountVND = await convertUSDtoVND(waitingForPaying.price)
         setAmountVND(amountVND)
-        const formattedAmountUSD =  formatUSD(waitingForPaying.price)
+        const formattedAmountUSD = formatUSD(waitingForPaying.price)
         setFormattedAmountUSD(formattedAmountUSD)
-        const formattedAmountVND =  formatVND(amountVND)
+        const formattedAmountVND = formatVND(amountVND)
         setFormattedAmountVND(formattedAmountVND)
       } catch (error) {
         console.error('Failed to fetch amount:', error)
@@ -134,12 +132,12 @@ export default function OrdersCart() {
     function onUpdateOrder(data: UpdateOrderResType['data']) {
       const {
         dishSnapshot: { name },
-        quantity
+        quantity,
       } = data
       toast({
         description: `Dish ${name} (Qty: ${quantity}) has just been updated to status "${getOrderStatus(
           data.status
-        )}"`
+        )}"`,
       })
       refetch()
     }
@@ -147,7 +145,7 @@ export default function OrdersCart() {
     function onPayment(data: PayGuestOrdersResType['data']) {
       const { guest } = data[0]
       toast({
-        description: `${guest?.name} at table ${guest?.tableNumber} has successfully paid for ${data.length} orders`
+        description: `${guest?.name} at table ${guest?.tableNumber} has successfully paid for ${data.length} orders`,
       })
       refetch()
     }
@@ -205,8 +203,8 @@ export default function OrdersCart() {
         ))}
       </div>
 
-    {/* Summary section */}
-    <div className="space-y-3 pt-4 sm:space-y-4">
+      {/* Summary section */}
+      <div className="space-y-3 pt-4 sm:space-y-4">
         {waitingForPaying.quantity > 0 && (
           <div className="rounded-lg border border-orange-500 bg-orange-50 p-4 dark:bg-orange-950">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -241,6 +239,12 @@ export default function OrdersCart() {
                     💳 VNPay (Auto convert to VND)
                   </Label>
                 </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value={PaymentMethod.Stripe} id="stripe" />
+                  <Label htmlFor="stripe" className="cursor-pointer">
+                    💳 Stripe (Credit/Debit Card - USD)
+                  </Label>
+                </div>
               </RadioGroup>
             </div>
 
@@ -253,9 +257,10 @@ export default function OrdersCart() {
             >
               {isPaymentLoading
                 ? 'Processing...'
-                : selectedPaymentMethod === PaymentMethod.Cash
-                ? `Pay ${formattedAmountUSD}`
-                : `Pay ${formattedAmountVND}`}
+                : selectedPaymentMethod === PaymentMethod.Cash ||
+                    selectedPaymentMethod === PaymentMethod.Stripe
+                  ? `Pay ${formattedAmountUSD}`
+                  : `Pay ${formattedAmountVND}`}
             </Button>
           </div>
         )}
