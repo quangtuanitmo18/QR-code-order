@@ -323,6 +323,39 @@ jobs:
               cd ../..
             fi
 
+            # Run Prisma migrations before deploying
+            if [ -d "temp_extract/server" ]; then
+              echo "🗄️ Running database migrations..."
+              cd temp_extract/server
+              
+              # Generate Prisma Client
+              npx prisma generate
+              
+              # Check if database needs baselining
+              echo "🔍 Checking migration status..."
+              MIGRATE_STATUS=$(npx prisma migrate status 2>&1 || true)
+              
+              if echo "$MIGRATE_STATUS" | grep -q "P3005"; then
+                echo "⚠️ Database schema is not empty and needs baselining..."
+                echo "🔧 Applying baseline migration..."
+                
+                # Get the first migration name
+                FIRST_MIGRATION=$(ls prisma/migrations | head -n 1)
+                
+                if [ -n "$FIRST_MIGRATION" ]; then
+                  echo "📌 Marking migration as applied: $FIRST_MIGRATION"
+                  npx prisma migrate resolve --applied "$FIRST_MIGRATION"
+                fi
+              fi
+              
+              # Deploy migrations to production database
+              echo "🚀 Deploying migrations..."
+              npx prisma migrate deploy
+              
+              echo "✅ Database migrations completed"
+              cd ../..
+            fi    
+
             # Create log directories
             mkdir -p /var/log/qr-order/{client,server} || sudo mkdir -p /var/log/qr-order/{client,server}
 
@@ -387,6 +420,12 @@ jobs:
 
               # Remove temporary backups
               rm -rf temp_prisma_backup temp_uploads_backup
+              
+              # Step 6: Verify database migration status
+              echo "🔍 Verifying database migration status..."
+              cd server
+              npx prisma migrate status || echo "⚠️ Migration status check completed"
+              cd ..
             fi
 
 
