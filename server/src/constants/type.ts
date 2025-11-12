@@ -52,6 +52,7 @@ export const PaymentMethod = {
   Cash: 'Cash',
   VNPay: 'VNPay',
   Stripe: 'Stripe',
+  YooKassa: 'YooKassa',
   Momo: 'Momo',
   ZaloPay: 'ZaloPay',
   BankTransfer: 'BankTransfer'
@@ -60,7 +61,8 @@ export const PaymentMethod = {
 export const PaymentMethodValues = [
   PaymentMethod.Cash,
   PaymentMethod.VNPay,
-  PaymentMethod.Stripe
+  PaymentMethod.Stripe,
+  PaymentMethod.YooKassa
   // PaymentMethod.Momo,
 ] as const
 

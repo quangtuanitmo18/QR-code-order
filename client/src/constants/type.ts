@@ -60,6 +60,7 @@ export const PaymentMethod = {
   Cash: 'Cash',
   VNPay: 'VNPay',
   Stripe: 'Stripe',
+  YooKassa: 'YooKassa',
   Momo: 'Momo',
   ZaloPay: 'ZaloPay',
   BankTransfer: 'BankTransfer',
@@ -69,6 +70,7 @@ export const PaymentMethodValues = [
   PaymentMethod.Cash,
   PaymentMethod.VNPay,
   PaymentMethod.Stripe,
+  PaymentMethod.YooKassa,
 ] as const
 
 export const PaymentStatus = {

@@ -1,9 +1,10 @@
 import envConfig from '@/config'
 import { OrderStatus, PaymentMethod, PaymentStatus } from '@/constants/type'
 import prisma from '@/database'
-import { convertUSDtoVND, getLiveExchangeRate } from '@/utils/currency'
+import { convertUSDtoRUB, convertUSDtoVND, getLiveExchangeRate } from '@/utils/currency'
 import { createStripeCheckoutSession, getStripeSession, stripe } from '@/utils/stripe'
 import { buildVNPayPaymentUrl, verifyVNPayReturn } from '@/utils/vnpay'
+import { createYooKassaPayment, getYooKassaPaymentStatus } from '@/utils/yookassa'
 import Stripe from 'stripe'
 
 // Create a payment (unified for all methods)
@@ -78,6 +79,15 @@ export const createPaymentController = async ({
     })
   } else if (paymentMethod === PaymentMethod.Stripe) {
     return await processStripePayment({
+      guestId,
+      totalAmountUSD,
+      transactionRef,
+      description,
+      orders,
+      guest
+    })
+  } else if (paymentMethod === PaymentMethod.YooKassa) {
+    return await processYooKassaPayment({
       guestId,
       totalAmountUSD,
       transactionRef,
@@ -279,6 +289,60 @@ const processStripePayment = async ({ guestId, totalAmountUSD, transactionRef, d
     payment,
     paymentUrl: session.url,
     sessionId: session.id
+  }
+}
+
+// Process YooKassa Payment
+const processYooKassaPayment = async ({ guestId, totalAmountUSD, transactionRef, description, orders, guest }: any) => {
+  const exchangeRate = await getLiveExchangeRate('RUB')
+  const totalAmountRUB = await convertUSDtoRUB(totalAmountUSD)
+
+  // Create YooKassa Payment with transaction reference in return URL
+  // YooKassa does NOT automatically add query params, so we add them manually
+  const returnUrlWithRef = `${envConfig.YOOKASSA_RETURN_URL}?txnRef=${transactionRef}`
+
+  const yookassaPayment = await createYooKassaPayment({
+    amount: totalAmountRUB,
+    transactionRef,
+    description,
+    returnUrl: returnUrlWithRef,
+    guestEmail: undefined // No email field in Guest model
+  })
+
+  // Create pending payment record with USD
+  const payment = await prisma.payment.create({
+    data: {
+      guestId,
+      tableNumber: guest?.tableNumber,
+      amount: totalAmountUSD, // Store in USD (original)
+      currency: 'USD',
+      paymentMethod: PaymentMethod.YooKassa,
+      status: PaymentStatus.Pending,
+      transactionRef,
+      externalTransactionId: yookassaPayment.id, // YooKassa payment ID
+      paymentUrl: yookassaPayment.confirmation?.confirmation_url,
+      returnUrl: returnUrlWithRef, // Use the URL with transaction reference
+      description,
+      metadata: JSON.stringify({
+        originalAmount: totalAmountUSD,
+        originalCurrency: 'USD',
+        convertedAmount: totalAmountRUB,
+        convertedCurrency: 'RUB',
+        exchangeRate: exchangeRate,
+        conversionDate: new Date().toISOString(),
+        yookassaPaymentId: yookassaPayment.id,
+        yookassaStatus: yookassaPayment.status
+      })
+    }
+  })
+
+  console.log('YooKassa payment created:', payment.id, payment.transactionRef)
+  console.log('YooKassa payment URL:', yookassaPayment.confirmation?.confirmation_url)
+
+  return {
+    payment,
+    paymentUrl: yookassaPayment.confirmation?.confirmation_url,
+    paymentId: yookassaPayment.id
   }
 }
 
@@ -561,6 +625,129 @@ export const verifyStripePaymentController = async (event: Stripe.Event, payment
       updatedOrders = await tx.order.findMany({
         where: {
           id: { in: orders.map((order) => order.id) }
+        },
+        include: {
+          dishSnapshot: true,
+          orderHandler: true,
+          guest: true
+        }
+      })
+    }
+
+    return { payment: updatedPayment, orders: updatedOrders }
+  })
+
+  const socketRecord = await prisma.socket.findUnique({
+    where: { guestId: payment.guestId! }
+  })
+
+  return {
+    payment: result.payment,
+    orders: result.orders,
+    socketId: socketRecord?.socketId
+  }
+}
+
+// Verify YooKassa Payment (called by webhook)
+export const verifyYooKassaPaymentController = async (notification: any, paymentHandlerId?: number) => {
+  const yookassaPayment = notification.object
+  const transactionRef = yookassaPayment.metadata?.transactionRef
+
+  if (!transactionRef) {
+    throw new Error('Transaction reference not found in notification')
+  }
+
+  // Find payment by transaction ref
+  const payment = await prisma.payment.findUnique({
+    where: { transactionRef },
+    include: { guest: true }
+  })
+
+  if (!payment) {
+    throw new Error('Payment not found')
+  }
+
+  if (payment.status === PaymentStatus.Success) {
+    // Already processed
+    const orders = await prisma.order.findMany({
+      where: { paymentId: payment.id },
+      include: {
+        dishSnapshot: true,
+        orderHandler: true,
+        guest: true
+      }
+    })
+    return { payment, orders, socketId: null }
+  }
+
+  // Determine payment status from notification
+  const yookassaStatus = getYooKassaPaymentStatus(notification)
+  const isSuccess = yookassaStatus === 'succeeded'
+  const isFailed = yookassaStatus === 'canceled'
+  const newStatus = isSuccess ? PaymentStatus.Success : isFailed ? PaymentStatus.Failed : PaymentStatus.Pending
+
+  // Extract payment details
+  const paymentDetails: any = {
+    externalTransactionId: yookassaPayment.id,
+    responseCode: yookassaPayment.status,
+    responseMessage: yookassaPayment.description || null
+  }
+
+  // Add payment method details if available
+  if (yookassaPayment.payment_method?.type) {
+    paymentDetails.metadata = JSON.stringify({
+      ...JSON.parse(payment.metadata || '{}'),
+      paymentMethodType: yookassaPayment.payment_method.type,
+      paymentMethodId: yookassaPayment.payment_method.id,
+      eventType: notification.type,
+      eventId: notification.event,
+      processedAt: new Date().toISOString()
+    })
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    // Update payment
+    const updatedPayment = await tx.payment.update({
+      where: { id: payment.id },
+      data: {
+        status: newStatus,
+        paidAt: isSuccess ? new Date() : null,
+        ...paymentDetails
+      }
+    })
+
+    let updatedOrders: any[] = []
+
+    if (isSuccess) {
+      // Get orders for this guest
+      const orders = await tx.order.findMany({
+        where: {
+          guestId: payment.guestId!,
+          status: {
+            in: [OrderStatus.Pending, OrderStatus.Processing, OrderStatus.Delivered]
+          }
+        }
+      })
+
+      // Update orders to Paid
+      await tx.order.updateMany({
+        where: {
+          id: {
+            in: orders.map((order) => order.id)
+          }
+        },
+        data: {
+          status: OrderStatus.Paid,
+          orderHandlerId: paymentHandlerId,
+          paymentId: payment.id
+        }
+      })
+
+      updatedOrders = await tx.order.findMany({
+        where: {
+          id: {
+            in: orders.map((order) => order.id)
+          }
         },
         include: {
           dishSnapshot: true,

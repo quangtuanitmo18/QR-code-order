@@ -74,7 +74,7 @@ export default function PaymentResultPage() {
       </div>
 
       <div className="flex flex-col gap-3 sm:flex-row">
-        <Button onClick={() => router.push('/guest/orders')} className="flex-1" size="lg">
+        <Button onClick={() => router.push('/en/guest/orders')} className="flex-1" size="lg">
           Back to Orders
         </Button>
         <Button onClick={() => router.back()} variant="outline" className="flex-1" size="lg">

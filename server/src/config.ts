@@ -50,7 +50,10 @@ const configSchema = z.object({
   VNPAY_RETURN_URL: z.string(),
   STRIPE_SECRET_KEY: z.string(),
   STRIPE_WEBHOOK_SECRET: z.string(),
-  STRIPE_RETURN_URL: z.string().url()
+  STRIPE_RETURN_URL: z.string().url(),
+  YOOKASSA_SHOP_ID: z.string(),
+  YOOKASSA_SECRET_KEY: z.string(),
+  YOOKASSA_RETURN_URL: z.string().url()
 })
 
 const configServer = configSchema.safeParse(process.env)

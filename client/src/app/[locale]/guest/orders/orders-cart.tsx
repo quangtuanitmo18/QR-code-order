@@ -9,7 +9,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { toast } from '@/components/ui/use-toast'
 import { OrderStatus, PaymentMethod } from '@/constants/type'
 import { useRouter } from '@/i18n/routing'
-import { convertUSDtoVND, formatUSD, formatVND } from '@/lib/currency'
+import { convertUSDtoRUB, convertUSDtoVND, formatRUB, formatUSD, formatVND } from '@/lib/currency'
 import { formatCurrency, getOrderStatus } from '@/lib/utils'
 import { useGuestGetOrderListQuery } from '@/queries/useGuest'
 import { PayGuestOrdersResType, UpdateOrderResType } from '@/schemaValidations/order.schema'
@@ -22,8 +22,10 @@ export default function OrdersCart() {
   const socket = useAppStore((state) => state.socket)
   const router = useRouter()
   const [amountVND, setAmountVND] = useState<number | null>(null)
+  const [amountRUB, setAmountRUB] = useState<number | null>(null)
   const [formattedAmountUSD, setFormattedAmountUSD] = useState<string | null>(null)
   const [formattedAmountVND, setFormattedAmountVND] = useState<string | null>(null)
+  const [formattedAmountRUB, setFormattedAmountRUB] = useState<string | null>(null)
   // Payment state
   const [isPaymentLoading, setIsPaymentLoading] = useState(false)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>(PaymentMethod.Cash)
@@ -104,11 +106,15 @@ export default function OrdersCart() {
     const fetchAmount = async () => {
       try {
         const amountVND = await convertUSDtoVND(waitingForPaying.price)
+        const amountRUB = await convertUSDtoRUB(waitingForPaying.price)
         setAmountVND(amountVND)
+        setAmountRUB(amountRUB)
         const formattedAmountUSD = formatUSD(waitingForPaying.price)
         setFormattedAmountUSD(formattedAmountUSD)
         const formattedAmountVND = formatVND(amountVND)
         setFormattedAmountVND(formattedAmountVND)
+        const formattedAmountRUB = formatRUB(amountRUB)
+        setFormattedAmountRUB(formattedAmountRUB)
       } catch (error) {
         console.error('Failed to fetch amount:', error)
       }
@@ -215,9 +221,10 @@ export default function OrdersCart() {
                 <span className="text-lg font-bold text-orange-700 dark:text-orange-300 sm:text-xl">
                   {formattedAmountUSD}
                 </span>
-                <span className="text-sm text-orange-600 dark:text-orange-400">
-                  ≈ {formattedAmountVND}
-                </span>
+                <div className="flex flex-col items-end gap-0.5 text-sm text-orange-600 dark:text-orange-400">
+                  <span>≈ {formattedAmountVND}</span>
+                  <span>≈ {formattedAmountRUB}</span>
+                </div>
               </div>
             </div>
 
@@ -236,13 +243,19 @@ export default function OrdersCart() {
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value={PaymentMethod.VNPay} id="vnpay" />
                   <Label htmlFor="vnpay" className="cursor-pointer">
-                    💳 VNPay (Auto convert to VND)
+                    💳 VNPay (Auto convert to VND) 🇻🇳
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value={PaymentMethod.Stripe} id="stripe" />
                   <Label htmlFor="stripe" className="cursor-pointer">
-                    💳 Stripe (Credit/Debit Card - USD)
+                    💳 Stripe (Credit/Debit Card - USD) 🌍
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value={PaymentMethod.YooKassa} id="yookassa" />
+                  <Label htmlFor="yookassa" className="cursor-pointer">
+                    💳 YooKassa (Auto convert to RUB) 🇷🇺
                   </Label>
                 </div>
               </RadioGroup>
@@ -260,7 +273,11 @@ export default function OrdersCart() {
                 : selectedPaymentMethod === PaymentMethod.Cash ||
                     selectedPaymentMethod === PaymentMethod.Stripe
                   ? `Pay ${formattedAmountUSD}`
-                  : `Pay ${formattedAmountVND}`}
+                  : selectedPaymentMethod === PaymentMethod.VNPay
+                    ? `Pay ${formattedAmountVND}`
+                    : selectedPaymentMethod === PaymentMethod.YooKassa
+                      ? `Pay ${formattedAmountRUB}`
+                      : `Pay ${formattedAmountUSD}`}
             </Button>
           </div>
         )}
