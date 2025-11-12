@@ -1,0 +1,531 @@
+# Real-time Features (Socket.io)
+
+## Overview
+- **Technology**: Socket.io 4+
+- **Server**: fastify-socket.io plugin
+- **Client**: socket.io-client
+- **Transport**: WebSocket with fallback to polling
+
+## Use Cases
+- 🔴 **Live order updates** - Notify staff when new order placed
+- 🔄 **Order status changes** - Update customer when order status changes
+- 📊 **Dashboard updates** - Real-time statistics
+- 🚪 **Force logout** - Revoke access remotely
+
+## Server Setup
+
+### Socket Plugin (src/plugins/socket.plugins.ts)
+
+```typescript
+import { FastifyInstance } from 'fastify'
+import fastifySocketIO from 'fastify-socket.io'
+import envConfig from '@/config'
+
+export default async function socketPlugin(fastify: FastifyInstance) {
+  // Register Socket.io plugin
+  await fastify.register(fastifySocketIO, {
+    cors: {
+      origin: envConfig.CLIENT_URL || 'http://localhost:3000',
+      credentials: true
+    },
+    transports: ['websocket', 'polling']
+  })
+  
+  // Handle connection
+  fastify.io.on('connection', (socket) => {
+    fastify.log.info(`Client connected: ${socket.id}`)
+    
+    // Join room by table number
+    socket.on('join:table', (tableNumber: number) => {
+      socket.join(`table-${tableNumber}`)
+      fastify.log.info(`Socket ${socket.id} joined table-${tableNumber}`)
+    })
+    
+    // Join room by user role
+    socket.on('join:role', (role: string) => {
+      socket.join(`role-${role}`)
+      fastify.log.info(`Socket ${socket.id} joined role-${role}`)
+    })
+    
+    // Join dashboard room
+    socket.on('join:dashboard', () => {
+      socket.join('dashboard')
+      fastify.log.info(`Socket ${socket.id} joined dashboard`)
+    })
+    
+    // Leave room
+    socket.on('leave:table', (tableNumber: number) => {
+      socket.leave(`table-${tableNumber}`)
+    })
+    
+    // Disconnect
+    socket.on('disconnect', () => {
+      fastify.log.info(`Client disconnected: ${socket.id}`)
+    })
+  })
+}
+```
+
+### Register in Main Server (src/index.ts)
+
+```typescript
+import socketPlugin from '@/plugins/socket.plugins'
+
+const fastify = Fastify()
+
+// Register socket plugin
+await fastify.register(socketPlugin)
+
+// Export fastify instance for use in controllers
+export { fastify }
+```
+
+## Server-Side Events
+
+### Emit from Controllers
+
+```typescript
+// src/controllers/order.controller.ts
+import { fastify } from '@/index'
+import prisma from '@/database'
+
+/**
+ * Create new order and emit socket event
+ */
+export const createOrderController = async (body: CreateOrderBodyType, guestId: number) => {
+  // 1. Create order in database
+  const order = await prisma.order.create({
+    data: {
+      guestId: guestId,
+      tableNumber: body.tableNumber,
+      status: 'Pending'
+    },
+    include: {
+      guest: true,
+      table: true,
+      orderDetails: {
+        include: {
+          dish: true
+        }
+      }
+    }
+  })
+  
+  // 2. Emit event to staff (Owner/Employee roles)
+  fastify.io.to('role-Owner').emit('order:new', {
+    order,
+    message: `Đơn hàng mới từ bàn ${order.tableNumber}`
+  })
+  
+  fastify.io.to('role-Employee').emit('order:new', {
+    order,
+    message: `Đơn hàng mới từ bàn ${order.tableNumber}`
+  })
+  
+  // 3. Emit event to dashboard for real-time stats
+  fastify.io.to('dashboard').emit('stats:update', {
+    type: 'order_created',
+    data: order
+  })
+  
+  return {
+    data: order,
+    message: 'Tạo đơn hàng thành công'
+  }
+}
+
+/**
+ * Update order status and emit socket event
+ */
+export const updateOrderStatusController = async (orderId: number, status: OrderStatus) => {
+  // 1. Update order
+  const order = await prisma.order.update({
+    where: { id: orderId },
+    data: { status },
+    include: {
+      guest: true,
+      table: true,
+      orderDetails: {
+        include: { dish: true }
+      }
+    }
+  })
+  
+  // 2. Emit event to customer at the table
+  if (order.tableNumber) {
+    fastify.io.to(`table-${order.tableNumber}`).emit('order:status-changed', {
+      orderId: order.id,
+      status: order.status,
+      message: `Đơn hàng của bạn đã chuyển sang trạng thái: ${order.status}`
+    })
+  }
+  
+  // 3. Emit event to staff
+  fastify.io.to('role-Owner').emit('order:updated', order)
+  fastify.io.to('role-Employee').emit('order:updated', order)
+  
+  // 4. Update dashboard
+  fastify.io.to('dashboard').emit('stats:update', {
+    type: 'order_updated',
+    data: order
+  })
+  
+  return {
+    data: order,
+    message: 'Cập nhật trạng thái thành công'
+  }
+}
+
+/**
+ * Delete order and emit socket event
+ */
+export const deleteOrderController = async (orderId: number) => {
+  const order = await prisma.order.delete({
+    where: { id: orderId }
+  })
+  
+  // Emit deletion event
+  fastify.io.emit('order:deleted', {
+    orderId,
+    message: 'Đơn hàng đã bị xóa'
+  })
+  
+  return 'Xóa đơn hàng thành công'
+}
+```
+
+### Force Logout Event
+
+```typescript
+// src/controllers/account.controller.ts
+export const deleteAccountController = async (accountId: number) => {
+  // 1. Delete account
+  await prisma.account.delete({
+    where: { id: accountId }
+  })
+  
+  // 2. Force logout user via socket
+  fastify.io.emit('auth:force-logout', {
+    accountId,
+    message: 'Tài khoản của bạn đã bị xóa'
+  })
+  
+  return 'Xóa tài khoản thành công'
+}
+```
+
+## Client Setup
+
+### Socket Client Utility (lib/socket.ts)
+
+```typescript
+'use client'
+import { io, Socket } from 'socket.io-client'
+import envConfig from '@/config'
+
+let socket: Socket | null = null
+
+/**
+ * Initialize Socket.io client
+ * @returns Socket instance
+ */
+export const initSocket = (): Socket => {
+  if (!socket) {
+    socket = io(envConfig.NEXT_PUBLIC_API_ENDPOINT, {
+      transports: ['websocket', 'polling'],
+      autoConnect: true,
+      reconnection: true,
+      reconnectionDelay: 1000,
+      reconnectionAttempts: 5
+    })
+    
+    // Connection events
+    socket.on('connect', () => {
+      console.log('✅ Socket connected:', socket?.id)
+    })
+    
+    socket.on('disconnect', (reason) => {
+      console.log('❌ Socket disconnected:', reason)
+    })
+    
+    socket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error)
+    })
+  }
+  
+  return socket
+}
+
+/**
+ * Get existing socket instance
+ */
+export const getSocket = (): Socket | null => {
+  return socket
+}
+
+/**
+ * Disconnect socket
+ */
+export const disconnectSocket = () => {
+  if (socket) {
+    socket.disconnect()
+    socket = null
+  }
+}
+```
+
+## Client-Side Listeners
+
+### Listen in Components
+
+#### Customer Order Page
+```typescript
+'use client'
+import { useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { initSocket, disconnectSocket } from '@/lib/socket'
+import { toast } from '@/components/ui/use-toast'
+
+export default function CustomerOrdersPage({ tableNumber }: { tableNumber: number }) {
+  const queryClient = useQueryClient()
+  
+  useEffect(() => {
+    const socket = initSocket()
+    
+    // Join table room
+    socket.emit('join:table', tableNumber)
+    
+    // Listen for order status updates
+    socket.on('order:status-changed', (data) => {
+      toast({
+        title: 'Cập nhật đơn hàng',
+        description: data.message
+      })
+      
+      // Refetch orders
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    })
+    
+    // Cleanup
+    return () => {
+      socket.emit('leave:table', tableNumber)
+      socket.off('order:status-changed')
+      disconnectSocket()
+    }
+  }, [tableNumber])
+  
+  return (
+    <div>
+      {/* Orders UI */}
+    </div>
+  )
+}
+```
+
+#### Staff Dashboard
+```typescript
+'use client'
+import { useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { initSocket } from '@/lib/socket'
+import { toast } from '@/components/ui/use-toast'
+import { useAccountMeQuery } from '@/queries/useAccount'
+
+export default function StaffDashboard() {
+  const queryClient = useQueryClient()
+  const { data: account } = useAccountMeQuery()
+  
+  useEffect(() => {
+    if (!account) return
+    
+    const socket = initSocket()
+    
+    // Join role-specific room
+    socket.emit('join:role', account.data.role)
+    socket.emit('join:dashboard')
+    
+    // Listen for new orders
+    socket.on('order:new', (data) => {
+      toast({
+        title: '🔔 Đơn hàng mới',
+        description: data.message
+      })
+      
+      // Refetch orders list
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    })
+    
+    // Listen for order updates
+    socket.on('order:updated', (order) => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+      queryClient.invalidateQueries({ queryKey: ['order', order.id] })
+    })
+    
+    // Listen for order deletion
+    socket.on('order:deleted', (data) => {
+      queryClient.invalidateQueries({ queryKey: ['orders'] })
+    })
+    
+    // Listen for stats updates
+    socket.on('stats:update', (data) => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] })
+    })
+    
+    // Cleanup
+    return () => {
+      socket.off('order:new')
+      socket.off('order:updated')
+      socket.off('order:deleted')
+      socket.off('stats:update')
+    }
+  }, [account])
+  
+  return (
+    <div>
+      {/* Dashboard UI */}
+    </div>
+  )
+}
+```
+
+#### Force Logout Listener
+```typescript
+'use client'
+import { useEffect } from 'react'
+import { useRouter } from '@/i18n/routing'
+import { initSocket } from '@/lib/socket'
+import { removeTokensFromLocalStorage } from '@/lib/utils'
+import { useAccountMeQuery } from '@/queries/useAccount'
+
+export function ListenLogoutSocket() {
+  const router = useRouter()
+  const { data: account } = useAccountMeQuery()
+  
+  useEffect(() => {
+    if (!account) return
+    
+    const socket = initSocket()
+    
+    socket.on('auth:force-logout', (data) => {
+      if (data.accountId === account.data.id) {
+        // Clear tokens
+        removeTokensFromLocalStorage()
+        
+        // Redirect to login
+        router.push('/login')
+        
+        // Show message
+        alert(data.message)
+      }
+    })
+    
+    return () => {
+      socket.off('auth:force-logout')
+    }
+  }, [account])
+  
+  return null
+}
+```
+
+## Event Naming Conventions
+
+### Format: `resource:action`
+
+#### Order Events
+- `order:new` - New order created
+- `order:updated` - Order updated
+- `order:status-changed` - Order status changed
+- `order:deleted` - Order deleted
+
+#### Auth Events
+- `auth:force-logout` - Force user logout
+
+#### Stats Events
+- `stats:update` - Dashboard statistics updated
+
+#### Table Events
+- `table:reserved` - Table reserved
+- `table:released` - Table released
+
+#### Room Events
+- `join:table` - Join table-specific room
+- `leave:table` - Leave table room
+- `join:role` - Join role-specific room
+- `join:dashboard` - Join dashboard room
+
+## Rooms & Namespaces
+
+### Room Patterns
+- `table-{number}` - Customers at specific table
+- `role-{Owner|Employee}` - Staff members by role
+- `dashboard` - Dashboard viewers
+- `account-{userId}` - Specific user (for force logout)
+
+### Emit to Specific Targets
+```typescript
+// To all connected clients
+fastify.io.emit('event:name', data)
+
+// To specific room
+fastify.io.to('room-name').emit('event:name', data)
+
+// To specific socket
+fastify.io.to(socketId).emit('event:name', data)
+
+// To multiple rooms
+fastify.io.to('room1').to('room2').emit('event:name', data)
+
+// Broadcast to all except sender
+socket.broadcast.emit('event:name', data)
+```
+
+## Best Practices
+
+1. ✅ **Always join rooms** for targeted events
+2. ✅ **Clean up listeners** in useEffect cleanup
+3. ✅ **Invalidate queries** after socket events
+4. ✅ **Show notifications** for important events
+5. ✅ **Handle reconnection** gracefully
+6. ✅ **Use typed events** (consider socket.io-typed-events)
+7. ✅ **Log socket events** in development
+8. ✅ **Emit after database success** only
+9. ✅ **Include relevant data** in events
+10. ✅ **Don't overuse** - use for real-time updates only
+
+## Error Handling
+
+```typescript
+// Server
+fastify.io.on('connection', (socket) => {
+  socket.on('error', (error) => {
+    fastify.log.error('Socket error:', error)
+  })
+})
+
+// Client
+const socket = initSocket()
+
+socket.on('error', (error) => {
+  console.error('Socket error:', error)
+  toast({
+    title: 'Connection error',
+    description: 'Failed to connect to server',
+    variant: 'destructive'
+  })
+})
+
+socket.on('connect_error', (error) => {
+  console.error('Connection error:', error)
+})
+```
+
+## Performance Considerations
+
+1. ✅ **Debounce rapid events** to avoid overwhelming clients
+2. ✅ **Limit payload size** - send only necessary data
+3. ✅ **Use rooms** to avoid broadcasting to all clients
+4. ✅ **Clean up socket connections** properly
+5. ✅ **Monitor active connections** count
+6. ✅ **Implement rate limiting** on emits
+

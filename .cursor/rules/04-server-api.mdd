@@ -1,0 +1,580 @@
+# Server - API Patterns
+
+## Route Pattern
+
+### Location: `src/routes/*.route.ts`
+
+```typescript
+import { FastifyInstance, FastifyPluginOptions } from 'fastify'
+import { loginController, logoutController } from '@/controllers/auth.controller'
+import { requireLoginedHook } from '@/hooks/auth.hooks'
+import {
+  LoginBody,
+  LoginBodyType,
+  LoginRes,
+  LoginResType,
+  LogoutBody,
+  LogoutBodyType
+} from '@/schemaValidations/auth.schema'
+import { MessageRes, MessageResType } from '@/schemaValidations/common.schema'
+
+export default async function authRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
+  // Public route - No authentication
+  fastify.post<{ Reply: LoginResType; Body: LoginBodyType }>(
+    '/login',
+    {
+      schema: {
+        response: { 200: LoginRes },
+        body: LoginBody
+      }
+    },
+    async (request, reply) => {
+      const result = await loginController(request.body)
+      reply.send(result)
+    }
+  )
+  
+  // Protected route - Requires authentication
+  fastify.post<{ Reply: MessageResType; Body: LogoutBodyType }>(
+    '/logout',
+    {
+      schema: {
+        response: { 200: MessageRes },
+        body: LogoutBody
+      },
+      preValidation: fastify.auth([requireLoginedHook])
+    },
+    async (request, reply) => {
+      const message = await logoutController(request.body.refreshToken)
+      reply.send({ message })
+    }
+  )
+}
+```
+
+### Key Points
+1. ✅ **Use generics** for type-safe request/reply
+2. ✅ **Define schemas** for validation and documentation
+3. ✅ **Use preValidation hooks** for authentication
+4. ✅ **Controllers handle logic** - routes just wire things up
+5. ✅ **Export default async function** as plugin
+
+## Controller Pattern
+
+### Location: `src/controllers/*.controller.ts`
+
+```typescript
+import prisma from '@/database'
+import { LoginBodyType } from '@/schemaValidations/auth.schema'
+import bcrypt from 'bcrypt'
+import { signToken } from '@/utils/jwt'
+import { EntityError } from '@/utils/errors'
+
+/**
+ * Login controller
+ * @param body - Login credentials
+ * @returns User data with tokens
+ */
+export const loginController = async (body: LoginBodyType) => {
+  // 1. Find user by email
+  const user = await prisma.account.findUnique({
+    where: { email: body.email },
+    select: {
+      id: true,
+      email: true,
+      password: true,
+      name: true,
+      role: true,
+      avatar: true
+    }
+  })
+  
+  // 2. Validate user exists
+  if (!user) {
+    throw new EntityError({
+      status: 422,
+      errors: [{ field: 'email', message: 'Email hoặc mật khẩu không đúng' }]
+    })
+  }
+  
+  // 3. Verify password
+  const isValidPassword = bcrypt.compareSync(body.password, user.password)
+  if (!isValidPassword) {
+    throw new EntityError({
+      status: 422,
+      errors: [{ field: 'password', message: 'Email hoặc mật khẩu không đúng' }]
+    })
+  }
+  
+  // 4. Generate tokens
+  const payload = { userId: user.id, role: user.role }
+  const accessToken = signToken(payload, '15m')
+  const refreshToken = signToken(payload, '7d')
+  
+  // 5. Store refresh token in database
+  await prisma.refreshToken.create({
+    data: {
+      token: refreshToken,
+      accountId: user.id,
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    }
+  })
+  
+  // 6. Return response (no password)
+  const { password, ...userWithoutPassword } = user
+  
+  return {
+    data: {
+      accessToken,
+      refreshToken,
+      account: userWithoutPassword
+    },
+    message: 'Đăng nhập thành công'
+  }
+}
+
+/**
+ * Logout controller
+ * @param refreshToken - Token to invalidate
+ * @returns Success message
+ */
+export const logoutController = async (refreshToken: string) => {
+  // Delete refresh token from database
+  await prisma.refreshToken.deleteMany({
+    where: { token: refreshToken }
+  })
+  
+  return 'Đăng xuất thành công'
+}
+
+/**
+ * Get user profile controller
+ * @param userId - User ID from JWT
+ * @returns User profile data
+ */
+export const getMeController = async (userId: number) => {
+  const user = await prisma.account.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      email: true,
+      name: true,
+      role: true,
+      avatar: true,
+      createdAt: true,
+      updatedAt: true
+    }
+  })
+  
+  if (!user) {
+    throw new Error('User not found')
+  }
+  
+  return {
+    data: user,
+    message: 'Lấy thông tin thành công'
+  }
+}
+```
+
+### Controller Best Practices
+1. ✅ **Pure functions** - No direct access to request/reply
+2. ✅ **Return data** - Let routes handle sending responses
+3. ✅ **Business logic only** - Database queries + validation
+4. ✅ **Throw errors** - Error handler will catch them
+5. ✅ **Never return passwords** - Always exclude sensitive fields
+6. ✅ **Use transactions** for multi-step operations
+7. ✅ **Add JSDoc comments** for documentation
+
+## Schema Validation Pattern
+
+### Location: `src/schemaValidations/*.schema.ts`
+
+```typescript
+import { z } from 'zod'
+import { Role } from '@/constants/type'
+
+// ===== LOGIN =====
+
+export const LoginBody = z.object({
+  email: z.string().email(),
+  password: z.string().min(6).max(100)
+}).strict()
+
+export type LoginBodyType = z.infer<typeof LoginBody>
+
+export const LoginRes = z.object({
+  data: z.object({
+    accessToken: z.string(),
+    refreshToken: z.string(),
+    account: z.object({
+      id: z.number(),
+      name: z.string(),
+      email: z.string(),
+      role: z.enum([Role.Owner, Role.Employee]),
+      avatar: z.string().nullable()
+    })
+  }),
+  message: z.string()
+})
+
+export type LoginResType = z.infer<typeof LoginRes>
+
+// ===== REFRESH TOKEN =====
+
+export const RefreshTokenBody = z.object({
+  refreshToken: z.string()
+}).strict()
+
+export type RefreshTokenBodyType = z.infer<typeof RefreshTokenBody>
+
+export const RefreshTokenRes = z.object({
+  data: z.object({
+    accessToken: z.string(),
+    refreshToken: z.string()
+  }),
+  message: z.string()
+})
+
+export type RefreshTokenResType = z.infer<typeof RefreshTokenRes>
+
+// ===== LOGOUT =====
+
+export const LogoutBody = z.object({
+  refreshToken: z.string()
+}).strict()
+
+export type LogoutBodyType = z.infer<typeof LogoutBody>
+```
+
+### Common Schema Pattern
+
+```typescript
+// src/schemaValidations/common.schema.ts
+import { z } from 'zod'
+
+// Generic message response
+export const MessageRes = z.object({
+  message: z.string()
+})
+
+export type MessageResType = z.infer<typeof MessageRes>
+
+// Pagination query params
+export const PaginationQuery = z.object({
+  page: z.string().optional().transform(val => (val ? Number(val) : 1)),
+  limit: z.string().optional().transform(val => (val ? Number(val) : 10))
+})
+
+export type PaginationQueryType = z.infer<typeof PaginationQuery>
+
+// ID param
+export const IdParam = z.object({
+  id: z.string().transform(Number)
+})
+
+export type IdParamType = z.infer<typeof IdParam>
+```
+
+### Schema Best Practices
+1. ✅ **Use `.strict()`** on request body schemas
+2. ✅ **Export both schema and type**
+3. ✅ **Mirror client schemas** when shared
+4. ✅ **Use transformations** for type coercion
+5. ✅ **Group related schemas** in same file
+6. ✅ **Use enums** from constants for consistency
+
+## Authentication Hook
+
+### Location: `src/hooks/auth.hooks.ts`
+
+```typescript
+import { FastifyRequest, FastifyReply } from 'fastify'
+import { verifyToken } from '@/utils/jwt'
+
+export const requireLoginedHook = async (request: FastifyRequest, reply: FastifyReply) => {
+  // 1. Extract token from Authorization header
+  const authHeader = request.headers.authorization
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return reply.status(401).send({
+      statusCode: 401,
+      message: 'Unauthorized - No token provided'
+    })
+  }
+  
+  const token = authHeader.replace('Bearer ', '')
+  
+  try {
+    // 2. Verify token
+    const decoded = verifyToken(token)
+    
+    // 3. Attach user data to request
+    request.user = {
+      userId: decoded.userId,
+      role: decoded.role
+    }
+  } catch (error) {
+    return reply.status(401).send({
+      statusCode: 401,
+      message: 'Unauthorized - Invalid token'
+    })
+  }
+}
+
+// Role-based authorization hook
+export const requireOwnerHook = async (request: FastifyRequest, reply: FastifyReply) => {
+  if (request.user.role !== 'Owner') {
+    return reply.status(403).send({
+      statusCode: 403,
+      message: 'Forbidden - Owner access required'
+    })
+  }
+}
+```
+
+### Type Declaration (src/type.d.ts)
+
+```typescript
+import { FastifyRequest } from 'fastify'
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    user: {
+      userId: number
+      role: string
+    }
+  }
+}
+```
+
+## Response Format Standards
+
+### Success Response
+```typescript
+{
+  "data": { /* payload */ },
+  "message": "Success message"
+}
+```
+
+### Error Response
+```typescript
+{
+  "statusCode": 400,
+  "message": "Error message",
+  "errors": [
+    {
+      "field": "email",
+      "message": "Invalid email format"
+    }
+  ]
+}
+```
+
+### Pagination Response
+```typescript
+{
+  "data": [/* items */],
+  "pagination": {
+    "page": 1,
+    "limit": 10,
+    "total": 100,
+    "totalPages": 10
+  },
+  "message": "Success"
+}
+```
+
+## Error Handling
+
+### Custom Error Classes (src/utils/errors.ts)
+
+```typescript
+export class HttpError extends Error {
+  status: number
+  payload: any
+  
+  constructor({ status, payload, message }: { 
+    status: number
+    payload: any
+    message?: string 
+  }) {
+    super(message || 'HTTP Error')
+    this.status = status
+    this.payload = payload
+  }
+}
+
+export class EntityError extends HttpError {
+  status: 422
+  payload: {
+    message: string
+    errors: Array<{
+      field: string
+      message: string
+    }>
+  }
+  
+  constructor({
+    status = 422,
+    errors
+  }: {
+    status?: 422
+    errors: Array<{ field: string; message: string }>
+  }) {
+    super({
+      status,
+      payload: {
+        message: 'Validation error',
+        errors
+      }
+    })
+  }
+}
+```
+
+### Error Handler Plugin (src/plugins/errorHandler.plugins.ts)
+
+```typescript
+import { FastifyInstance, FastifyError } from 'fastify'
+import { ZodError } from 'zod'
+import { EntityError, HttpError } from '@/utils/errors'
+
+export default async function errorHandlerPlugin(fastify: FastifyInstance) {
+  fastify.setErrorHandler((error, request, reply) => {
+    // Zod validation errors
+    if (error instanceof ZodError) {
+      return reply.status(422).send({
+        statusCode: 422,
+        message: 'Validation error',
+        errors: error.errors.map((err) => ({
+          field: err.path.join('.'),
+          message: err.message
+        }))
+      })
+    }
+    
+    // Custom entity errors
+    if (error instanceof EntityError) {
+      return reply.status(error.status).send({
+        statusCode: error.status,
+        ...error.payload
+      })
+    }
+    
+    // Custom HTTP errors
+    if (error instanceof HttpError) {
+      return reply.status(error.status).send({
+        statusCode: error.status,
+        message: error.payload.message
+      })
+    }
+    
+    // Fastify errors
+    if ((error as FastifyError).statusCode) {
+      return reply.status((error as FastifyError).statusCode).send({
+        statusCode: (error as FastifyError).statusCode,
+        message: error.message
+      })
+    }
+    
+    // Unknown errors
+    console.error('Unhandled error:', error)
+    return reply.status(500).send({
+      statusCode: 500,
+      message: 'Internal server error'
+    })
+  })
+}
+```
+
+## File Upload Pattern
+
+### Route with Multipart
+```typescript
+import { FastifyInstance } from 'fastify'
+import { uploadImageController } from '@/controllers/media.controller'
+
+export default async function mediaRoutes(fastify: FastifyInstance) {
+  fastify.post('/upload', {
+    preValidation: fastify.auth([requireLoginedHook])
+  }, async (request, reply) => {
+    const data = await request.file()
+    
+    if (!data) {
+      return reply.status(400).send({
+        statusCode: 400,
+        message: 'No file provided'
+      })
+    }
+    
+    const result = await uploadImageController(data)
+    reply.send(result)
+  })
+}
+```
+
+### Upload Controller
+```typescript
+import { MultipartFile } from '@fastify/multipart'
+import { createWriteStream } from 'fs'
+import { pipeline } from 'stream/promises'
+import path from 'path'
+import crypto from 'crypto'
+
+export const uploadImageController = async (file: MultipartFile) => {
+  // Generate unique filename
+  const ext = path.extname(file.filename)
+  const filename = crypto.randomBytes(16).toString('hex') + ext
+  const filepath = path.join(__dirname, '../../uploads', filename)
+  
+  // Save file
+  await pipeline(file.file, createWriteStream(filepath))
+  
+  // Return file URL
+  return {
+    data: {
+      filename,
+      url: `/static/${filename}`
+    },
+    message: 'Upload successful'
+  }
+}
+```
+
+## Pagination Pattern
+
+```typescript
+export const getOrdersController = async (query: PaginationQueryType) => {
+  const { page = 1, limit = 10 } = query
+  const skip = (page - 1) * limit
+  
+  const [orders, total] = await Promise.all([
+    prisma.order.findMany({
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        orderDetails: {
+          include: { dish: true }
+        },
+        guest: true,
+        table: true
+      }
+    }),
+    prisma.order.count()
+  ])
+  
+  return {
+    data: orders,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit)
+    },
+    message: 'Success'
+  }
+}
+```
+

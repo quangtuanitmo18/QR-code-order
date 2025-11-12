@@ -1,0 +1,397 @@
+# Server - General Rules
+
+## Technology Stack
+- **Framework**: Fastify 4.28 with TypeScript
+- **Language**: TypeScript 5.5 with strict mode
+- **Package Manager**: npm
+- **Runtime**: Node.js 20+
+
+## TypeScript Configuration
+
+### Compiler Options (tsconfig.json)
+```json
+{
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    "outDir": "dist",
+    "esModuleInterop": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "files": ["src/type.d.ts"],
+  "include": ["src/**/*"]
+}
+```
+
+### TypeScript Rules
+1. ✅ **Always use TypeScript** with strict mode
+2. ✅ **Target ES2022** for modern JavaScript features
+3. ✅ **NodeNext** module resolution for proper ESM support
+4. ❌ **Avoid `any` when possible** (but allowed with caution via ESLint)
+5. ✅ **Use path alias `@/*`** for clean imports
+
+## Project Structure
+
+```
+server/
+├── src/
+│   ├── routes/                     # API routes (Fastify)
+│   │   ├── auth.route.ts           # Auth endpoints
+│   │   ├── account.route.ts        # Account management
+│   │   ├── dish.route.ts           # Dish/menu management
+│   │   ├── table.route.ts          # Table management
+│   │   ├── order.route.ts          # Order management
+│   │   ├── guest.route.ts          # Guest endpoints
+│   │   ├── media.route.ts          # File upload
+│   │   ├── indicator.route.ts      # Dashboard indicators
+│   │   ├── static.route.ts         # Static file serving
+│   │   └── test.route.ts           # Test endpoints
+│   │
+│   ├── controllers/                # Business logic
+│   │   ├── auth.controller.ts
+│   │   ├── account.controller.ts
+│   │   ├── dish.controller.ts
+│   │   ├── table.controller.ts
+│   │   ├── order.controller.ts
+│   │   ├── guest.controller.ts
+│   │   ├── media.controller.ts
+│   │   └── indicator.controller.ts
+│   │
+│   ├── hooks/                      # Fastify hooks (middleware)
+│   │   └── auth.hooks.ts           # Auth middleware
+│   │
+│   ├── plugins/                    # Fastify plugins
+│   │   ├── socket.plugins.ts       # Socket.io integration
+│   │   ├── errorHandler.plugins.ts # Global error handler
+│   │   └── validatorCompiler.plugins.ts # Zod validator
+│   │
+│   ├── schemaValidations/          # Zod schemas
+│   │   ├── auth.schema.ts
+│   │   ├── account.schema.ts
+│   │   ├── dish.schema.ts
+│   │   ├── table.schema.ts
+│   │   ├── order.schema.ts
+│   │   ├── guest.schema.ts
+│   │   ├── media.schema.ts
+│   │   ├── indicator.schema.ts
+│   │   └── common.schema.ts
+│   │
+│   ├── utils/                      # Helper functions
+│   │   ├── jwt.ts                  # JWT utilities
+│   │   ├── crypto.ts               # Encryption utilities
+│   │   ├── errors.ts               # Custom error classes
+│   │   ├── helpers.ts              # General helpers
+│   │   └── memcache.ts             # In-memory cache
+│   │
+│   ├── jobs/                       # Cron jobs
+│   │   ├── autoCheckHeartBeatSentry.job.ts
+│   │   └── autoRemoveRefreshToken.job.ts
+│   │
+│   ├── database/                   # Prisma client
+│   │   └── index.ts                # Export Prisma instance
+│   │
+│   ├── constants/                  # Constants and enums
+│   │   ├── type.ts                 # Role, Status enums
+│   │   └── error-reference.ts      # Error codes
+│   │
+│   ├── types/                      # TypeScript types
+│   │   └── jwt.types.ts
+│   │
+│   ├── config.ts                   # Environment config
+│   ├── sentry.ts                   # Sentry setup
+│   ├── index.ts                    # Entry point
+│   └── type.d.ts                   # Global type declarations
+│
+├── prisma/
+│   ├── schema.prisma               # Database schema
+│   ├── dev.db                      # SQLite database file
+│   └── dbml/
+│       └── schema.dbml             # DBML visualization
+│
+├── dist/                           # Compiled JavaScript (gitignored)
+├── uploads/                        # User uploaded files
+├── node_modules/                   # Dependencies (gitignored)
+│
+├── .eslintrc                       # ESLint configuration
+├── .prettierrc                     # Prettier configuration
+├── .prettierignore                 # Prettier ignore rules
+├── .eslintignore                   # ESLint ignore rules
+├── .gitignore                      # Git ignore rules
+├── nodemon.json                    # Nodemon config for dev
+├── tsconfig.json                   # TypeScript configuration
+├── package.json                    # Dependencies and scripts
+└── package-lock.json               # Locked dependencies
+```
+
+## File Naming Conventions
+
+- **Routes**: `kebab-case.route.ts` (e.g., `auth.route.ts`)
+- **Controllers**: `kebab-case.controller.ts` (e.g., `auth.controller.ts`)
+- **Schemas**: `kebab-case.schema.ts` (e.g., `auth.schema.ts`)
+- **Utilities**: `kebab-case.ts` (e.g., `jwt.ts`)
+- **Plugins**: `camelCase.plugins.ts` (e.g., `errorHandler.plugins.ts`)
+- **Jobs**: `camelCase.job.ts` (e.g., `autoRemoveRefreshToken.job.ts`)
+
+## Path Aliases
+
+### Always Use @ Alias
+```typescript
+// ✅ Good
+import prisma from '@/database'
+import { signToken } from '@/utils/jwt'
+import { requireLoginedHook } from '@/hooks/auth.hooks'
+import { LoginBody } from '@/schemaValidations/auth.schema'
+import envConfig from '@/config'
+
+// ❌ Bad
+import prisma from '../database'
+import { signToken } from '../../utils/jwt'
+```
+
+## Code Style (Prettier Configuration)
+
+### .prettierrc
+```json
+{
+  "arrowParens": "always",
+  "semi": false,
+  "trailingComma": "none",
+  "tabWidth": 2,
+  "endOfLine": "auto",
+  "useTabs": false,
+  "singleQuote": true,
+  "printWidth": 120,
+  "jsxSingleQuote": true
+}
+```
+
+### Style Examples
+```typescript
+// ✅ Good - Matches Prettier config
+const createUser = async (data: CreateUserInput) => {
+  const user = await prisma.account.create({ data })
+  return user
+}
+
+// Note: No semicolons, 120 char line length, single quotes
+const config = {
+  port: 4000,
+  host: '0.0.0.0',
+  jwt: { secret: 'xxx', expiresIn: '15m' }
+}
+```
+
+## ESLint Configuration
+
+### .eslintrc
+```json
+{
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "prettier"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "eslint-config-prettier",
+    "prettier"
+  ],
+  "rules": {
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-unused-vars": "off",
+    "prettier/prettier": ["warn", { /* config */ }]
+  }
+}
+```
+
+## NPM Scripts
+
+```json
+{
+  "scripts": {
+    "dev": "npx nodemon",
+    "build": "rimraf ./dist && tsc && tsc-alias",
+    "start": "node dist/index.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "prettier": "prettier --check .",
+    "prettier:fix": "prettier --write ."
+  }
+}
+```
+
+### Usage
+```bash
+npm run dev            # Start development server with hot reload
+npm run build          # Compile TypeScript to dist/
+npm run start          # Start production server
+npm run lint           # Check for linting errors
+npm run lint:fix       # Fix linting errors
+npm run prettier:fix   # Format all code
+```
+
+## Environment Configuration
+
+### config.ts Pattern
+```typescript
+import { config } from 'dotenv'
+config()
+
+const envConfig = {
+  PORT: process.env.PORT || '4000',
+  DATABASE_URL: process.env.DATABASE_URL as string,
+  JWT_SECRET: process.env.JWT_SECRET as string,
+  JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET as string,
+  NODE_ENV: process.env.NODE_ENV || 'development',
+  SENTRY_DSN: process.env.SENTRY_DSN as string,
+}
+
+// Validate required env vars
+const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET', 'JWT_REFRESH_SECRET']
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    throw new Error(`Missing required environment variable: ${envVar}`)
+  }
+}
+
+export default envConfig
+```
+
+### .env File
+```bash
+DATABASE_URL="file:./prisma/dev.db"
+JWT_SECRET=your_secret_key_here
+JWT_REFRESH_SECRET=your_refresh_secret_key_here
+PORT=4000
+NODE_ENV=development
+SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx
+```
+
+## Fastify Server Setup
+
+### index.ts
+```typescript
+import Fastify from 'fastify'
+import cors from '@fastify/cors'
+import helmet from '@fastify/helmet'
+import multipart from '@fastify/multipart'
+import fastifyStatic from '@fastify/static'
+import auth from '@fastify/auth'
+import envConfig from '@/config'
+import prisma from '@/database'
+
+// Import plugins
+import errorHandlerPlugin from '@/plugins/errorHandler.plugins'
+import socketPlugin from '@/plugins/socket.plugins'
+import validatorCompilerPlugin from '@/plugins/validatorCompiler.plugins'
+
+// Import routes
+import authRoutes from '@/routes/auth.route'
+import accountRoutes from '@/routes/account.route'
+// ... other routes
+
+const fastify = Fastify({
+  logger: {
+    level: envConfig.NODE_ENV === 'development' ? 'info' : 'warn'
+  }
+})
+
+// Register plugins
+await fastify.register(cors, {
+  origin: ['http://localhost:3000', 'https://yourdomain.com'],
+  credentials: true
+})
+
+await fastify.register(helmet)
+await fastify.register(auth)
+await fastify.register(multipart)
+await fastify.register(fastifyStatic, {
+  root: path.join(__dirname, '../uploads'),
+  prefix: '/static/'
+})
+
+// Custom plugins
+await fastify.register(errorHandlerPlugin)
+await fastify.register(socketPlugin)
+await fastify.register(validatorCompilerPlugin)
+
+// Register routes
+await fastify.register(authRoutes, { prefix: '/auth' })
+await fastify.register(accountRoutes, { prefix: '/accounts' })
+// ... other routes
+
+// Health check
+fastify.get('/healthz', async () => {
+  return { status: 'ok', timestamp: new Date().toISOString() }
+})
+
+// Start server
+const start = async () => {
+  try {
+    await fastify.listen({ 
+      port: Number(envConfig.PORT), 
+      host: '0.0.0.0' 
+    })
+    console.log(`Server running on port ${envConfig.PORT}`)
+  } catch (err) {
+    fastify.log.error(err)
+    await prisma.$disconnect()
+    process.exit(1)
+  }
+}
+
+start()
+```
+
+## Dependencies Overview
+
+### Key Production Dependencies
+- `fastify`: ^4.28.1 - Web framework
+- `@prisma/client`: ^5.16.1 - Database ORM
+- `zod`: ^3.23.8 - Schema validation
+- `fast-jwt`: ^4.0.1 - JWT handling
+- `bcrypt`: ^5.1.1 - Password hashing
+- `socket.io`: ^4.7.5 - WebSocket support
+- `@fastify/cors`: ^9.0.1 - CORS middleware
+- `@fastify/helmet`: ^11.1.1 - Security headers
+- `@sentry/node`: ^10.17.0 - Error tracking
+
+### Key Dev Dependencies
+- `typescript`: ^5.5.3 - Type checking
+- `ts-node`: ^10.9.2 - TypeScript execution
+- `tsc-alias`: ^1.8.10 - Path alias resolution
+- `nodemon`: ^3.1.4 - Hot reload in development
+- `eslint`: ^8.56.0 - Code linting
+- `prettier`: ^3.3.2 - Code formatting
+- `prisma`: ^5.16.1 - Prisma CLI
+
+## Error Handling Best Practices
+
+1. ✅ **Use custom error classes** for different error types
+2. ✅ **Always validate input** with Zod schemas
+3. ✅ **Return consistent error responses** 
+4. ✅ **Log errors with Sentry** in production
+5. ✅ **Never expose sensitive data** in error messages
+
+## Performance Best Practices
+
+1. ✅ **Use Prisma connection pooling**
+2. ✅ **Add database indexes** on frequently queried columns
+3. ✅ **Use select** to fetch only needed fields
+4. ✅ **Cache static data** in memory when appropriate
+5. ✅ **Use transactions** for data integrity
+
+## Security Best Practices
+
+1. ✅ **Validate ALL inputs** with Zod
+2. ✅ **Hash passwords** with bcrypt (10 rounds)
+3. ✅ **Use helmet** for security headers
+4. ✅ **Configure CORS** properly
+5. ✅ **Rate limit** sensitive endpoints
+6. ✅ **Never log** sensitive data (passwords, tokens)
+
