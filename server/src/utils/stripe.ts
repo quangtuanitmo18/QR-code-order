@@ -3,7 +3,7 @@ import Stripe from 'stripe'
 
 // Initialize Stripe with test API key
 export const stripe = new Stripe(envConfig.STRIPE_SECRET_KEY, {
-  apiVersion: '2024-11-20.acacia', // Use latest stable version
+  apiVersion: '2025-10-29.clover', // Use supported API version
   typescript: true
 })
 
