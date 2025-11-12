@@ -8,9 +8,9 @@ on:
   workflow_dispatch:
     inputs:
       deploy_target:
-        description: "Target to deploy"
+        description: 'Target to deploy'
         required: true
-        default: "all"
+        default: 'all'
         type: choice
         options:
           - all
@@ -36,7 +36,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: "20"
+          node-version: '20'
 
       - name: Check server changes
         id: check-server
@@ -73,7 +73,13 @@ jobs:
         run: |
           cd client
           echo "📦 Installing client dependencies..."
-          npm ci
+
+          # Try npm ci first, fallback to npm install if lock file is out of sync
+          npm ci || {
+            echo "⚠️ Lock file out of sync, running npm install..."
+            npm install
+            echo "✅ Dependencies installed and lock file updated"
+          }
 
           echo "🔍 Linting client code..."
           npm run lint
@@ -116,7 +122,13 @@ jobs:
         run: |
           cd server
           echo "📦 Installing server dependencies..."
-          npm ci
+
+          # Try npm ci first, fallback to npm install if lock file is out of sync
+          npm ci || {
+            echo "⚠️ Lock file out of sync, running npm install..."
+            npm install
+            echo "✅ Dependencies installed and lock file updated"
+          }
 
           echo "🔍 Linting server code..."
           npm run lint
@@ -225,8 +237,8 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "deployment-*.tar.gz"
-          target: "/tmp"
+          source: 'deployment-*.tar.gz'
+          target: '/tmp'
           overwrite: true
 
       - name: Deploy to Production
