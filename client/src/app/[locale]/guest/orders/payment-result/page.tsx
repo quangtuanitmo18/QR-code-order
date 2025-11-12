@@ -3,9 +3,9 @@
 import { Button } from '@/components/ui/button'
 import { formatCurrency } from '@/lib/utils'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 
-export default function PaymentResultPage() {
+function PaymentResultComponent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const success = searchParams.get('success') === 'true'
@@ -82,5 +82,13 @@ export default function PaymentResultPage() {
         </Button>
       </div>
     </div>
+  )
+}
+
+export default function PaymentResultPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PaymentResultComponent />
+    </Suspense>
   )
 }
