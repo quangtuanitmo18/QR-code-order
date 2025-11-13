@@ -63,6 +63,7 @@
   },
   "NavItem": {
     "home": "Home",
+    "qrCodes": "QR Codes",
     "menu": "Menu",
     "orders": "Orders",
     "login": "Login",
@@ -73,5 +74,13 @@
       "logoutCancel": "Cancel",
       "logoutConfirm": "Signing out may result in loss of your orders"
     }
+  },
+  "QRCodes": {
+    "title": "QR Codes - Table List",
+    "description": "Scan QR code to order from your table",
+    "tableNumber": "Table {number}",
+    "scanToOrder": "Scan to order",
+    "capacity": "Capacity: {capacity} people",
+    "noTables": "No tables available"
   }
 }

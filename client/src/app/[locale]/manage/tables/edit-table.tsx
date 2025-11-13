@@ -1,4 +1,6 @@
 'use client'
+import revalidateApiRequest from '@/apiRequests/revalidate'
+import QRCodeTable from '@/components/qrcode-table'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -7,12 +9,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
-import { getTableLink, getTableStatus, handleErrorApi } from '@/lib/utils'
 import {
   Select,
   SelectContent,
@@ -20,14 +19,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { UpdateTableBody, UpdateTableBodyType } from '@/schemaValidations/table.schema'
-import { TableStatus, TableStatusValues } from '@/constants/type'
 import { Switch } from '@/components/ui/switch'
-import { Link } from '@/i18n/routing'
-import { useEffect } from 'react'
-import { useGetTableQuery, useUpdateTableMutation } from '@/queries/useTable'
 import { toast } from '@/components/ui/use-toast'
-import QRCodeTable from '@/components/qrcode-table'
+import { TableStatus, TableStatusValues } from '@/constants/type'
+import { Link } from '@/i18n/routing'
+import { getTableLink, getTableStatus, handleErrorApi } from '@/lib/utils'
+import { useGetTableQuery, useUpdateTableMutation } from '@/queries/useTable'
+import { UpdateTableBody, UpdateTableBodyType } from '@/schemaValidations/table.schema'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
 
 export default function EditTable({
   id,
@@ -68,6 +69,7 @@ export default function EditTable({
         ...values,
       }
       const result = await updateTableMutation.mutateAsync(body)
+      await revalidateApiRequest('tables')
       toast({
         description: result.payload.message,
       })

@@ -15,6 +15,7 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 
+import revalidateApiRequest from '@/apiRequests/revalidate'
 import AddTable from '@/app/[locale]/manage/tables/add-table'
 import EditTable from '@/app/[locale]/manage/tables/edit-table'
 import AutoPagination from '@/components/auto-pagination'
@@ -140,6 +141,7 @@ function AlertDialogDeleteTable({
     if (tableDelete) {
       try {
         const result = await mutateAsync(tableDelete.number)
+        await revalidateApiRequest('tables')
         setTableDelete(null)
         toast({
           title: result.payload.message,

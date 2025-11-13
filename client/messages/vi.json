@@ -63,6 +63,7 @@
   },
   "NavItem": {
     "home": "Trang chủ",
+    "qrCodes": "Mã QR",
     "menu": "Thực đơn",
     "orders": "Đơn hàng",
     "login": "Đăng nhập",
@@ -73,5 +74,13 @@
       "logoutCancel": "Hủy",
       "logoutConfirm": "Đăng xuất có thể dẫn đến mất dữ liệu đơn hàng của bạn"
     }
+  },
+  "QRCodes": {
+    "title": "Mã QR - Danh sách bàn",
+    "description": "Quét mã QR để đặt món từ bàn của bạn",
+    "tableNumber": "Bàn {number}",
+    "scanToOrder": "Quét để đặt món",
+    "capacity": "Sức chứa: {capacity} người",
+    "noTables": "Không có bàn nào"
   }
 }
