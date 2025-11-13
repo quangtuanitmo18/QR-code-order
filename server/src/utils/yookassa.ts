@@ -113,36 +113,72 @@ export const getYooKassaPayment = async (paymentId: string) => {
 
 /**
  * Verify YooKassa Webhook Notification
- * YooKassa gửi webhook với Basic Auth header: Authorization: Basic base64(shopId:secretKey)
- * @param authHeader - Authorization header value
+ * Verifies webhook by validating structure and checking payment exists in YooKassa
+ * @param signature - Signature header value (for future ECDSA verification)
  * @param body - Webhook notification body
  * @returns Verified notification object
  */
-export const verifyYooKassaWebhook = (authHeader: string | undefined, body: any) => {
+export async function verifyYooKassaWebhook(signature: string, body: any) {
   try {
-    if (!authHeader || !authHeader.startsWith('Basic ')) {
-      throw new Error('Invalid authorization header')
-    }
-
-    // Decode Basic Auth
-    const base64Credentials = authHeader.split(' ')[1]
-    const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8')
-    const [shopId, secretKey] = credentials.split(':')
-
-    // Verify credentials
-    if (shopId !== envConfig.YOOKASSA_SHOP_ID || secretKey !== envConfig.YOOKASSA_SECRET_KEY) {
-      throw new Error('Invalid credentials')
-    }
+    console.log('🔍 Verifying YooKassa webhook notification')
 
     // Validate notification structure
-    if (!body || !body.type || !body.object) {
-      throw new Error('Invalid notification structure')
+    if (!body.type || body.type !== 'notification') {
+      throw new Error(`Invalid notification type: ${body.type}`)
+    }
+
+    if (!body.event) {
+      throw new Error('Missing event field in notification')
+    }
+
+    if (!body.object?.id) {
+      throw new Error('Missing payment ID in notification')
+    }
+
+    const paymentId = body.object.id
+
+    console.log('📋 Notification details:', {
+      type: body.type,
+      event: body.event,
+      paymentId,
+      status: body.object?.status
+    })
+
+    // Verify payment exists in YooKassa by fetching it
+    // This ensures the webhook is legitimate
+    const yookassa = await getYooKassaClient()
+
+    let payment
+    try {
+      payment = await yookassa.getPayment(paymentId)
+      console.log('✅ Payment fetched from YooKassa:', JSON.stringify(payment, null, 2))
+    } catch (fetchError: any) {
+      console.error('❌ Failed to fetch payment from YooKassa:', fetchError.message)
+      throw new Error(`Cannot verify payment ${paymentId}: ${fetchError.message}`)
+    }
+
+    if (!payment || !payment.id) {
+      throw new Error(`Payment ${paymentId} not found in YooKassa`)
+    }
+
+    console.log('✅ Webhook verified - payment exists in YooKassa:', {
+      id: payment.id,
+      status: payment.status,
+      amount: payment.amount?.value
+    })
+
+    // Additional security: Check payment status matches notification
+    if (payment.status !== body.object.status) {
+      console.warn('⚠️ Payment status mismatch:', {
+        notificationStatus: body.object.status,
+        actualStatus: payment.status
+      })
     }
 
     return body
   } catch (error: any) {
-    console.error('YooKassa webhook verification failed:', error)
-    throw new Error(`Webhook verification failed: ${error.message}`)
+    console.error('❌ Webhook verification failed:', error.message)
+    throw error
   }
 }
 

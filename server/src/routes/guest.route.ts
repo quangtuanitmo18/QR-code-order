@@ -29,7 +29,12 @@ import {
   GuestLoginRes,
   GuestLoginResType
 } from '@/schemaValidations/guest.schema'
-import { CreatePaymentBody, CreatePaymentBodyType, CreatePaymentRes, CreatePaymentResType } from '@/schemaValidations/payment.schema'
+import {
+  CreatePaymentBody,
+  CreatePaymentBodyType,
+  CreatePaymentRes,
+  CreatePaymentResType
+} from '@/schemaValidations/payment.schema'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 
 export default async function guestRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {

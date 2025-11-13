@@ -23,12 +23,14 @@ import fastifyCookie from '@fastify/cookie'
 import cors from '@fastify/cors'
 import fastifyHelmet from '@fastify/helmet'
 import Fastify from 'fastify'
+import rawBody from 'fastify-raw-body'
 import fastifySocketIO from 'fastify-socket.io'
 import path from 'path'
 import autoCheckHeartbeatJob from './jobs/autoCheckHeartBeatSentry.job'
 
 const fastify = Fastify({
-  logger: true
+  logger: true,
+  bodyLimit: 1048576 //10MB
 
   // https - reverse proxy nginx config
   // https: {
@@ -57,6 +59,14 @@ const start = async () => {
     fastify.register(cors, {
       origin: whitelist,
       credentials: true
+    })
+
+    // Raw body plugin - config global nhưng chỉ bật cho route được chỉ định
+    await fastify.register(rawBody, {
+      field: 'rawBody',
+      global: false,
+      encoding: 'utf8',
+      runFirst: true
     })
 
     fastify.register(fastifyAuth, {
@@ -119,7 +129,7 @@ const start = async () => {
       prefix: '/indicators'
     })
     fastify.register(paymentRoutes, { prefix: '/payment' })
-    
+
     await initOwnerAccount()
     await fastify.listen({
       port: envConfig.PORT,

@@ -148,9 +148,9 @@ export default async function orderRoutes(fastify: FastifyInstance, options: Fas
       const result = await payOrdersController({
         guestId: request.body.guestId,
         orderHandlerId: request.decodedAccessToken?.userId as number,
-        paymentMethod: 'Cash', // Owner/Employee chỉ thanh toán tiền mặt
+        paymentMethod: 'Cash' // Owner/Employee chỉ thanh toán tiền mặt
       })
-      
+
       if (result.socketId) {
         fastify.io.to(result.socketId).to(ManagerRoom).emit('payment', result.orders)
       } else {

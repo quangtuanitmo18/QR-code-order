@@ -144,4 +144,4 @@ export const VerifyVNPayReturnQuery = z.object({
   vnp_SecureHash: z.string()
 })
 
-export type VerifyVNPayReturnQueryType = z.TypeOf<typeof VerifyVNPayReturnQuery>  
+export type VerifyVNPayReturnQueryType = z.TypeOf<typeof VerifyVNPayReturnQuery>

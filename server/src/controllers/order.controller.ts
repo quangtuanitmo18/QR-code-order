@@ -135,7 +135,7 @@ export const payOrdersController = async ({
       socketId: result.socketId
     }
   }
-  
+
   // Should not reach here for Cash payment
   throw new Error('Cash payment must return orders')
 }
@@ -215,4 +215,3 @@ export const updateOrderController = async (
     socketId: socketRecord?.socketId
   }
 }
-

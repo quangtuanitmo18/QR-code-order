@@ -472,43 +472,78 @@ export const verifyStripePaymentController = async (event: Stripe.Event, payment
     transactionRef = session.metadata?.transactionRef || ''
   } else if (event.type === 'payment_intent.succeeded' || event.type === 'payment_intent.payment_failed') {
     const paymentIntent = event.data.object as Stripe.PaymentIntent
-    // For payment intents, we need to get the session to find transaction ref
-    // The payment intent doesn't have the session ID directly, so we find by payment intent ID
-    const existingPayment = await prisma.payment.findFirst({
+
+    console.log('🔍 Looking for payment with payment_intent:', paymentIntent.id)
+
+    // Try multiple methods to find the payment
+
+    // Method 1: Find by externalTransactionId (if checkout.session.completed already processed)
+    let existingPayment = await prisma.payment.findFirst({
       where: {
         externalTransactionId: paymentIntent.id
       }
     })
 
     if (existingPayment) {
+      console.log('✅ Found payment by externalTransactionId')
       transactionRef = existingPayment.transactionRef
     } else {
-      // If not found by payment intent ID, try to find by checking recent pending Stripe payments
-      // This handles the case where checkout.session.completed hasn't been processed yet
-      const recentPayments = await prisma.payment.findMany({
-        where: {
-          paymentMethod: PaymentMethod.Stripe,
-          status: PaymentStatus.Pending,
-          createdAt: {
-            gte: new Date(Date.now() - 60 * 60 * 1000) // Last hour
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
-        }
+      // Method 2: Get session ID from payment intent and find by externalSessionId
+      console.log('⚠️ Not found by externalTransactionId, trying to get session from payment intent')
+
+      // Stripe payment intents may have invoice or customer
+      // We need to list checkout sessions to find the right one
+      const sessions = await stripe.checkout.sessions.list({
+        payment_intent: paymentIntent.id,
+        limit: 1
       })
 
-      // Try to match by fetching each session
-      for (const p of recentPayments) {
-        if (p.externalSessionId) {
-          try {
-            const session = await getStripeSession(p.externalSessionId)
-            if (session.payment_intent === paymentIntent.id) {
-              transactionRef = p.transactionRef
-              break
+      if (sessions.data.length > 0) {
+        const session = sessions.data[0]
+        console.log('✅ Found session:', session.id)
+
+        // Find payment by session ID
+        existingPayment = await prisma.payment.findFirst({
+          where: {
+            externalSessionId: session.id
+          }
+        })
+
+        if (existingPayment) {
+          console.log('✅ Found payment by externalSessionId')
+          transactionRef = existingPayment.transactionRef
+        }
+      } else {
+        console.log('⚠️ No session found for payment intent, trying recent payments')
+
+        // Method 3: Check recent pending payments (last resort)
+        const recentPayments = await prisma.payment.findMany({
+          where: {
+            paymentMethod: PaymentMethod.Stripe,
+            status: PaymentStatus.Pending,
+            createdAt: {
+              gte: new Date(Date.now() - 60 * 60 * 1000) // Last hour
             }
-          } catch (err) {
-            // Session might be expired, continue
+          },
+          orderBy: {
+            createdAt: 'desc'
+          }
+        })
+
+        // Try to match by fetching each session
+        for (const p of recentPayments) {
+          if (p.externalSessionId) {
+            try {
+              const session = await getStripeSession(p.externalSessionId)
+              if (session.payment_intent === paymentIntent.id) {
+                console.log('✅ Found payment by matching session payment_intent')
+                transactionRef = p.transactionRef
+                break
+              }
+            } catch (err) {
+              // Session might be expired, continue
+              console.log('⚠️ Failed to get session:', p.externalSessionId)
+            }
           }
         }
       }
@@ -516,8 +551,11 @@ export const verifyStripePaymentController = async (event: Stripe.Event, payment
   }
 
   if (!transactionRef) {
+    console.error('❌ Could not find transaction reference for event:', event.type, event.id)
     throw new Error('Transaction reference not found in event')
   }
+
+  console.log('✅ Transaction reference found:', transactionRef)
 
   // Find payment by transaction ref
   payment = await prisma.payment.findUnique({
