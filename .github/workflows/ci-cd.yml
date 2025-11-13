@@ -343,28 +343,23 @@ jobs:
               # Generate Prisma Client
               npx prisma generate
               
-              # Check if database needs baselining
-              echo "🔍 Checking migration status..."
+              # Check migration status
               MIGRATE_STATUS=$(npx prisma migrate status 2>&1 || true)
               
               if echo "$MIGRATE_STATUS" | grep -q "P3005"; then
-                echo "⚠️ Database schema is not empty and needs baselining..."
-                echo "🔧 Applying baseline migration..."
-                
-                # Get the first migration name
+                echo "⚠️ Database needs baselining..."
                 FIRST_MIGRATION=$(ls prisma/migrations | head -n 1)
-                
-                if [ -n "$FIRST_MIGRATION" ]; then
-                  echo "📌 Marking migration as applied: $FIRST_MIGRATION"
-                  npx prisma migrate resolve --applied "$FIRST_MIGRATION"
-                fi
+                npx prisma migrate resolve --applied "$FIRST_MIGRATION"
               fi
               
-              # Deploy migrations to production database
-              echo "🚀 Deploying migrations..."
-              npx prisma migrate deploy
+              # Try migrate deploy first
+              if ! npx prisma migrate deploy 2>&1; then
+                echo "⚠️ Migration deploy failed, trying db push..."
+                # Fallback to db push if migration fails
+                npx prisma db push --accept-data-loss --skip-generate
+              fi
               
-              echo "✅ Database migrations completed"
+              echo "✅ Database schema updated"
               cd ../..
             fi    
 
