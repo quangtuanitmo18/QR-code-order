@@ -2,6 +2,7 @@
 
 import guestApiRequest from '@/apiRequests/guest'
 import { useAppStore } from '@/components/app-provider'
+import { PaymentTestInfoDialog } from '@/components/payment-test-info-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -230,9 +231,12 @@ export default function OrdersCart() {
 
             {/* Payment Method Selection */}
             <div className="mt-4 space-y-3">
-              <Label className="text-sm font-semibold text-orange-700 dark:text-orange-300">
-                Select Payment Method:
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-semibold text-orange-700 dark:text-orange-300">
+                  Select Payment Method:
+                </Label>
+                <PaymentTestInfoDialog paymentMethod={selectedPaymentMethod} />
+              </div>
               <RadioGroup value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value={PaymentMethod.Cash} id="cash" />
