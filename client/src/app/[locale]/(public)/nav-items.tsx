@@ -29,6 +29,10 @@ const menuItems: {
     href: '/',
   },
   {
+    title: 'qrCodes',
+    href: '/qr-codes',
+  },
+  {
     title: 'menu',
     href: '/guest/menu',
     role: [Role.Guest],

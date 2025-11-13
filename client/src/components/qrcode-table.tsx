@@ -46,5 +46,5 @@ export default function QRCodeTable({
       }
     )
   }, [token, width, tableNumber])
-  return <canvas ref={canvasRef} className="h-auto max-w-full" />
+  return <canvas ref={canvasRef} className="h-auto max-w-full" data-table={tableNumber} />
 }

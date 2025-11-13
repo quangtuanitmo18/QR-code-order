@@ -1,4 +1,5 @@
 'use client'
+import revalidateApiRequest from '@/apiRequests/revalidate'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -8,16 +9,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { PlusCircle } from 'lucide-react'
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
-import { getTableStatus, handleErrorApi } from '@/lib/utils'
-import { CreateTableBody, CreateTableBodyType } from '@/schemaValidations/table.schema'
-import { TableStatus, TableStatusValues } from '@/constants/type'
 import {
   Select,
   SelectContent,
@@ -25,8 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useAddTableMutation } from '@/queries/useTable'
 import { toast } from '@/components/ui/use-toast'
+import { TableStatus, TableStatusValues } from '@/constants/type'
+import { getTableStatus, handleErrorApi } from '@/lib/utils'
+import { useAddTableMutation } from '@/queries/useTable'
+import { CreateTableBody, CreateTableBodyType } from '@/schemaValidations/table.schema'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { PlusCircle } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 export default function AddTable() {
   const [open, setOpen] = useState(false)
@@ -46,6 +47,7 @@ export default function AddTable() {
     if (addTableMutation.isPending) return
     try {
       const result = await addTableMutation.mutateAsync(values)
+      await revalidateApiRequest('tables')
       toast({
         description: result.payload.message,
       })
