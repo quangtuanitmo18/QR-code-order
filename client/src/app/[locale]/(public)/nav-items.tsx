@@ -29,6 +29,10 @@ const menuItems: {
     href: '/',
   },
   {
+    title: 'reviews',
+    href: '/reviews',
+  },
+  {
     title: 'qrCodes',
     href: '/qr-codes',
   },

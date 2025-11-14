@@ -12,21 +12,23 @@ datasource db {
 }
 
 model Account {
-  id           Int            @id @default(autoincrement())
-  name         String
-  email        String         @unique
-  password     String
-  avatar       String?
-  role         String         @default("Employee")
-  ownerId      Int?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  owner        Account?       @relation("OwnerEmployee", fields: [ownerId], references: [id], onUpdate: NoAction)
-  employees    Account[]      @relation("OwnerEmployee")
-  orders       Order[]
-  payments     Payment[]
-  refreshToken RefreshToken[]
-  sockets      Socket?
+  id              Int            @id @default(autoincrement())
+  name            String
+  email           String         @unique
+  password        String
+  avatar          String?
+  role            String         @default("Employee")
+  ownerId         Int?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  owner           Account?       @relation("OwnerEmployee", fields: [ownerId], references: [id], onUpdate: NoAction)
+  employees       Account[]      @relation("OwnerEmployee")
+  orders          Order[]
+  payments        Payment[]
+  refreshToken    RefreshToken[]
+  sockets         Socket?
+  approvedReviews Review[]       @relation("ReviewApprover")
+  repliedReviews  Review[]       @relation("ReviewReplier")
 }
 
 model Dish {
@@ -104,6 +106,7 @@ model Guest {
   orders                Order[]
   payments              Payment[]
   sockets               Socket?
+  reviews               Review[]
 }
 
 model Payment {
@@ -146,4 +149,33 @@ model Socket {
   guestId   Int?     @unique
   guest     Guest?   @relation(fields: [guestId], references: [id], onUpdate: NoAction)
   account   Account? @relation(fields: [accountId], references: [id], onUpdate: NoAction)
+}
+
+model Review {
+  id             Int       @id @default(autoincrement())
+  guestId        Int
+  overallRating  Int
+  foodQuality    Int
+  serviceQuality Int
+  ambiance       Int
+  priceValue     Int
+  comment        String
+  images         String?
+  status         String    @default("HIDDEN") // HIDDEN, VISIBLE, DELETED (SQLite doesn't support enums)
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  approvedAt     DateTime?
+  approvedBy     Int?
+  replyContent   String?
+  repliedAt      DateTime?
+  repliedBy      Int?
+  guest          Guest     @relation(fields: [guestId], references: [id], onUpdate: NoAction)
+  approver       Account?  @relation("ReviewApprover", fields: [approvedBy], references: [id], onUpdate: NoAction)
+  replier        Account?  @relation("ReviewReplier", fields: [repliedBy], references: [id], onUpdate: NoAction)
+
+  @@index([status, createdAt])
+  @@index([overallRating])
+  @@index([guestId])
 }

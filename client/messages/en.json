@@ -63,6 +63,7 @@
   },
   "NavItem": {
     "home": "Home",
+    "reviews": "Reviews",
     "qrCodes": "QR Codes",
     "menu": "Menu",
     "orders": "Orders",
@@ -74,6 +75,10 @@
       "logoutCancel": "Cancel",
       "logoutConfirm": "Signing out may result in loss of your orders"
     }
+  },
+  "Reviews": {
+    "title": "Customer Reviews",
+    "description": "Read what our customers say about their dining experience"
   },
   "QRCodes": {
     "title": "QR Codes - Table List",

@@ -13,6 +13,7 @@ import indicatorRoutes from '@/routes/indicator.route'
 import mediaRoutes from '@/routes/media.route'
 import orderRoutes from '@/routes/order.route'
 import paymentRoutes from '@/routes/payment.route'
+import reviewRoutes from '@/routes/review.route'
 import staticRoutes from '@/routes/static.route'
 import tablesRoutes from '@/routes/table.route'
 import testRoutes from '@/routes/test.route'
@@ -129,6 +130,7 @@ const start = async () => {
       prefix: '/indicators'
     })
     fastify.register(paymentRoutes, { prefix: '/payment' })
+    fastify.register(reviewRoutes, { prefix: '/reviews' })
 
     await initOwnerAccount()
     await fastify.listen({

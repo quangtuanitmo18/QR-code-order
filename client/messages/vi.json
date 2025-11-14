@@ -63,6 +63,7 @@
   },
   "NavItem": {
     "home": "Trang chủ",
+    "reviews": "Đánh giá",
     "qrCodes": "Mã QR",
     "menu": "Thực đơn",
     "orders": "Đơn hàng",
@@ -74,6 +75,10 @@
       "logoutCancel": "Hủy",
       "logoutConfirm": "Đăng xuất có thể dẫn đến mất dữ liệu đơn hàng của bạn"
     }
+  },
+  "Reviews": {
+    "title": "Đánh giá khách hàng",
+    "description": "Xem những gì khách hàng nói về trải nghiệm ăn uống của họ"
   },
   "QRCodes": {
     "title": "Mã QR - Danh sách bàn",

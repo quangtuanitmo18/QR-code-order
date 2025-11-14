@@ -1,18 +1,34 @@
 'use client'
 
+import { useAppStore } from '@/components/app-provider'
+import ReviewForm from '@/components/review-form'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { formatCurrency } from '@/lib/utils'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { Suspense, useEffect } from 'react'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
 
 function PaymentResultComponent() {
   const router = useRouter()
+  const params = useParams()
+  const locale = params.locale as string
   const searchParams = useSearchParams()
   const success = searchParams.get('success') === 'true'
   const amount = searchParams.get('amount')
   const txnRef = searchParams.get('txnRef')
-  const method = searchParams.get('method') || 'Unknown' // THÊM
+  const method = searchParams.get('method') || 'Unknown'
   const error = searchParams.get('error')
+
+  const [showReviewDialog, setShowReviewDialog] = useState(false)
+  const guestId = useAppStore((state) => state.guest?.guestId)
+  const guestName = useAppStore((state) => state.guest?.name || 'Guest')
 
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -46,6 +62,25 @@ function PaymentResultComponent() {
           )}
         </div>
 
+        <Card>
+          <CardHeader>
+            <CardTitle>🌟 Share Your Experience</CardTitle>
+            <CardDescription>
+              We would love to hear about your dining experience! Your feedback helps us improve.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={() => setShowReviewDialog(true)}
+              variant="outline"
+              className="w-full"
+              size="lg"
+            >
+              Write a Review
+            </Button>
+          </CardContent>
+        </Card>
+
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button onClick={() => router.push('/en/guest/orders')} className="flex-1" size="lg">
             View Orders
@@ -59,6 +94,28 @@ function PaymentResultComponent() {
             Continue Ordering
           </Button>
         </div>
+
+        {/* Review Dialog */}
+        {guestId && (
+          <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
+            <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Write a Review</DialogTitle>
+                <DialogDescription>
+                  Share your experience and help other customers
+                </DialogDescription>
+              </DialogHeader>
+              <ReviewForm
+                guestId={guestId}
+                guestName={guestName}
+                onSuccess={() => {
+                  setShowReviewDialog(false)
+                  router.push(`/${locale}/reviews`)
+                }}
+              />
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
     )
   }
