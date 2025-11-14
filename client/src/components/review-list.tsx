@@ -4,6 +4,8 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { format } from 'date-fns'
 import { Star } from 'lucide-react'
+import ImageLightbox from '@/components/image-lightbox'
+import { useState } from 'react'
 
 interface Review {
   id: number
@@ -34,6 +36,16 @@ interface ReviewListProps {
 }
 
 export default function ReviewList({ reviews, showStats = false }: ReviewListProps) {
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxImages, setLightboxImages] = useState<string[]>([])
+  const [lightboxInitialIndex, setLightboxInitialIndex] = useState(0)
+
+  const openLightbox = (images: string[], initialIndex: number) => {
+    setLightboxImages(images)
+    setLightboxInitialIndex(initialIndex)
+    setLightboxOpen(true)
+  }
+
   const renderStars = (rating: number) => {
     return (
       <div className="flex gap-0.5">
@@ -59,12 +71,17 @@ export default function ReviewList({ reviews, showStats = false }: ReviewListPro
       return (
         <div className="mt-3 flex gap-2 overflow-x-auto">
           {images.map((image, idx) => (
-            <img
+            <button
               key={idx}
-              src={image}
-              alt={`Review image ${idx + 1}`}
-              className="h-24 w-24 rounded-md object-cover"
-            />
+              onClick={() => openLightbox(images, idx)}
+              className="flex-shrink-0 overflow-hidden rounded-md transition-transform hover:scale-105"
+            >
+              <img
+                src={image}
+                alt={`Review image ${idx + 1}`}
+                className="h-24 w-24 cursor-pointer object-cover"
+              />
+            </button>
           ))}
         </div>
       )
@@ -148,6 +165,14 @@ export default function ReviewList({ reviews, showStats = false }: ReviewListPro
           </CardContent>
         </Card>
       ))}
+
+      {/* Image Lightbox */}
+      <ImageLightbox
+        images={lightboxImages}
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        initialIndex={lightboxInitialIndex}
+      />
     </div>
   )
 }

@@ -49,6 +49,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/use-toast'
 import { handleErrorApi } from '@/lib/utils'
+import ImageLightbox from '@/components/image-lightbox'
 import {
   useAdminDeleteReviewMutation,
   useAdminReplyToReviewMutation,
@@ -97,11 +98,23 @@ const ReviewTableContext = createContext<{
   setReviewForReply: (value: ReviewItem | null) => void
   reviewForDelete: ReviewItem | null
   setReviewForDelete: (value: ReviewItem | null) => void
+  lightboxImages: string[]
+  setLightboxImages: (value: string[]) => void
+  lightboxInitialIndex: number
+  setLightboxInitialIndex: (value: number) => void
+  lightboxOpen: boolean
+  setLightboxOpen: (value: boolean) => void
 }>({
   reviewForReply: null,
   setReviewForReply: () => {},
   reviewForDelete: null,
   setReviewForDelete: () => {},
+  lightboxImages: [],
+  setLightboxImages: () => {},
+  lightboxInitialIndex: 0,
+  setLightboxInitialIndex: () => {},
+  lightboxOpen: false,
+  setLightboxOpen: () => {},
 })
 
 export const columns: ColumnDef<ReviewItem>[] = [
@@ -148,21 +161,34 @@ export const columns: ColumnDef<ReviewItem>[] = [
     header: 'Images',
     cell: ({ row }) => {
       const imagesJson = row.getValue('images') as string | null
+      const { setLightboxImages, setLightboxInitialIndex, setLightboxOpen } =
+        useContext(ReviewTableContext)
+
       if (!imagesJson) return <span className="text-sm text-muted-foreground">-</span>
 
       try {
         const images = JSON.parse(imagesJson) as string[]
         if (images.length === 0) return <span className="text-sm text-muted-foreground">-</span>
 
+        const handleImageClick = () => {
+          setLightboxImages(images)
+          setLightboxInitialIndex(0)
+          setLightboxOpen(true)
+        }
+
         return (
-          <div className="flex items-center gap-1">
-            <img src={images[0]} alt="Review" className="h-10 w-10 rounded object-cover" />
+          <button onClick={handleImageClick} className="flex items-center gap-1">
+            <img
+              src={images[0]}
+              alt="Review"
+              className="h-10 w-10 rounded object-cover transition-transform hover:scale-105"
+            />
             {images.length > 1 && (
               <Badge variant="secondary" className="text-xs">
                 +{images.length - 1}
               </Badge>
             )}
-          </div>
+          </button>
         )
       } catch {
         return <span className="text-sm text-muted-foreground">-</span>
@@ -267,6 +293,8 @@ export const columns: ColumnDef<ReviewItem>[] = [
 function ReplyDialog({ review, onClose }: { review: ReviewItem | null; onClose: () => void }) {
   const [replyContent, setReplyContent] = useState('')
   const replyMutation = useAdminReplyToReviewMutation()
+  const { setLightboxImages, setLightboxInitialIndex, setLightboxOpen } =
+    useContext(ReviewTableContext)
 
   useEffect(() => {
     if (review?.replyContent) {
@@ -321,12 +349,21 @@ function ReplyDialog({ review, onClose }: { review: ReviewItem | null; onClose: 
                       <Label>Review Images</Label>
                       <div className="flex flex-wrap gap-2">
                         {images.map((img, idx) => (
-                          <img
+                          <button
                             key={idx}
-                            src={img}
-                            alt={`Review image ${idx + 1}`}
-                            className="h-20 w-20 rounded-md border object-cover"
-                          />
+                            onClick={() => {
+                              setLightboxImages(images)
+                              setLightboxInitialIndex(idx)
+                              setLightboxOpen(true)
+                            }}
+                            className="overflow-hidden rounded-md transition-transform hover:scale-105"
+                          >
+                            <img
+                              src={img}
+                              alt={`Review image ${idx + 1}`}
+                              className="h-20 w-20 cursor-pointer border object-cover"
+                            />
+                          </button>
                         ))}
                       </div>
                     </div>
@@ -457,6 +494,10 @@ export default function ReviewTable() {
   const [reviewForReply, setReviewForReply] = useState<ReviewItem | null>(null)
   const [reviewForDelete, setReviewForDelete] = useState<ReviewItem | null>(null)
 
+  const [lightboxImages, setLightboxImages] = useState<string[]>([])
+  const [lightboxInitialIndex, setLightboxInitialIndex] = useState(0)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+
   const reviewListQuery = useAdminReviewListQuery({
     status: statusFilter === 'all' ? undefined : statusFilter,
   })
@@ -499,6 +540,12 @@ export default function ReviewTable() {
         setReviewForReply,
         reviewForDelete,
         setReviewForDelete,
+        lightboxImages,
+        setLightboxImages,
+        lightboxInitialIndex,
+        setLightboxInitialIndex,
+        lightboxOpen,
+        setLightboxOpen,
       }}
     >
       <div className="w-full">
@@ -576,6 +623,13 @@ export default function ReviewTable() {
 
       <ReplyDialog review={reviewForReply} onClose={() => setReviewForReply(null)} />
       <AlertDialogDeleteReview review={reviewForDelete} onClose={() => setReviewForDelete(null)} />
+
+      <ImageLightbox
+        images={lightboxImages}
+        open={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        initialIndex={lightboxInitialIndex}
+      />
     </ReviewTableContext.Provider>
   )
 }
