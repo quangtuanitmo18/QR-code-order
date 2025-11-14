@@ -53,15 +53,7 @@ export default function ImageLightbox({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-[95vw] border-0 bg-black/95 p-0 md:max-w-4xl">
-        {/* Close button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          className="absolute right-5 top-5 z-50 h-10 w-10 rounded-full bg-black/50 text-white hover:bg-black/70"
-        ></Button>
-
+      <DialogContent className="max-w-[95vw] border-0 bg-black/95 p-8 md:max-w-4xl">
         {/* Navigation buttons - only show if more than 1 image */}
         {images.length > 1 && (
           <>

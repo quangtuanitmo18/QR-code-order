@@ -45,8 +45,8 @@ async function seedReviews() {
       replyContent:
         'Thank you so much for your wonderful feedback! We are thrilled to hear you enjoyed your anniversary dinner with us.',
       repliedAt: new Date('2024-11-11'),
-      repliedBy: admin.id,
-      images: JSON.stringify(['/uploads/review1-img1.jpg', '/uploads/review1-img2.jpg'])
+      repliedBy: admin.id
+      // images: JSON.stringify(['/uploads/review1-img1.jpg', '/uploads/review1-img2.jpg'])
     },
     {
       guestId: guests[1].id,
@@ -59,8 +59,8 @@ async function seedReviews() {
         'Great food quality and nice atmosphere. Service was good but a bit slow during peak hours. Prices are slightly high but worth it for special occasions.',
       status: ReviewStatus.VISIBLE,
       approvedAt: new Date('2024-11-09'),
-      approvedBy: admin.id,
-      images: JSON.stringify(['/uploads/review2-img1.jpg'])
+      approvedBy: admin.id
+      // images: JSON.stringify(['/uploads/review2-img1.jpg'])
     },
     {
       guestId: guests[2].id,
@@ -90,8 +90,8 @@ async function seedReviews() {
         'Wonderful dining experience with excellent service. The staff was very attentive and friendly. Food was delicious, especially the grilled dishes.',
       status: ReviewStatus.VISIBLE,
       approvedAt: new Date('2024-11-07'),
-      approvedBy: admin.id,
-      images: JSON.stringify(['/uploads/review4-img1.jpg', '/uploads/review4-img2.jpg', '/uploads/review4-img3.jpg'])
+      approvedBy: admin.id
+      // images: JSON.stringify(['/uploads/review4-img1.jpg', '/uploads/review4-img2.jpg', '/uploads/review4-img3.jpg'])
     },
     {
       guestId: guests[1].id,
@@ -134,8 +134,8 @@ async function seedReviews() {
         'Good food and friendly staff. The restaurant was a bit noisy but overall a pleasant experience. Will come back to try other dishes.',
       status: ReviewStatus.VISIBLE,
       approvedAt: new Date('2024-11-04'),
-      approvedBy: admin.id,
-      images: JSON.stringify(['/uploads/review7-img1.jpg'])
+      approvedBy: admin.id
+      // images: JSON.stringify(['/uploads/review7-img1.jpg'])
     },
     {
       guestId: guests[1].id,
@@ -152,8 +152,8 @@ async function seedReviews() {
       replyContent:
         'We are honored by your glowing review! Thank you for choosing us and we look forward to welcoming you again.',
       repliedAt: new Date('2024-11-03'),
-      repliedBy: admin.id,
-      images: JSON.stringify(['/uploads/review8-img1.jpg', '/uploads/review8-img2.jpg'])
+      repliedBy: admin.id
+      // images: JSON.stringify(['/uploads/review8-img1.jpg', '/uploads/review8-img2.jpg'])
     },
     {
       guestId: guests[2].id,
@@ -179,8 +179,8 @@ async function seedReviews() {
         'The seafood dishes are phenomenal! Fresh ingredients and skillful preparation. The grilled fish was the highlight of our meal. Highly recommend!',
       status: ReviewStatus.VISIBLE,
       approvedAt: new Date('2024-11-01'),
-      approvedBy: admin.id,
-      images: JSON.stringify(['/uploads/review10-img1.jpg'])
+      approvedBy: admin.id
+      // images: JSON.stringify(['/uploads/review10-img1.jpg'])
     },
 
     // HIDDEN reviews (pending approval)
@@ -193,8 +193,8 @@ async function seedReviews() {
       priceValue: 5,
       comment:
         'Just had dinner here tonight and it was fantastic! Every dish exceeded our expectations. Cannot wait to come back and try more items from the menu.',
-      status: ReviewStatus.HIDDEN,
-      images: JSON.stringify(['/uploads/review11-img1.jpg', '/uploads/review11-img2.jpg'])
+      status: ReviewStatus.HIDDEN
+      // images: JSON.stringify(['/uploads/review11-img1.jpg', '/uploads/review11-img2.jpg'])
     },
     {
       guestId: guests[2].id,
@@ -227,8 +227,8 @@ async function seedReviews() {
       priceValue: 5,
       comment:
         'Absolutely love this place! Been here multiple times and the quality is always consistent. The staff remembers us and makes us feel like family.',
-      status: ReviewStatus.HIDDEN,
-      images: JSON.stringify(['/uploads/review14-img1.jpg'])
+      status: ReviewStatus.HIDDEN
+      // images: JSON.stringify(['/uploads/review14-img1.jpg'])
     },
     {
       guestId: guests[2].id,
@@ -261,8 +261,8 @@ async function seedReviews() {
       priceValue: 5,
       comment:
         'Hidden gem! The chef clearly knows what they are doing. Every dish we ordered was bursting with flavor. Will definitely recommend to friends.',
-      status: ReviewStatus.HIDDEN,
-      images: JSON.stringify(['/uploads/review17-img1.jpg', '/uploads/review17-img2.jpg', '/uploads/review17-img3.jpg'])
+      status: ReviewStatus.HIDDEN
+      // images: JSON.stringify(['/uploads/review17-img1.jpg', '/uploads/review17-img2.jpg', '/uploads/review17-img3.jpg'])
     },
     {
       guestId: guests[2].id,
@@ -295,8 +295,8 @@ async function seedReviews() {
       priceValue: 4,
       comment:
         'Amazing restaurant with beautiful decor and delicious food. The presentation of each dish is like a work of art. Instagram-worthy for sure!',
-      status: ReviewStatus.HIDDEN,
-      images: JSON.stringify(['/uploads/review20-img1.jpg', '/uploads/review20-img2.jpg'])
+      status: ReviewStatus.HIDDEN
+      // images: JSON.stringify(['/uploads/review20-img1.jpg', '/uploads/review20-img2.jpg'])
     },
 
     // DELETED reviews (spam/inappropriate)
@@ -334,7 +334,6 @@ async function seedReviews() {
   console.log(`   - ${reviewsData.filter((r) => r.status === ReviewStatus.HIDDEN).length} HIDDEN (pending)`)
   console.log(`   - ${reviewsData.filter((r) => r.status === ReviewStatus.DELETED).length} DELETED`)
   console.log(`   - ${reviewsData.filter((r) => r.replyContent).length} with replies`)
-  console.log(`   - ${reviewsData.filter((r) => r.images).length} with images`)
 }
 
 async function main() {

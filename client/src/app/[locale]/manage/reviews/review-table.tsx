@@ -1,6 +1,7 @@
 'use client'
 
 import AutoPagination from '@/components/auto-pagination'
+import ImageLightbox from '@/components/image-lightbox'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,7 +50,6 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/use-toast'
 import { handleErrorApi } from '@/lib/utils'
-import ImageLightbox from '@/components/image-lightbox'
 import {
   useAdminDeleteReviewMutation,
   useAdminReplyToReviewMutation,

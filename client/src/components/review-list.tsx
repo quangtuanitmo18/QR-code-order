@@ -1,10 +1,10 @@
 'use client'
 
+import ImageLightbox from '@/components/image-lightbox'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { format } from 'date-fns'
 import { Star } from 'lucide-react'
-import ImageLightbox from '@/components/image-lightbox'
 import { useState } from 'react'
 
 interface Review {

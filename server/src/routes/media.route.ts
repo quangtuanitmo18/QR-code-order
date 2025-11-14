@@ -1,14 +1,15 @@
-import { pauseApiHook, requireEmployeeHook, requireLoginedHook, requireOwnerHook } from '@/hooks/auth.hooks'
-import { FastifyInstance, FastifyPluginOptions } from 'fastify'
-import fastifyMultipart from '@fastify/multipart'
 import { uploadImage } from '@/controllers/media.controller'
+import { pauseApiHook, requireLoginedHook } from '@/hooks/auth.hooks'
 import { UploadImageRes, UploadImageResType } from '@/schemaValidations/media.schema'
+import fastifyMultipart from '@fastify/multipart'
+import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 
 export default async function mediaRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
   fastify.register(fastifyMultipart)
+  // Allow any logged-in user (Owner, Employee, or Guest) to upload images
   fastify.addHook(
     'preValidation',
-    fastify.auth([requireLoginedHook, pauseApiHook, [requireOwnerHook, requireEmployeeHook]], {
+    fastify.auth([requireLoginedHook, pauseApiHook], {
       relation: 'and'
     })
   )

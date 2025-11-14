@@ -1,6 +1,5 @@
 'use client'
 
-import { useAppStore } from '@/components/app-provider'
 import ReviewForm from '@/components/review-form'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -11,7 +10,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { formatCurrency } from '@/lib/utils'
+import { Role } from '@/constants/type'
+import { decodeToken, formatCurrency, getAccessTokenFromLocalStorage } from '@/lib/utils'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 
@@ -27,11 +27,22 @@ function PaymentResultComponent() {
   const error = searchParams.get('error')
 
   const [showReviewDialog, setShowReviewDialog] = useState(false)
-  const guestId = useAppStore((state) => state.guest?.guestId)
-  const guestName = useAppStore((state) => state.guest?.name || 'Guest')
+  const [guestId, setGuestId] = useState<number | null>(null)
 
   useEffect(() => {
     window.scrollTo(0, 0)
+
+    const token = getAccessTokenFromLocalStorage()
+    if (token) {
+      try {
+        const payload = decodeToken(token)
+        if (payload.role === Role.Guest) {
+          setGuestId(payload.userId)
+        }
+      } catch {
+        // Invalid token
+      }
+    }
   }, [])
 
   if (success) {
@@ -107,7 +118,7 @@ function PaymentResultComponent() {
               </DialogHeader>
               <ReviewForm
                 guestId={guestId}
-                guestName={guestName}
+                guestName="Guest"
                 onSuccess={() => {
                   setShowReviewDialog(false)
                   router.push(`/${locale}/reviews`)

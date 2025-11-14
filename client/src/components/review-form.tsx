@@ -5,11 +5,11 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/use-toast'
 import { handleErrorApi } from '@/lib/utils'
-import { mediaApiRequest } from '@/apiRequests/media'
+import { useUploadMediaMutation } from '@/queries/useMedia'
 import { useCreateReviewMutation } from '@/queries/useReview'
 import { CreateReviewBodyType } from '@/schemaValidations/review.schema'
 import { ImagePlus, Star, X } from 'lucide-react'
-import { useState, useRef } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
 interface ReviewFormProps {
@@ -34,8 +34,7 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
     priceValue: 0,
   })
 
-  const [uploadedImages, setUploadedImages] = useState<string[]>([])
-  const [isUploading, setIsUploading] = useState(false)
+  const [files, setFiles] = useState<File[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const {
@@ -46,58 +45,53 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
   } = useForm<{ comment: string }>()
 
   const createReviewMutation = useCreateReviewMutation()
+  const uploadMediaMutation = useUploadMediaMutation()
+
+  // Preview URLs from files
+  const previewImages = useMemo(() => {
+    return files.map((file) => URL.createObjectURL(file))
+  }, [files])
 
   const handleRatingClick = (key: keyof typeof ratings, value: number) => {
     setRatings((prev) => ({ ...prev, [key]: value }))
   }
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = event.target.files
-    if (!files || files.length === 0) return
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = event.target.files
+    if (!selectedFiles || selectedFiles.length === 0) return
 
     // Check limit
-    if (uploadedImages.length + files.length > 5) {
+    if (files.length + selectedFiles.length > 5) {
       toast({ description: 'Maximum 5 images allowed' })
       return
     }
 
-    setIsUploading(true)
-    const uploadedUrls: string[] = []
+    const newFiles: File[] = []
+    for (let i = 0; i < selectedFiles.length; i++) {
+      const file = selectedFiles[i]
 
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i]
-
-        // Validate file size (10MB)
-        if (file.size > 10 * 1024 * 1024) {
-          toast({ description: `${file.name} is too large. Maximum 10MB per image.` })
-          continue
-        }
-
-        const formData = new FormData()
-        formData.append('file', file)
-
-        const result = await mediaApiRequest.upload(formData)
-        uploadedUrls.push(result.payload.data)
+      // Validate file size (10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({ description: `${file.name} is too large. Maximum 10MB per image.` })
+        continue
       }
 
-      setUploadedImages((prev) => [...prev, ...uploadedUrls])
-      toast({ description: `${uploadedUrls.length} image(s) uploaded successfully` })
-    } catch (error: any) {
-      handleErrorApi({ error })
-    } finally {
-      setIsUploading(false)
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
+      newFiles.push(file)
+    }
+
+    setFiles((prev) => [...prev, ...newFiles])
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
     }
   }
 
   const handleRemoveImage = (index: number) => {
-    setUploadedImages((prev) => prev.filter((_, i) => i !== index))
+    setFiles((prev) => prev.filter((_, i) => i !== index))
   }
 
   const onSubmit = async (data: { comment: string }) => {
+    if (createReviewMutation.isPending) return
+
     // Validate all ratings
     const missingRatings = Object.entries(ratings).filter(([_, value]) => value === 0)
     if (missingRatings.length > 0) {
@@ -105,14 +99,28 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
       return
     }
 
-    const reviewData: CreateReviewBodyType = {
-      guestId,
-      ...ratings,
-      comment: data.comment,
-      images: uploadedImages.length > 0 ? uploadedImages : undefined,
-    }
-
     try {
+      let imageUrls: string[] | undefined = undefined
+
+      // Upload images first if any
+      if (files.length > 0) {
+        const uploadedUrls: string[] = []
+        for (const file of files) {
+          const formData = new FormData()
+          formData.append('file', file)
+          const result = await uploadMediaMutation.mutateAsync(formData)
+          uploadedUrls.push(result.payload.data)
+        }
+        imageUrls = uploadedUrls
+      }
+
+      const reviewData: CreateReviewBodyType = {
+        guestId,
+        ...ratings,
+        comment: data.comment,
+        images: imageUrls,
+      }
+
       await createReviewMutation.mutateAsync(reviewData)
       toast({
         title: 'Success',
@@ -126,10 +134,10 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
         ambiance: 0,
         priceValue: 0,
       })
-      setUploadedImages([])
+      setFiles([])
       onSuccess?.()
     } catch (error: any) {
-      toast({ description: error?.message || 'Failed to submit review' })
+      handleErrorApi({ error })
     }
   }
 
@@ -153,7 +161,7 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
             className="transition-transform hover:scale-110 focus:outline-none"
           >
             <Star
-              className={`h-8 w-8 ${
+              className={`h-4 w-4 ${
                 star <= value ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
               }`}
             />
@@ -169,7 +177,7 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
-        <h3 className="text-lg font-semibold">Share Your Experience</h3>
+        <h4 className="text-base font-semibold">Share Your Experience</h4>
         <p className="text-sm text-muted-foreground">
           Hello {guestName}, we would love to hear about your dining experience!
         </p>
@@ -227,13 +235,13 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
               variant="outline"
               size="sm"
               onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading || uploadedImages.length >= 5}
+              disabled={files.length >= 5}
             >
               <ImagePlus className="mr-2 h-4 w-4" />
-              {isUploading ? 'Uploading...' : 'Add Photos'}
+              Add Photos
             </Button>
             <span className="text-xs text-muted-foreground">
-              {uploadedImages.length}/5 images (Max 10MB each)
+              {files.length}/5 images (Max 10MB each)
             </span>
           </div>
           <input
@@ -245,14 +253,14 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
             className="hidden"
           />
 
-          {/* Preview uploaded images */}
-          {uploadedImages.length > 0 && (
+          {/* Preview selected images */}
+          {files.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {uploadedImages.map((url, idx) => (
+              {previewImages.map((url, idx) => (
                 <div key={idx} className="group relative">
                   <img
                     src={url}
-                    alt={`Upload ${idx + 1}`}
+                    alt={`Preview ${idx + 1}`}
                     className="h-20 w-20 rounded-md border object-cover"
                   />
                   <button
