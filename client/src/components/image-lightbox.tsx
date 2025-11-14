@@ -2,8 +2,8 @@
 
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 
 interface ImageLightboxProps {
   images: string[]
@@ -24,6 +24,14 @@ export default function ImageLightbox({
     setCurrentIndex(initialIndex)
   }, [initialIndex])
 
+  const handlePrevious = useCallback(() => {
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
+  }, [images.length])
+
+  const handleNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
+  }, [images.length])
+
   useEffect(() => {
     if (!open) return
 
@@ -39,15 +47,7 @@ export default function ImageLightbox({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [open, currentIndex])
-
-  const handlePrevious = () => {
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
-  }
-
-  const handleNext = () => {
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
-  }
+  }, [open, handlePrevious, handleNext, onClose])
 
   if (images.length === 0) return null
 

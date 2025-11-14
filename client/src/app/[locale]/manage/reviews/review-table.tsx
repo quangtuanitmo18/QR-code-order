@@ -159,7 +159,7 @@ export const columns: ColumnDef<ReviewItem>[] = [
   {
     accessorKey: 'images',
     header: 'Images',
-    cell: ({ row }) => {
+    cell: function Images({ row }) {
       const imagesJson = row.getValue('images') as string | null
       const { setLightboxImages, setLightboxInitialIndex, setLightboxOpen } =
         useContext(ReviewTableContext)
@@ -329,7 +329,7 @@ function ReplyDialog({ review, onClose }: { review: ReviewItem | null; onClose: 
         <DialogHeader>
           <DialogTitle>Reply to Review</DialogTitle>
           <DialogDescription>
-            {review?.guest?.name}'s review ({review?.overallRating}/5 stars)
+            {review?.guest?.name}&apos;s review ({review?.overallRating}/5 stars)
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-4">
