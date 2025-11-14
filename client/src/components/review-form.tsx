@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/use-toast'
+import { handleErrorApi } from '@/lib/utils'
+import { mediaApiRequest } from '@/apiRequests/media'
 import { useCreateReviewMutation } from '@/queries/useReview'
 import { CreateReviewBodyType } from '@/schemaValidations/review.schema'
-import { Star } from 'lucide-react'
-import { useState } from 'react'
+import { ImagePlus, Star, X } from 'lucide-react'
+import { useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 
 interface ReviewFormProps {
@@ -32,6 +34,10 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
     priceValue: 0,
   })
 
+  const [uploadedImages, setUploadedImages] = useState<string[]>([])
+  const [isUploading, setIsUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   const {
     register,
     handleSubmit,
@@ -43,6 +49,52 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
 
   const handleRatingClick = (key: keyof typeof ratings, value: number) => {
     setRatings((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files
+    if (!files || files.length === 0) return
+
+    // Check limit
+    if (uploadedImages.length + files.length > 5) {
+      toast({ description: 'Maximum 5 images allowed' })
+      return
+    }
+
+    setIsUploading(true)
+    const uploadedUrls: string[] = []
+
+    try {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i]
+
+        // Validate file size (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          toast({ description: `${file.name} is too large. Maximum 10MB per image.` })
+          continue
+        }
+
+        const formData = new FormData()
+        formData.append('file', file)
+
+        const result = await mediaApiRequest.upload(formData)
+        uploadedUrls.push(result.payload.data)
+      }
+
+      setUploadedImages((prev) => [...prev, ...uploadedUrls])
+      toast({ description: `${uploadedUrls.length} image(s) uploaded successfully` })
+    } catch (error: any) {
+      handleErrorApi({ error })
+    } finally {
+      setIsUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleRemoveImage = (index: number) => {
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index))
   }
 
   const onSubmit = async (data: { comment: string }) => {
@@ -57,6 +109,7 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
       guestId,
       ...ratings,
       comment: data.comment,
+      images: uploadedImages.length > 0 ? uploadedImages : undefined,
     }
 
     try {
@@ -73,6 +126,7 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
         ambiance: 0,
         priceValue: 0,
       })
+      setUploadedImages([])
       onSuccess?.()
     } catch (error: any) {
       toast({ description: error?.message || 'Failed to submit review' })
@@ -161,6 +215,58 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
           className={errors.comment ? 'border-red-500' : ''}
         />
         {errors.comment && <p className="text-sm text-red-500">{errors.comment.message}</p>}
+      </div>
+
+      {/* Image Upload */}
+      <div className="space-y-2">
+        <Label>Photos (Optional)</Label>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading || uploadedImages.length >= 5}
+            >
+              <ImagePlus className="mr-2 h-4 w-4" />
+              {isUploading ? 'Uploading...' : 'Add Photos'}
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              {uploadedImages.length}/5 images (Max 10MB each)
+            </span>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleImageUpload}
+            className="hidden"
+          />
+
+          {/* Preview uploaded images */}
+          {uploadedImages.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {uploadedImages.map((url, idx) => (
+                <div key={idx} className="group relative">
+                  <img
+                    src={url}
+                    alt={`Upload ${idx + 1}`}
+                    className="h-20 w-20 rounded-md border object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveImage(idx)}
+                    className="absolute -right-2 -top-2 rounded-full bg-red-500 p-1 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Submit Button */}

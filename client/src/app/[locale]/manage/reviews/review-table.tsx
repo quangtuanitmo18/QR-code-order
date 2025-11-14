@@ -144,6 +144,32 @@ export const columns: ColumnDef<ReviewItem>[] = [
     },
   },
   {
+    accessorKey: 'images',
+    header: 'Images',
+    cell: ({ row }) => {
+      const imagesJson = row.getValue('images') as string | null
+      if (!imagesJson) return <span className="text-sm text-muted-foreground">-</span>
+
+      try {
+        const images = JSON.parse(imagesJson) as string[]
+        if (images.length === 0) return <span className="text-sm text-muted-foreground">-</span>
+
+        return (
+          <div className="flex items-center gap-1">
+            <img src={images[0]} alt="Review" className="h-10 w-10 rounded object-cover" />
+            {images.length > 1 && (
+              <Badge variant="secondary" className="text-xs">
+                +{images.length - 1}
+              </Badge>
+            )}
+          </div>
+        )
+      } catch {
+        return <span className="text-sm text-muted-foreground">-</span>
+      }
+    },
+  },
+  {
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => {
@@ -285,6 +311,32 @@ function ReplyDialog({ review, onClose }: { review: ReviewItem | null; onClose: 
               {review?.comment}
             </p>
           </div>
+          {review?.images &&
+            (() => {
+              try {
+                const images = JSON.parse(review.images) as string[]
+                if (images.length > 0) {
+                  return (
+                    <div className="space-y-2">
+                      <Label>Review Images</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {images.map((img, idx) => (
+                          <img
+                            key={idx}
+                            src={img}
+                            alt={`Review image ${idx + 1}`}
+                            className="h-20 w-20 rounded-md border object-cover"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )
+                }
+              } catch {
+                return null
+              }
+              return null
+            })()}
           <div className="space-y-2">
             <Label htmlFor="reply">Your Reply</Label>
             <Textarea
@@ -344,6 +396,37 @@ function AlertDialogDeleteReview({
             cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
+        {review?.images &&
+          (() => {
+            try {
+              const images = JSON.parse(review.images) as string[]
+              if (images.length > 0) {
+                return (
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Review has {images.length} image(s)</p>
+                    <div className="flex flex-wrap gap-2">
+                      {images.slice(0, 3).map((img, idx) => (
+                        <img
+                          key={idx}
+                          src={img}
+                          alt={`Review image ${idx + 1}`}
+                          className="h-16 w-16 rounded border object-cover"
+                        />
+                      ))}
+                      {images.length > 3 && (
+                        <div className="flex h-16 w-16 items-center justify-center rounded border bg-muted text-xs">
+                          +{images.length - 3}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )
+              }
+            } catch {
+              return null
+            }
+            return null
+          })()}
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
@@ -476,16 +559,18 @@ export default function ReviewTable() {
             </TableBody>
           </Table>
         </div>
-        <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 text-xs text-muted-foreground">
+        <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2 sm:py-4">
+          <div className="text-center text-xs text-muted-foreground sm:flex-1 sm:text-left">
             Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
             <strong>{data.length}</strong> reviews
           </div>
-          <AutoPagination
-            page={table.getState().pagination.pageIndex + 1}
-            pageSize={table.getPageCount()}
-            pathname="/manage/reviews"
-          />
+          <div className="flex justify-center">
+            <AutoPagination
+              page={table.getState().pagination.pageIndex + 1}
+              pageSize={table.getPageCount()}
+              pathname="/manage/reviews"
+            />
+          </div>
         </div>
       </div>
 
