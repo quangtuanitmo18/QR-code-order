@@ -136,17 +136,14 @@ export const reviewService = {
     }
   },
 
-  // Admin: Get all reviews with filters
+  // Admin: Get all reviews with filters (client-side pagination)
   async getAllReviews(filters: {
     status?: (typeof ReviewStatus)[keyof typeof ReviewStatus]
     guestId?: number
     minRating?: number
     maxRating?: number
-    page?: number
-    limit?: number
   }) {
-    const { status, guestId, minRating, maxRating, page = 1, limit = 20 } = filters
-    const skip = (page - 1) * limit
+    const { status, guestId, minRating, maxRating } = filters
 
     const where: any = {}
     if (status) where.status = status
@@ -157,47 +154,34 @@ export const reviewService = {
       if (maxRating) where.overallRating.lte = maxRating
     }
 
-    const [reviews, total] = await Promise.all([
-      prisma.review.findMany({
-        where,
-        include: {
-          guest: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          approver: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          replier: {
-            select: {
-              id: true,
-              name: true
-            }
+    const reviews = await prisma.review.findMany({
+      where,
+      include: {
+        guest: {
+          select: {
+            id: true,
+            name: true
           }
         },
-        orderBy: {
-          createdAt: 'desc'
+        approver: {
+          select: {
+            id: true,
+            name: true
+          }
         },
-        skip,
-        take: limit
-      }),
-      prisma.review.count({ where })
-    ])
-
-    return {
-      reviews,
-      pagination: {
-        page,
-        limit,
-        total,
-        totalPages: Math.ceil(total / limit)
+        replier: {
+          select: {
+            id: true,
+            name: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
       }
-    }
+    })
+
+    return reviews
   },
 
   // Admin: Get review by ID

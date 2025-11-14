@@ -358,7 +358,8 @@ function AlertDialogDeleteReview({
 export default function ReviewTable() {
   const searchParams = useSearchParams()
   const page = searchParams.get('page') ? Number(searchParams.get('page')) : 1
-  const pageSize = 10
+  const pageIndex = page - 1
+  const PAGE_SIZE = 10
 
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [sorting, setSorting] = useState<SortingState>([])
@@ -366,8 +367,8 @@ export default function ReviewTable() {
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
   const [pagination, setPagination] = useState({
-    pageIndex: page - 1,
-    pageSize: pageSize,
+    pageIndex,
+    pageSize: PAGE_SIZE,
   })
 
   const [reviewForReply, setReviewForReply] = useState<ReviewItem | null>(null)
@@ -375,15 +376,12 @@ export default function ReviewTable() {
 
   const reviewListQuery = useAdminReviewListQuery({
     status: statusFilter === 'all' ? undefined : statusFilter,
-    page: pagination.pageIndex + 1,
-    limit: pagination.pageSize,
   })
 
-  const reviews = reviewListQuery.data?.payload?.data ?? []
-  const totalPages = reviewListQuery.data?.payload?.pagination?.totalPages ?? 0
+  const data = reviewListQuery.data?.payload?.data ?? []
 
   const table = useReactTable({
-    data: reviews,
+    data,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -405,12 +403,11 @@ export default function ReviewTable() {
   })
 
   useEffect(() => {
-    setPagination({
-      pageIndex: page - 1,
-      pageSize: pageSize,
+    table.setPagination({
+      pageIndex,
+      pageSize: PAGE_SIZE,
     })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page])
+  }, [table, pageIndex])
 
   return (
     <ReviewTableContext.Provider
@@ -480,12 +477,13 @@ export default function ReviewTable() {
           </Table>
         </div>
         <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="flex-1 py-4 text-xs text-muted-foreground">
-            Showing <strong>{reviews.length}</strong> reviews
+          <div className="flex-1 text-xs text-muted-foreground">
+            Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
+            <strong>{data.length}</strong> reviews
           </div>
           <AutoPagination
-            page={pagination.pageIndex + 1}
-            pageSize={pagination.pageSize}
+            page={table.getState().pagination.pageIndex + 1}
+            pageSize={table.getPageCount()}
             pathname="/manage/reviews"
           />
         </div>

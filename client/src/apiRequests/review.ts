@@ -29,8 +29,6 @@ const reviewApiRequest = {
     guestId?: number
     minRating?: number
     maxRating?: number
-    page?: number
-    limit?: number
   }) =>
     http.get<ReviewListResType>('/reviews/admin', {
       params,

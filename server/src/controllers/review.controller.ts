@@ -91,26 +91,23 @@ export const reviewController = {
     reply: FastifyReply
   ) {
     try {
-      // Zod will handle coercion from string to number with z.coerce
       const filters = {
         status: request.query.status as any,
         guestId: request.query.guestId,
         minRating: request.query.minRating,
-        maxRating: request.query.maxRating,
-        page: request.query.page,
-        limit: request.query.limit
+        maxRating: request.query.maxRating
       }
 
-      const result = await reviewService.getAllReviews(filters)
+      const reviews = await reviewService.getAllReviews(filters)
 
       return reply.status(200).send({
-        data: result.reviews,
-        pagination: result.pagination,
+        data: reviews,
         message: 'Reviews retrieved successfully'
       })
     } catch (error: any) {
+      request.log.error(error)
       return reply.status(500).send({
-        message: error.message || 'Failed to get reviews'
+        message: 'Failed to get reviews'
       })
     }
   },

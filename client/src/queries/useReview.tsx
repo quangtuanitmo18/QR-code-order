@@ -39,8 +39,6 @@ export const useAdminReviewListQuery = (params?: {
   guestId?: number
   minRating?: number
   maxRating?: number
-  page?: number
-  limit?: number
 }) => {
   return useQuery({
     queryKey: ['admin-reviews', params],

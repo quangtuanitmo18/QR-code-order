@@ -118,9 +118,7 @@ export const ReviewQueryParams = z.object({
   status: z.enum(ReviewStatusValues).optional(),
   guestId: z.coerce.number().int().positive().optional(),
   minRating: z.coerce.number().int().min(1).max(5).optional(),
-  maxRating: z.coerce.number().int().min(1).max(5).optional(),
-  page: z.coerce.number().int().positive().optional(),
-  limit: z.coerce.number().int().positive().optional()
+  maxRating: z.coerce.number().int().min(1).max(5).optional()
 })
 
 export type ReviewQueryParamsType = z.TypeOf<typeof ReviewQueryParams>
