@@ -1,5 +1,5 @@
-import { dishService } from '@/services/dish.service'
 import { CreateDishBodyType, UpdateDishBodyType } from '@/schemaValidations/dish.schema'
+import { dishService } from '@/services/dish.service'
 
 export const getDishList = () => {
   return dishService.getAllDishes()
