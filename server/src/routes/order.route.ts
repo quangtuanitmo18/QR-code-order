@@ -151,15 +151,20 @@ export default async function orderRoutes(fastify: FastifyInstance, options: Fas
         paymentMethod: 'Cash' // Owner/Employee chỉ thanh toán tiền mặt
       })
 
-      if (result.socketId) {
-        fastify.io.to(result.socketId).to(ManagerRoom).emit('payment', result.orders)
+      // Cash payment always returns { orders, socketId }
+      if ('orders' in result && result.orders) {
+        if (result.socketId) {
+          fastify.io.to(result.socketId).to(ManagerRoom).emit('payment', result.orders)
+        } else {
+          fastify.io.to(ManagerRoom).emit('payment', result.orders)
+        }
+        reply.send({
+          message: `Successfully paid ${result.orders.length} orders`,
+          data: result.orders as PayGuestOrdersResType['data']
+        })
       } else {
-        fastify.io.to(ManagerRoom).emit('payment', result.orders)
+        throw new Error('Cash payment must return orders')
       }
-      reply.send({
-        message: `Successfully paid ${result.orders.length} orders`,
-        data: result.orders as PayGuestOrdersResType['data']
-      })
     }
   )
 }
