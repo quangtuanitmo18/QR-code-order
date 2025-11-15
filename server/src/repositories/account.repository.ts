@@ -1,5 +1,5 @@
-import prisma from '@/database'
 import { Role } from '@/constants/type'
+import prisma from '@/database'
 
 export interface AccountFilters {
   role?: string

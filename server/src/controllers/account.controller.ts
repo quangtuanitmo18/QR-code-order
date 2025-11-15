@@ -1,4 +1,3 @@
-import { accountService } from '@/services/account.service'
 import {
   ChangePasswordBodyType,
   CreateEmployeeAccountBodyType,
@@ -6,6 +5,7 @@ import {
   UpdateEmployeeAccountBodyType,
   UpdateMeBodyType
 } from '@/schemaValidations/account.schema'
+import { accountService } from '@/services/account.service'
 
 export const initOwnerAccount = async () => {
   return await accountService.initOwnerAccount()
