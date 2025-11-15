@@ -1,4 +1,4 @@
-import prisma from '@/database'
+import { ReviewFilters, reviewRepository } from '@/repositories/review.repository'
 import { CreateReviewBodyType, ReplyToReviewBodyType, ReviewStatus } from '@/schemaValidations/review.schema'
 
 export const reviewService = {
@@ -12,59 +12,17 @@ export const reviewService = {
       ambiance: data.ambiance,
       priceValue: data.priceValue,
       comment: data.comment,
-      images: data.images ? JSON.stringify(data.images) : null,
-      status: ReviewStatus.HIDDEN,
+      images: data.images ? JSON.stringify(data.images) : undefined,
       ipAddress,
       userAgent
     }
 
-    return await prisma.review.create({
-      data: reviewData,
-      include: {
-        guest: {
-          select: {
-            id: true,
-            name: true
-          }
-        }
-      }
-    })
+    return await reviewRepository.create(reviewData)
   },
 
   // Public: Get visible reviews with pagination
   async getPublicReviews(page = 1, limit = 10) {
-    const skip = (page - 1) * limit
-    const [reviews, total] = await Promise.all([
-      prisma.review.findMany({
-        where: {
-          status: ReviewStatus.VISIBLE
-        },
-        include: {
-          guest: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          replier: {
-            select: {
-              id: true,
-              name: true
-            }
-          }
-        },
-        orderBy: {
-          createdAt: 'desc'
-        },
-        skip,
-        take: limit
-      }),
-      prisma.review.count({
-        where: {
-          status: ReviewStatus.VISIBLE
-        }
-      })
-    ])
+    const { reviews, total } = await reviewRepository.findPublicReviews(page, limit)
 
     return {
       reviews,
@@ -79,21 +37,9 @@ export const reviewService = {
 
   // Public: Get review statistics (only VISIBLE reviews)
   async getReviewStats() {
-    const reviews = await prisma.review.findMany({
-      where: {
-        status: ReviewStatus.VISIBLE
-      },
-      select: {
-        overallRating: true,
-        foodQuality: true,
-        serviceQuality: true,
-        ambiance: true,
-        priceValue: true
-      }
-    })
+    const { totalReviews, visibleReviews, averageRating, ratingDistribution } = await reviewRepository.getStats()
 
-    const total = reviews.length
-    if (total === 0) {
+    if (visibleReviews === 0) {
       return {
         totalReviews: 0,
         averageOverallRating: 0,
@@ -101,181 +47,55 @@ export const reviewService = {
         averageServiceQuality: 0,
         averageAmbiance: 0,
         averagePriceValue: 0,
-        ratingDistribution: { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 }
+        ratingDistribution: {
+          5: 0,
+          4: 0,
+          3: 0,
+          2: 0,
+          1: 0
+        }
       }
     }
 
-    const sum = reviews.reduce(
-      (acc, review) => ({
-        overallRating: acc.overallRating + review.overallRating,
-        foodQuality: acc.foodQuality + review.foodQuality,
-        serviceQuality: acc.serviceQuality + review.serviceQuality,
-        ambiance: acc.ambiance + review.ambiance,
-        priceValue: acc.priceValue + review.priceValue
-      }),
-      { overallRating: 0, foodQuality: 0, serviceQuality: 0, ambiance: 0, priceValue: 0 }
-    )
-
-    const ratingDistribution = reviews.reduce(
-      (acc, review) => {
-        const rating = String(review.overallRating) as '1' | '2' | '3' | '4' | '5'
-        acc[rating]++
-        return acc
-      },
-      { '1': 0, '2': 0, '3': 0, '4': 0, '5': 0 }
-    )
+    // Format rating distribution
+    const distribution: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 }
+    ratingDistribution.forEach((item) => {
+      distribution[item.overallRating] = item._count
+    })
 
     return {
-      totalReviews: total,
-      averageOverallRating: Math.round((sum.overallRating / total) * 10) / 10,
-      averageFoodQuality: Math.round((sum.foodQuality / total) * 10) / 10,
-      averageServiceQuality: Math.round((sum.serviceQuality / total) * 10) / 10,
-      averageAmbiance: Math.round((sum.ambiance / total) * 10) / 10,
-      averagePriceValue: Math.round((sum.priceValue / total) * 10) / 10,
-      ratingDistribution
+      totalReviews,
+      averageOverallRating: Number((averageRating._avg.overallRating || 0).toFixed(2)),
+      averageFoodQuality: Number((averageRating._avg.foodQuality || 0).toFixed(2)),
+      averageServiceQuality: Number((averageRating._avg.serviceQuality || 0).toFixed(2)),
+      averageAmbiance: Number((averageRating._avg.ambiance || 0).toFixed(2)),
+      averagePriceValue: Number((averageRating._avg.priceValue || 0).toFixed(2)),
+      ratingDistribution: distribution
     }
   },
 
   // Admin: Get all reviews with filters (client-side pagination)
-  async getAllReviews(filters: {
-    status?: (typeof ReviewStatus)[keyof typeof ReviewStatus]
-    guestId?: number
-    minRating?: number
-    maxRating?: number
-  }) {
-    const { status, guestId, minRating, maxRating } = filters
-
-    const where: any = {}
-    if (status) where.status = status
-    if (guestId) where.guestId = guestId
-    if (minRating || maxRating) {
-      where.overallRating = {}
-      if (minRating) where.overallRating.gte = minRating
-      if (maxRating) where.overallRating.lte = maxRating
-    }
-
-    const reviews = await prisma.review.findMany({
-      where,
-      include: {
-        guest: {
-          select: {
-            id: true,
-            name: true
-          }
-        },
-        approver: {
-          select: {
-            id: true,
-            name: true
-          }
-        },
-        replier: {
-          select: {
-            id: true,
-            name: true
-          }
-        }
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
-    })
-
-    return reviews
+  async getAllReviews(filters: ReviewFilters) {
+    return await reviewRepository.findAll(filters)
   },
 
   // Admin: Get review by ID
   async getReviewById(id: number) {
-    return await prisma.review.findUnique({
-      where: { id },
-      include: {
-        guest: {
-          select: {
-            id: true,
-            name: true
-          }
-        },
-        approver: {
-          select: {
-            id: true,
-            name: true
-          }
-        },
-        replier: {
-          select: {
-            id: true,
-            name: true
-          }
-        }
-      }
-    })
+    return await reviewRepository.findById(id)
   },
 
   // Admin: Update review status
-  async updateReviewStatus(id: number, status: (typeof ReviewStatus)[keyof typeof ReviewStatus], accountId: number) {
-    return await prisma.$transaction(async (tx) => {
-      const updateData: any = { status }
-
-      // If approving (VISIBLE), record approver
-      if (status === ReviewStatus.VISIBLE) {
-        updateData.approvedAt = new Date()
-        updateData.approvedBy = accountId
-      }
-
-      return await tx.review.update({
-        where: { id },
-        data: updateData,
-        include: {
-          guest: {
-            select: {
-              id: true,
-              name: true
-            }
-          },
-          approver: {
-            select: {
-              id: true,
-              name: true
-            }
-          }
-        }
-      })
-    })
+  async updateReviewStatus(id: number, status: ReviewStatus, accountId: number) {
+    return await reviewRepository.updateStatus(id, status, accountId)
   },
 
   // Admin: Reply to review
   async replyToReview(id: number, data: ReplyToReviewBodyType, accountId: number) {
-    return await prisma.review.update({
-      where: { id },
-      data: {
-        replyContent: data.replyContent,
-        repliedAt: new Date(),
-        repliedBy: accountId
-      },
-      include: {
-        guest: {
-          select: {
-            id: true,
-            name: true
-          }
-        },
-        replier: {
-          select: {
-            id: true,
-            name: true
-          }
-        }
-      }
-    })
+    return await reviewRepository.addReply(id, data.replyContent, accountId)
   },
 
-  // Admin: Delete review (soft delete)
+  // Admin: Delete review
   async deleteReview(id: number) {
-    return await prisma.review.update({
-      where: { id },
-      data: {
-        status: ReviewStatus.DELETED
-      }
-    })
+    return await reviewRepository.delete(id)
   }
 }

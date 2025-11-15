@@ -1,10 +1,12 @@
 import z from 'zod'
 
-export const ReviewStatus = {
+export const REVIEW_STATUS = {
   HIDDEN: 'HIDDEN',
   VISIBLE: 'VISIBLE',
   DELETED: 'DELETED'
 } as const
+
+export type ReviewStatus = (typeof REVIEW_STATUS)[keyof typeof REVIEW_STATUS]
 
 export const ReviewStatusValues = ['HIDDEN', 'VISIBLE', 'DELETED'] as const
 
