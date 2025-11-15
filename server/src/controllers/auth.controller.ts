@@ -1,5 +1,5 @@
-import { authService } from '@/services/auth.service'
 import { LoginBodyType } from '@/schemaValidations/auth.schema'
+import { authService } from '@/services/auth.service'
 
 export const logoutController = async (refreshToken: string) => {
   return await authService.logout(refreshToken)
