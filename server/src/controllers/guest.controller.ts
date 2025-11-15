@@ -1,5 +1,5 @@
-import { guestService } from '@/services/guest.service'
 import { GuestCreateOrdersBodyType, GuestLoginBodyType } from '@/schemaValidations/guest.schema'
+import { guestService } from '@/services/guest.service'
 
 export const guestLoginController = async (body: GuestLoginBodyType) => {
   return await guestService.login(body)
