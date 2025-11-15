@@ -10,7 +10,7 @@ const staticRoutes: MetadataRoute.Sitemap = [
     priority: 1,
   },
   {
-    url: '/login',
+    url: '/manage/login',
     changeFrequency: 'yearly',
     priority: 0.5,
   },

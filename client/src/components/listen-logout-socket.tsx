@@ -1,10 +1,10 @@
 import { useAppStore } from '@/components/app-provider'
-import { handleErrorApi } from '@/lib/utils'
 import { usePathname, useRouter } from '@/i18n/routing'
+import { handleErrorApi } from '@/lib/utils'
 import { useLogoutMutation } from '@/queries/useAuth'
 import { useEffect } from 'react'
 
-const UNAUTHENTICATED_PATH = ['/login', '/logout', '/refresh-token']
+const UNAUTHENTICATED_PATH = ['/manage/login', '/logout', '/manage/refresh-token']
 export default function ListenLogoutSocket() {
   const pathname = usePathname()
   const router = useRouter()

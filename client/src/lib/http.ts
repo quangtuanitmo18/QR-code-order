@@ -154,7 +154,11 @@ const request = async <Response>(
             // Nếu không không được xử lý đúng cách
             // Vì nếu rơi vào trường hợp tại trang Login, chúng ta có gọi các API cần access token
             // Mà access token đã bị xóa thì nó lại nhảy vào đây, và cứ thế nó sẽ bị lặp
-            location.href = `/${locale}/login`
+            // Check if already at login page to prevent loop
+            const currentPath = window.location.pathname
+            if (!currentPath.includes('/manage/login')) {
+              location.href = `/${locale}/manage/login`
+            }
           }
         }
       } else {
@@ -163,7 +167,7 @@ const request = async <Response>(
         const accessToken = (options?.headers as any)?.Authorization.split('Bearer ')[1]
         const locale = Cookies.get('NEXT_LOCALE')
         redirect({
-          href: `/login?accessToken=${accessToken}`,
+          href: `/manage/login?accessToken=${accessToken}`,
           locale: locale ?? defaultLocale,
         })
       }

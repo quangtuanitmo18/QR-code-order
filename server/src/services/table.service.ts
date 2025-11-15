@@ -1,8 +1,8 @@
-import { CreateTableBodyType, UpdateTableBodyType } from '@/schemaValidations/table.schema'
+import prisma from '@/database'
 import { tableRepository } from '@/repositories/table.repository'
+import { CreateTableBodyType, UpdateTableBodyType } from '@/schemaValidations/table.schema'
 import { EntityError, isPrismaClientKnownRequestError } from '@/utils/errors'
 import { randomId } from '@/utils/helpers'
-import prisma from '@/database'
 
 export const tableService = {
   // Get all tables

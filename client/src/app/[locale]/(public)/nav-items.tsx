@@ -47,11 +47,6 @@ const menuItems: {
     role: [Role.Guest],
   },
   {
-    title: 'login',
-    href: '/login',
-    hideWhenLogin: true,
-  },
-  {
     title: 'manage',
     href: '/manage/dashboard',
     role: [Role.Owner, Role.Employee],

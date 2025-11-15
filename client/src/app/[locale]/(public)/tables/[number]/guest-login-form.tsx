@@ -56,7 +56,7 @@ export default function GuestLoginForm() {
   return (
     <Card className="mx-auto w-full max-w-sm">
       <CardHeader>
-        <CardTitle className="text-xl sm:text-2xl">Login as Guest</CardTitle>
+        <CardTitle className="text-xl sm:text-2xl">Guest name </CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -81,7 +81,7 @@ export default function GuestLoginForm() {
               />
 
               <Button type="submit" className="w-full" size="lg">
-                Login
+                Continue
               </Button>
             </div>
           </form>
