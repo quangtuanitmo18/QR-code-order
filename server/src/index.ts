@@ -7,6 +7,7 @@ import { socketPlugin } from '@/plugins/socket.plugins'
 import validatorCompilerPlugin from '@/plugins/validatorCompiler.plugins'
 import accountRoutes from '@/routes/account.route'
 import authRoutes from '@/routes/auth.route'
+import blogRoutes from '@/routes/blog.route'
 import dishRoutes from '@/routes/dish.route'
 import guestRoutes from '@/routes/guest.route'
 import indicatorRoutes from '@/routes/indicator.route'
@@ -131,6 +132,7 @@ const start = async () => {
     })
     fastify.register(paymentRoutes, { prefix: '/payment' })
     fastify.register(reviewRoutes, { prefix: '/reviews' })
+    fastify.register(blogRoutes, { prefix: '/blog-posts' })
 
     await initOwnerAccount()
     await fastify.listen({

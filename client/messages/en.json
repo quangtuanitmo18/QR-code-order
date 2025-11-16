@@ -64,6 +64,7 @@
   "NavItem": {
     "home": "Home",
     "reviews": "Reviews",
+    "blogs": "Blogs",
     "qrCodes": "QR Codes",
     "menu": "Menu",
     "orders": "Orders",
@@ -87,5 +88,9 @@
     "scanToOrder": "Scan to order",
     "capacity": "Capacity: {capacity} people",
     "noTables": "No tables available"
+  },
+  "Blog": {
+    "title": "Blogs",
+    "description": "Read our latest blog posts"
   }
 }

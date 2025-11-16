@@ -1,5 +1,7 @@
+import blogApiRequest from '@/apiRequests/blog'
 import dishApiRequest from '@/apiRequests/dish'
 import reviewApiRequest from '@/apiRequests/review'
+import BlogCard from '@/components/blog/blog-card'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import envConfig, { Locale } from '@/config'
@@ -37,16 +39,21 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
   const t = await getTranslations('HomePage')
   let dishList: DishListResType['data'] = []
   let reviewStats = null
+  let featuredBlogPosts: any[] = []
 
   try {
-    const [dishResult, statsResult] = await Promise.all([
+    const [dishResult, statsResult, blogResult] = await Promise.all([
       dishApiRequest.list(),
       reviewApiRequest.getStats().catch(() => null),
+      blogApiRequest.getBlogPosts({ page: 1, limit: 3, featured: true }).catch(() => ({
+        payload: { data: [] },
+      })),
     ])
     dishList = dishResult.payload.data
     if (statsResult) {
       reviewStats = statsResult.payload.data
     }
+    featuredBlogPosts = blogResult.payload.data || []
   } catch (error) {
     return <div>Something went wrong</div>
   }
@@ -141,6 +148,27 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
             <div className="mt-8 text-center">
               <Link href="/reviews">
                 <Button size="lg">View All Reviews</Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Featured Blog Posts Section */}
+      {featuredBlogPosts.length > 0 && (
+        <section className="space-y-6 bg-muted/30 px-4 py-8 sm:space-y-8 sm:px-6 sm:py-12 md:px-8 md:py-16">
+          <div className="mx-auto max-w-7xl">
+            <h2 className="mb-6 text-center text-2xl font-bold sm:text-3xl md:text-4xl">
+              Featured Articles
+            </h2>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {featuredBlogPosts.map((post) => (
+                <BlogCard key={post.id} post={post} locale={locale} />
+              ))}
+            </div>
+            <div className="mt-8 text-center">
+              <Link href="/blogs">
+                <Button size="lg">View All Blog Posts</Button>
               </Link>
             </div>
           </div>

@@ -29,6 +29,7 @@ model Account {
   sockets         Socket?
   approvedReviews Review[]       @relation("ReviewApprover")
   repliedReviews  Review[]       @relation("ReviewReplier")
+  blogPosts       BlogPost[]
 }
 
 model Dish {
@@ -178,4 +179,30 @@ model Review {
   @@index([status, createdAt])
   @@index([overallRating])
   @@index([guestId])
+}
+
+model BlogPost {
+  id            Int      @id @default(autoincrement())
+  title         String   // Required, 10-200 chars (validated in schema)
+  slug          String   @unique // URL-friendly, unique, lowercase, hyphens only
+  excerpt       String?  // Optional, max 500 chars (validated in schema, auto-generated if not provided)
+  content       String   // Markdown format, required, min 100 chars
+  featuredImage String?  // URL to image (optional but recommended)
+  status        String   @default("DRAFT") // DRAFT, PUBLISHED, ARCHIVED
+  featured      Boolean  @default(false)
+  viewCount     Int      @default(0)
+  category      String?  // Optional, free-form string (not enum), can create new categories
+  tags          String?  // JSON array of strings (max 10 tags, each max 30 chars), stored as JSON string
+  authorId      Int      // Foreign key to Account
+  publishedAt   DateTime? // Set automatically when status changes from DRAFT to PUBLISHED
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  author        Account  @relation(fields: [authorId], references: [id], onUpdate: NoAction)
+  
+  @@index([slug])
+  @@index([status, publishedAt])
+  @@index([authorId])
+  @@index([category])
+  @@index([featured, publishedAt])
 }

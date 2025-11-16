@@ -33,6 +33,10 @@ const menuItems: {
     href: '/reviews',
   },
   {
+    title: 'blogs',
+    href: '/blogs',
+  },
+  {
     title: 'qrCodes',
     href: '/qr-codes',
   },
