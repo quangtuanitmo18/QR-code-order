@@ -1,4 +1,3 @@
-import blogApiRequest from '@/apiRequests/blog'
 import BlogList from '@/components/blog/blog-list'
 import envConfig, { Locale } from '@/config'
 import { Metadata } from 'next'
@@ -42,18 +41,8 @@ export async function generateStaticParams() {
 
 export default async function BlogPage(props: Props) {
   const params = await props.params
-  const searchParams = await props.searchParams
-
-  // Fetch initial data for SSG (page 1, no filters)
-  try {
-    await blogApiRequest.getBlogPosts({
-      page: 1,
-      limit: 10,
-    })
-  } catch (error) {
-    // If fetch fails, page will still render but show loading state
-    console.error('Failed to fetch initial blog posts:', error)
-  }
+  // searchParams is handled by BlogList client component
+  // No need to read it here to avoid DYNAMIC_SERVER_USAGE error
 
   return (
     <main className="container mx-auto space-y-8 px-4 py-8 sm:px-6 sm:py-12 md:px-8 md:py-16">
