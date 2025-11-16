@@ -200,10 +200,14 @@ export default async function BlogDetailPage(props: Props) {
               <Image
                 src={post.featuredImage}
                 alt={post.title}
+                width={1200}
+                height={630}
+                quality={80}
                 fill
                 className="object-cover"
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
                 priority
+                unoptimized
               />
             </div>
           )}

@@ -44,6 +44,10 @@ export default function BlogCard({ post, locale }: BlogCardProps) {
               src={post.featuredImage}
               alt={post.title}
               fill
+              width={1200}
+              height={630}
+              quality={80}
+              unoptimized
               className="object-cover transition-transform group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
