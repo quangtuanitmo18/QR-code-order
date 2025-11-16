@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import Image from 'next/image'
 import { useCallback, useEffect, useState } from 'react'
 
 interface ImageLightboxProps {
@@ -79,10 +80,13 @@ export default function ImageLightbox({
 
         {/* Main image */}
         <div className="relative flex h-[60vh] items-center justify-center md:h-[70vh]">
-          <img
+          <Image
             src={images[currentIndex]}
             alt={`Image ${currentIndex + 1} of ${images.length}`}
+            width={1200}
+            height={800}
             className="max-h-full max-w-full object-contain"
+            unoptimized
           />
         </div>
 
@@ -106,10 +110,13 @@ export default function ImageLightbox({
                       : 'border-transparent opacity-60 hover:opacity-100'
                   }`}
                 >
-                  <img
+                  <Image
                     src={img}
                     alt={`Thumbnail ${idx + 1}`}
+                    width={80}
+                    height={80}
                     className="h-16 w-16 object-cover md:h-20 md:w-20"
+                    unoptimized
                   />
                 </button>
               ))}

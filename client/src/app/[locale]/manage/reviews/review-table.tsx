@@ -71,6 +71,7 @@ import {
 } from '@tanstack/react-table'
 import { format } from 'date-fns'
 import { Star } from 'lucide-react'
+import Image from 'next/image'
 import { useSearchParams } from 'next/navigation'
 import { createContext, useContext, useEffect, useState } from 'react'
 
@@ -178,10 +179,13 @@ export const columns: ColumnDef<ReviewItem>[] = [
 
         return (
           <button onClick={handleImageClick} className="flex items-center gap-1">
-            <img
+            <Image
               src={images[0]}
               alt="Review"
+              width={40}
+              height={40}
               className="h-10 w-10 rounded object-cover transition-transform hover:scale-105"
+              unoptimized
             />
             {images.length > 1 && (
               <Badge variant="secondary" className="text-xs">
@@ -358,10 +362,13 @@ function ReplyDialog({ review, onClose }: { review: ReviewItem | null; onClose: 
                             }}
                             className="overflow-hidden rounded-md transition-transform hover:scale-105"
                           >
-                            <img
+                            <Image
                               src={img}
                               alt={`Review image ${idx + 1}`}
+                              width={80}
+                              height={80}
                               className="h-20 w-20 cursor-pointer border object-cover"
+                              unoptimized
                             />
                           </button>
                         ))}
@@ -443,11 +450,14 @@ function AlertDialogDeleteReview({
                     <p className="text-sm font-medium">Review has {images.length} image(s)</p>
                     <div className="flex flex-wrap gap-2">
                       {images.slice(0, 3).map((img, idx) => (
-                        <img
+                        <Image
                           key={idx}
                           src={img}
                           alt={`Review image ${idx + 1}`}
+                          width={64}
+                          height={64}
                           className="h-16 w-16 rounded border object-cover"
+                          unoptimized
                         />
                       ))}
                       {images.length > 3 && (

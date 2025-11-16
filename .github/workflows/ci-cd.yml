@@ -324,14 +324,18 @@ jobs:
             if [ -d "temp_extract/client" ]; then
               echo "📦 Installing client dependencies..."
               cd temp_extract/client
-              npm ci 
+              # Set memory limits to prevent OOM errors
+              export NODE_OPTIONS="--max-old-space-size=2048"
+              npm ci --prefer-offline --no-audit --no-fund
               cd ../..
             fi
 
             if [ -d "temp_extract/server" ]; then
               echo "📦 Installing server dependencies..."
               cd temp_extract/server
-              npm ci 
+              # Set memory limits to prevent OOM errors
+              export NODE_OPTIONS="--max-old-space-size=2048"
+              npm ci --prefer-offline --no-audit --no-fund
               cd ../..
             fi
 
@@ -339,6 +343,9 @@ jobs:
             if [ -d "temp_extract/server" ]; then
               echo "🗄️ Running database migrations..."
               cd temp_extract/server
+              
+              # Set memory limits for Prisma commands
+              export NODE_OPTIONS="--max-old-space-size=2048"
               
               # Generate Prisma Client
               npx prisma generate

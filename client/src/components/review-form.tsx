@@ -9,6 +9,7 @@ import { useUploadMediaMutation } from '@/queries/useMedia'
 import { useCreateReviewMutation } from '@/queries/useReview'
 import { CreateReviewBodyType } from '@/schemaValidations/review.schema'
 import { ImagePlus, Star, X } from 'lucide-react'
+import Image from 'next/image'
 import { useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -258,10 +259,13 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
             <div className="flex flex-wrap gap-2">
               {previewImages.map((url, idx) => (
                 <div key={idx} className="group relative">
-                  <img
+                  <Image
                     src={url}
                     alt={`Preview ${idx + 1}`}
+                    width={80}
+                    height={80}
                     className="h-20 w-20 rounded-md border object-cover"
+                    unoptimized
                   />
                   <button
                     type="button"

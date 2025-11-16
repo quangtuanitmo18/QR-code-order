@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { format } from 'date-fns'
 import { Star } from 'lucide-react'
+import Image from 'next/image'
 import { useState } from 'react'
 
 interface Review {
@@ -76,10 +77,13 @@ export default function ReviewList({ reviews, showStats = false }: ReviewListPro
               onClick={() => openLightbox(images, idx)}
               className="flex-shrink-0 overflow-hidden rounded-md transition-transform hover:scale-105"
             >
-              <img
+              <Image
                 src={image}
                 alt={`Review image ${idx + 1}`}
+                width={96}
+                height={96}
                 className="h-24 w-24 cursor-pointer object-cover"
+                unoptimized
               />
             </button>
           ))}
