@@ -43,7 +43,6 @@ const getAllPublishedSlugs = cache(async () => {
           next: { revalidate: 3600 }, // Revalidate every hour
         }
       )
-      // blogApiRequestServer normalizes response to { payload: { data: [...], pagination: {...}, message: "..." } }
       const posts = result.payload.data || []
       slugs.push(...posts.map((post: any) => post.slug))
 
