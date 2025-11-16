@@ -27,46 +27,10 @@ const getBlogPostBySlug = cache(async (slug: string) => {
   }
 })
 
-// Server-side function to fetch all published slugs
-const getAllPublishedSlugs = cache(async () => {
-  try {
-    // Fetch all published posts (with pagination if needed)
-    const slugs: string[] = []
-    let page = 1
-    let hasMore = true
-
-    while (hasMore && page <= 100) {
-      // Limit to 50 per page (max allowed by API) to avoid infinite loop
-      const result = await blogApiRequestServer.getBlogPosts(
-        { page, limit: 50 },
-        {
-          next: { revalidate: 3600 }, // Revalidate every hour
-        }
-      )
-      const posts = result.payload.data || []
-      slugs.push(...posts.map((post: any) => post.slug))
-
-      if (posts.length < 50) {
-        hasMore = false
-      } else {
-        page++
-      }
-    }
-
-    return slugs
-  } catch (error) {
-    console.error('Failed to fetch blog post slugs:', error)
-    return []
-  }
-})
-
-// Generate static params for all published blog posts
-export async function generateStaticParams() {
-  const slugs = await getAllPublishedSlugs()
-  return slugs.map((slug) => ({
-    slug,
-  }))
-}
+// Use ISR instead of SSG - pages will be generated on-demand
+// This avoids build-time API dependency issues
+export const dynamicParams = true // Allow dynamic params not generated at build time
+export const revalidate = 3600 // Revalidate every hour (ISR)
 
 export async function generateMetadata(props: Props): Promise<Metadata> {
   const params = await props.params

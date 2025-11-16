@@ -16,20 +16,50 @@ import type {
 const blogApiRequestServer = {
   // GET /blog-posts/:slug - Get blog post by slug (server-side with cache)
   getBlogPostBySlug: async (slug: string, options?: { next?: { revalidate?: number } }) => {
-    const response = await fetch(`${envConfig.NEXT_PUBLIC_API_ENDPOINT}/blog-posts/${slug}`, {
-      next: options?.next || { revalidate: 3600 },
-    })
-    if (!response.ok) {
-      if (response.status === 404) {
+    try {
+      const apiEndpoint = envConfig.NEXT_PUBLIC_API_ENDPOINT
+      if (!apiEndpoint) {
+        console.error('NEXT_PUBLIC_API_ENDPOINT is not defined')
         return null
       }
-      throw new Error(`Failed to fetch blog post: ${response.status}`)
-    }
-    const data = await response.json()
-    // API returns { data: {...}, message: "..." } directly
-    // Normalize to match http wrapper format: { payload: { data: {...}, message: "..." } }
-    return {
-      payload: data,
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+
+      try {
+        const response = await fetch(`${apiEndpoint}/blog-posts/${slug}`, {
+          next: options?.next || { revalidate: 3600 },
+          signal: controller.signal,
+        })
+        clearTimeout(timeoutId)
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            return null
+          }
+          const errorText = await response.text().catch(() => 'Unknown error')
+          console.error(`Failed to fetch blog post ${slug}: ${response.status} - ${errorText}`)
+          return null
+        }
+
+        const data = await response.json()
+        // API returns { data: {...}, message: "..." } directly
+        // Normalize to match http wrapper format: { payload: { data: {...}, message: "..." } }
+        return {
+          payload: data,
+        }
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId)
+        if (fetchError.name === 'AbortError') {
+          console.error(`Timeout fetching blog post ${slug}`)
+        } else {
+          console.error(`Error fetching blog post ${slug}:`, fetchError.message)
+        }
+        return null
+      }
+    } catch (error: any) {
+      console.error(`Unexpected error fetching blog post ${slug}:`, error.message)
+      return null
     }
   },
 
@@ -38,26 +68,63 @@ const blogApiRequestServer = {
     query?: GetBlogPostsPublicQueryType,
     options?: { next?: { revalidate?: number } }
   ) => {
-    const params = new URLSearchParams()
-    if (query?.page) params.set('page', String(query.page))
-    if (query?.limit) params.set('limit', String(query.limit))
-    if (query?.category) params.set('category', query.category)
-    if (query?.tag) params.set('tag', query.tag)
-    if (query?.search) params.set('search', query.search)
-    if (query?.featured !== undefined) params.set('featured', String(query.featured))
+    try {
+      const apiEndpoint = envConfig.NEXT_PUBLIC_API_ENDPOINT
+      if (!apiEndpoint) {
+        console.error('NEXT_PUBLIC_API_ENDPOINT is not defined')
+        return {
+          payload: { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } },
+        }
+      }
 
-    const url = `${envConfig.NEXT_PUBLIC_API_ENDPOINT}/blog-posts${params.toString() ? `?${params.toString()}` : ''}`
-    const response = await fetch(url, {
-      next: options?.next || { revalidate: 3600 },
-    })
-    if (!response.ok) {
-      throw new Error(`Failed to fetch blog posts: ${response.status}`)
-    }
-    const data = await response.json()
-    // API returns { data: [...], pagination: {...}, message: "..." } directly
-    // Normalize to match http wrapper format: { payload: { data: [...], pagination: {...}, message: "..." } }
-    return {
-      payload: data,
+      const params = new URLSearchParams()
+      if (query?.page) params.set('page', String(query.page))
+      if (query?.limit) params.set('limit', String(query.limit))
+      if (query?.category) params.set('category', query.category)
+      if (query?.tag) params.set('tag', query.tag)
+      if (query?.search) params.set('search', query.search)
+      if (query?.featured !== undefined) params.set('featured', String(query.featured))
+
+      const url = `${apiEndpoint}/blog-posts${params.toString() ? `?${params.toString()}` : ''}`
+
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+
+      try {
+        const response = await fetch(url, {
+          next: options?.next || { revalidate: 3600 },
+          signal: controller.signal,
+        })
+        clearTimeout(timeoutId)
+
+        if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unknown error')
+          console.error(`Failed to fetch blog posts: ${response.status} - ${errorText}`)
+          return {
+            payload: { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } },
+          }
+        }
+
+        const data = await response.json()
+        // API returns { data: [...], pagination: {...}, message: "..." } directly
+        // Normalize to match http wrapper format: { payload: { data: [...], pagination: {...}, message: "..." } }
+        return {
+          payload: data,
+        }
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId)
+        if (fetchError.name === 'AbortError') {
+          console.error('Timeout fetching blog posts')
+        } else {
+          console.error('Error fetching blog posts:', fetchError.message)
+        }
+        return {
+          payload: { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } },
+        }
+      }
+    } catch (error: any) {
+      console.error('Unexpected error fetching blog posts:', error.message)
+      return { payload: { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } } }
     }
   },
 }
