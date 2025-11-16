@@ -113,7 +113,7 @@ export default async function BlogDetailPage(props: Props) {
 
   try {
     const result = await getBlogPostBySlug(params.slug)
-    // blogApiRequestServer normalizes response to { payload: { data: {...}, message: "..." } }
+
     const post = result?.payload?.data
 
     if (!post || post.status !== 'PUBLISHED') {
