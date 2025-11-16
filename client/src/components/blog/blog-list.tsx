@@ -15,9 +15,9 @@ import { useRouter } from '@/i18n/routing'
 import { useBlogPostsQuery } from '@/queries/useBlog'
 import type { GetBlogPostsPublicQueryType } from '@/schemaValidations/blog-post.schema'
 import { useParams, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 
-export default function BlogList() {
+function BlogListContent() {
   const params = useParams()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -191,5 +191,21 @@ export default function BlogList() {
         </>
       )}
     </div>
+  )
+}
+
+export default function BlogList() {
+  return (
+    <Suspense
+      fallback={
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <BlogCardSkeleton key={idx} />
+          ))}
+        </div>
+      }
+    >
+      <BlogListContent />
+    </Suspense>
   )
 }
