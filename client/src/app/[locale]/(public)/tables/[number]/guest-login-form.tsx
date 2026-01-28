@@ -10,6 +10,7 @@ import { generateSocketInstace, handleErrorApi } from '@/lib/utils'
 import { useGuestLoginMutation } from '@/queries/useGuest'
 import { GuestLoginBody, GuestLoginBodyType } from '@/schemaValidations/guest.schema'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useTranslations } from 'next-intl'
 import { useParams, useSearchParams } from 'next/navigation'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
@@ -22,6 +23,7 @@ export default function GuestLoginForm() {
   const tableNumber = Number(params.number)
   const token = searchParams.get('token')
   const router = useRouter()
+  const t = useTranslations('GuestLoginForm')
   const loginMutation = useGuestLoginMutation()
   const form = useForm<GuestLoginBodyType>({
     resolver: zodResolver(GuestLoginBody),
@@ -56,7 +58,8 @@ export default function GuestLoginForm() {
   return (
     <Card className="mx-auto w-full max-w-sm">
       <CardHeader>
-        <CardTitle className="text-xl sm:text-2xl">Guest name </CardTitle>
+        <CardTitle className="text-xl sm:text-2xl">{t('title')}</CardTitle>
+        <p className="mt-1 text-sm text-muted-foreground">{t('description')}</p>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -72,7 +75,7 @@ export default function GuestLoginForm() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid gap-2">
-                      <Label htmlFor="name">Name</Label>
+                      <Label htmlFor="name">{t('nameLabel')}</Label>
                       <Input id="name" type="text" required {...field} />
                       <FormMessage />
                     </div>
@@ -81,7 +84,7 @@ export default function GuestLoginForm() {
               />
 
               <Button type="submit" className="w-full" size="lg">
-                Continue
+                {t('continueButton')}
               </Button>
             </div>
           </form>

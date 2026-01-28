@@ -75,7 +75,7 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
           <h1 className="text-center text-2xl font-bold text-white sm:text-3xl md:text-4xl lg:text-5xl">
             {t('title')}
           </h1>
-          <p className="mt-3 text-center text-sm text-white/90 sm:mt-4 sm:text-base md:text-lg">
+          <p className="mt-3 max-w-xl text-center text-sm text-white/90 sm:mt-4 sm:text-base md:text-lg">
             {t('slogan')}
           </p>
         </div>
@@ -86,7 +86,7 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
         <section className="space-y-6 bg-muted/50 px-4 py-8 sm:space-y-8 sm:px-6 sm:py-12 md:px-8 md:py-16">
           <div className="mx-auto max-w-7xl">
             <h2 className="mb-6 text-center text-2xl font-bold sm:text-3xl md:text-4xl">
-              What Our Customers Say
+              {t('reviewsTitle')}
             </h2>
 
             <div className="grid gap-6 md:grid-cols-3">
@@ -109,7 +109,7 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
                     ))}
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    Based on {reviewStats.totalReviews} reviews
+                    {t('reviewsSummary', { count: reviewStats.totalReviews })}
                   </p>
                 </CardContent>
               </Card>
@@ -118,25 +118,25 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
               <Card className="md:col-span-2">
                 <CardContent className="grid grid-cols-2 gap-4 p-6">
                   <div>
-                    <p className="text-sm text-muted-foreground">Food Quality</p>
+                    <p className="text-sm text-muted-foreground">{t('foodQuality')}</p>
                     <p className="text-2xl font-semibold">
                       {reviewStats.averageFoodQuality.toFixed(1)}/5
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Service</p>
+                    <p className="text-sm text-muted-foreground">{t('service')}</p>
                     <p className="text-2xl font-semibold">
                       {reviewStats.averageServiceQuality.toFixed(1)}/5
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Ambiance</p>
+                    <p className="text-sm text-muted-foreground">{t('ambiance')}</p>
                     <p className="text-2xl font-semibold">
                       {reviewStats.averageAmbiance.toFixed(1)}/5
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Price Value</p>
+                    <p className="text-sm text-muted-foreground">{t('priceValue')}</p>
                     <p className="text-2xl font-semibold">
                       {reviewStats.averagePriceValue.toFixed(1)}/5
                     </p>
@@ -147,7 +147,7 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
 
             <div className="mt-8 text-center">
               <Link href="/reviews">
-                <Button size="lg">View All Reviews</Button>
+                <Button size="lg">{t('viewAllReviews')}</Button>
               </Link>
             </div>
           </div>
@@ -159,7 +159,7 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
         <section className="space-y-6 bg-muted/30 px-4 py-8 sm:space-y-8 sm:px-6 sm:py-12 md:px-8 md:py-16">
           <div className="mx-auto max-w-7xl">
             <h2 className="mb-6 text-center text-2xl font-bold sm:text-3xl md:text-4xl">
-              Featured Articles
+              {t('featuredArticles')}
             </h2>
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {featuredBlogPosts.map((post) => (
@@ -168,7 +168,7 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
             </div>
             <div className="mt-8 text-center">
               <Link href="/blogs">
-                <Button size="lg">View All Blog Posts</Button>
+                <Button size="lg">{t('viewAllBlogPosts')}</Button>
               </Link>
             </div>
           </div>

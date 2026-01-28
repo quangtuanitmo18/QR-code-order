@@ -1,4 +1,4 @@
-import { defaultLocale } from '@/config'
+import { defaultLocale, locales } from '@/config'
 import { Role } from '@/constants/type'
 import { TokenPayload } from '@/types/jwt.types'
 import jwt from 'jsonwebtoken'
@@ -11,12 +11,15 @@ const decodeToken = (token: string) => {
   return jwt.decode(token) as TokenPayload
 }
 
-const managePaths = ['/vi/manage', '/en/manage']
-const guestPaths = ['/vi/guest', '/en/guest']
-const onlyOwnerPaths = ['/vi/manage/accounts', '/en/manage/accounts']
+// Build locale-aware paths based on supported locales
+const buildLocalePaths = (path: string) => locales.map((locale) => `/${locale}${path}`)
+
+const managePaths = buildLocalePaths('/manage')
+const guestPaths = buildLocalePaths('/guest')
+const onlyOwnerPaths = buildLocalePaths('/manage/accounts')
 const privatePaths = [...managePaths, ...guestPaths]
-const unAuthPaths = ['/vi/manage/login', '/en/manage/login']
-const loginPaths = ['/vi/manage/login', '/en/manage/login']
+const unAuthPaths = buildLocalePaths('/manage/login')
+const loginPaths = buildLocalePaths('/manage/login')
 
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
@@ -27,7 +30,9 @@ export function middleware(request: NextRequest) {
 
   // Extract locale from pathname - ensure it's always valid
   const pathnameLocale = pathname.split('/').filter(Boolean)[0]
-  const locale = pathnameLocale === 'vi' || pathnameLocale === 'en' ? pathnameLocale : defaultLocale
+  const locale = locales.includes(pathnameLocale as (typeof locales)[number])
+    ? (pathnameLocale as (typeof locales)[number])
+    : defaultLocale
 
   const accessToken = request.cookies.get('accessToken')?.value
   const refreshToken = request.cookies.get('refreshToken')?.value
@@ -98,6 +103,7 @@ export function middleware(request: NextRequest) {
 }
 
 // See "Matching Paths" below to learn more
+// Note: `matcher` must be statically analyzable by Next.js (no dynamic values/imports)
 export const config = {
-  matcher: ['/', '/(vi|en)/:path*'],
+  matcher: ['/', '/(en|vi|ru)/:path*'],
 }

@@ -18,7 +18,6 @@ import reviewRoutes from '@/routes/review.route'
 import staticRoutes from '@/routes/static.route'
 import tablesRoutes from '@/routes/table.route'
 import testRoutes from '@/routes/test.route'
-import { initSentry, Sentry, sentryInitialized } from '@/sentry'
 import { createFolder } from '@/utils/helpers'
 import fastifyAuth from '@fastify/auth'
 import fastifyCookie from '@fastify/cookie'
@@ -28,7 +27,6 @@ import Fastify from 'fastify'
 import rawBody from 'fastify-raw-body'
 import fastifySocketIO from 'fastify-socket.io'
 import path from 'path'
-import autoCheckHeartbeatJob from './jobs/autoCheckHeartBeatSentry.job'
 
 const fastify = Fastify({
   logger: true,
@@ -51,11 +49,11 @@ fastify.get('/test-glitchtip', () => {
 const start = async () => {
   try {
     // Initialize Sentry first
-    initSentry()
+    // initSentry()
 
     createFolder(path.resolve(envConfig.UPLOAD_FOLDER))
     autoRemoveRefreshTokenJob()
-    autoCheckHeartbeatJob()
+    // autoCheckHeartbeatJob()
 
     const whitelist = ['*']
     fastify.register(cors, {
@@ -91,14 +89,14 @@ const start = async () => {
     fastify.register(socketPlugin)
 
     // Add Sentry request handler (captures request data)
-    if (sentryInitialized) {
-      // Add custom error handler for Sentry
-      fastify.setErrorHandler((error, request, reply) => {
-        Sentry.captureException(error)
-        // Pass to default error handler
-        reply.send(error)
-      })
-    }
+    // if (sentryInitialized) {
+    //   // Add custom error handler for Sentry
+    //   fastify.setErrorHandler((error, request, reply) => {
+    //     Sentry.captureException(error)
+    //     // Pass to default error handler
+    //     reply.send(error)
+    //   })
+    // }
 
     fastify.register(authRoutes, {
       prefix: '/auth'
@@ -146,10 +144,10 @@ const start = async () => {
   } catch (err) {
     console.log(err)
     fastify.log.error(err)
-    if (sentryInitialized) {
-      Sentry.captureException(err)
-    }
-    process.exit(1)
+    // if (sentryInitialized) {
+    //   Sentry.captureException(err)
+    // }
+    // process.exit(1)
   }
 }
 
@@ -163,17 +161,17 @@ async function shutdown(signal: NodeJS.Signals) {
     }
 
     // Flush pending Sentry events before shutdown
-    if (sentryInitialized) {
-      await Sentry.close(2000) // Wait up to 2 seconds for events to send
-    }
+    // if (sentryInitialized) {
+    //   await Sentry.close(2000) // Wait up to 2 seconds for events to send
+    // }
 
     await fastify.close()
     process.exit(0)
   } catch (e) {
     fastify.log.error(e)
-    if (sentryInitialized) {
-      Sentry.captureException(e)
-    }
+    // if (sentryInitialized) {
+    //   Sentry.captureException(e)
+    // }
     process.exit(1)
   }
 }
@@ -182,17 +180,17 @@ process.on('SIGINT', () => shutdown('SIGINT'))
 process.on('SIGTERM', () => shutdown('SIGTERM'))
 
 process.on('unhandledRejection', (reason) => {
-  if (sentryInitialized) {
-    Sentry.captureException(reason)
-  }
+  // if (sentryInitialized) {
+  //   Sentry.captureException(reason)
+  // }
   fastify.log.error({ reason }, 'Unhandled Rejection')
   process.exit(1)
 })
 
 process.on('uncaughtException', (err) => {
-  if (sentryInitialized) {
-    Sentry.captureException(err)
-  }
+  // if (sentryInitialized) {
+  //   Sentry.captureException(err)
+  // }
   fastify.log.error(err, 'Uncaught Exception')
   process.exit(1)
 })

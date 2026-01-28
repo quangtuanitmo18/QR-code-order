@@ -1,17 +1,28 @@
 'use client'
-import { DishBarChart } from '@/app/[locale]/manage/dashboard/dish-bar-chart'
-import { RevenueLineChart } from '@/app/[locale]/manage/dashboard/revenue-line-chart'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { formatCurrency } from '@/lib/utils'
 import { useDashboardIndicator } from '@/queries/useIndicator'
 import { endOfDay, format, startOfDay } from 'date-fns'
+import { useTranslations } from 'next-intl'
+import dynamic from 'next/dynamic'
 import { useState } from 'react'
+
+const RevenueLineChart = dynamic(
+  () => import('@/app/[locale]/manage/dashboard/revenue-line-chart').then((m) => m.RevenueLineChart),
+  { ssr: false }
+)
+
+const DishBarChart = dynamic(
+  () => import('@/app/[locale]/manage/dashboard/dish-bar-chart').then((m) => m.DishBarChart),
+  { ssr: false }
+)
 
 const initFromDate = startOfDay(new Date())
 const initToDate = endOfDay(new Date())
 export default function DashboardMain() {
+  const t = useTranslations('DashboardMain')
   const [fromDate, setFromDate] = useState(initFromDate)
   const [toDate, setToDate] = useState(initToDate)
   const { data } = useDashboardIndicator({
@@ -35,27 +46,27 @@ export default function DashboardMain() {
       {/* Date filters */}
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">From</span>
+          <span className="text-sm font-medium">{t('fromLabel')}</span>
           <Input
             type="datetime-local"
-            placeholder="Từ ngày"
+            placeholder={t('fromPlaceholder')}
             className="flex-1 text-sm sm:w-auto"
             value={format(fromDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
             onChange={(event) => setFromDate(new Date(event.target.value))}
           />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium">To</span>
+          <span className="text-sm font-medium">{t('toLabel')}</span>
           <Input
             type="datetime-local"
-            placeholder="Đến ngày"
+            placeholder={t('toPlaceholder')}
             className="flex-1 text-sm sm:w-auto"
             value={format(toDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
             onChange={(event) => setToDate(new Date(event.target.value))}
           />
         </div>
         <Button variant={'outline'} onClick={resetDateFilter} className="w-full sm:w-auto">
-          Reset
+          {t('reset')}
         </Button>
       </div>
 
@@ -63,7 +74,7 @@ export default function DashboardMain() {
       <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('totalRevenue')}</CardTitle>
 
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -84,7 +95,7 @@ export default function DashboardMain() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Customers</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('customers')}</CardTitle>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -107,7 +118,7 @@ export default function DashboardMain() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Orders</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('orders')}</CardTitle>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -129,7 +140,7 @@ export default function DashboardMain() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Tables Currently in use</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('tablesInUse')}</CardTitle>
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"

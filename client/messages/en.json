@@ -12,7 +12,16 @@
     "title": "Home page",
     "description": "Craving a classic American diner experience? Look no further than Big Boy! Savor our iconic Big Boy burger, juicy and flavorful, paired with creamy milkshakes and crispy fries. Perfect for families and friends!",
     "slogan": "Taste good, every moment",
-    "h2": "A variety of dishes"
+    "h2": "A variety of dishes",
+    "reviewsTitle": "What Our Customers Say",
+    "reviewsSummary": "Based on {count} reviews",
+    "foodQuality": "Food Quality",
+    "service": "Service",
+    "ambiance": "Ambiance",
+    "priceValue": "Price Value",
+    "viewAllReviews": "View All Reviews",
+    "featuredArticles": "Featured Articles",
+    "viewAllBlogPosts": "View All Blog Posts"
   },
   "Login": {
     "title": "Login",
@@ -59,7 +68,8 @@
   "SwitchLanguage": {
     "title": "Switch language",
     "en": "English",
-    "vi": "Vietnamese"
+    "vi": "Vietnamese",
+    "ru": "Russian"
   },
   "NavItem": {
     "home": "Home",
@@ -92,5 +102,37 @@
   "Blog": {
     "title": "Blogs",
     "description": "Read our latest blog posts"
+  },
+  "DashboardMain": {
+    "fromLabel": "From",
+    "toLabel": "To",
+    "fromPlaceholder": "From date",
+    "toPlaceholder": "To date",
+    "reset": "Reset",
+    "totalRevenue": "Total Revenue",
+    "customers": "Customers",
+    "orders": "Orders",
+    "tablesInUse": "Tables currently in use"
+  },
+  "OrderTable": {
+    "fromLabel": "From",
+    "toLabel": "To",
+    "fromPlaceholder": "From date",
+    "toPlaceholder": "To date",
+    "reset": "Reset",
+    "customerNamePlaceholder": "Customer name",
+    "tableNumberPlaceholder": "Table number",
+    "statusPlaceholder": "Status",
+    "noResults": "No results.",
+    "showingSummary": "Showing {count} of {total} results",
+    "toastUpdatedDish": "Dish {name} (Qty: {quantity}) has just been updated to status \"{status}\"",
+    "toastNewOrder": "{guestName} at table {tableNumber} has just placed {count} orders",
+    "toastPayment": "{guestName} at table {tableNumber} has successfully paid for {count} orders"
+  },
+  "GuestLoginForm": {
+    "title": "Guest name",
+    "description": "Tell us who you are so the staff can recognize your table and serve you faster.",
+    "nameLabel": "Name",
+    "continueButton": "Continue"
   }
 }

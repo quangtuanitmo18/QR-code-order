@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils'
 import { NextIntlClientProvider } from 'next-intl'
 import { getMessages, getTranslations, setRequestLocale } from 'next-intl/server'
 import { Inter as FontSans } from 'next/font/google'
-import NextTopLoader from 'nextjs-toploader'
 import './globals.css'
 // import Footer from '@/components/footer'
 import { baseOpenGraph } from '@/shared-metadata'
@@ -15,7 +14,7 @@ import { routing } from '@/i18n/routing'
 import dynamic from 'next/dynamic'
 import { notFound } from 'next/navigation'
 
-// const NextTopLoader = dynamic(() => import('nextjs-toploader'), { ssr: false })
+import NextTopLoader from 'nextjs-toploader'
 const GoogleTag = dynamic(() => import('@/components/google-tag'))
 const Footer = dynamic(() => import('@/components/footer'))
 

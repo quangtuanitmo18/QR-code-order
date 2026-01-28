@@ -12,7 +12,16 @@
     "title": "Trang chủ",
     "description": "Khát khao một trải nghiệm ẩm thực Mỹ cổ điển? Big Boy là lựa chọn hoàn hảo! Thưởng thức chiếc Big Boy burger biểu tượng, thơm ngon và đậm đà, cùng với những ly milkshake béo ngậy và khoai tây chiên giòn tan. Hoàn hảo cho các buổi gặp mặt gia đình và bạn bè!",
     "slogan": "Vị ngon, trọn khoảnh khắc",
-    "h2": "Đa dạng các món ăn"
+    "h2": "Đa dạng các món ăn",
+    "reviewsTitle": "Khách hàng nói gì về chúng tôi",
+    "reviewsSummary": "Dựa trên {count} đánh giá",
+    "foodQuality": "Chất lượng món ăn",
+    "service": "Dịch vụ",
+    "ambiance": "Không gian",
+    "priceValue": "Giá trị so với giá",
+    "viewAllReviews": "Xem tất cả đánh giá",
+    "featuredArticles": "Bài viết nổi bật",
+    "viewAllBlogPosts": "Xem tất cả bài viết blog"
   },
   "DishDetail": {
     "notFound": "Món ăn không tồn tại"
@@ -59,7 +68,8 @@
   "SwitchLanguage": {
     "title": "Chuyển ngôn ngữ",
     "en": "Tiếng Anh",
-    "vi": "Tiếng Việt"
+    "vi": "Tiếng Việt",
+    "ru": "Tiếng Nga"
   },
   "NavItem": {
     "home": "Trang chủ",
@@ -92,5 +102,37 @@
   "Blog": {
     "title": "Blogs",
     "description": "Đọc các bài viết blog mới nhất của chúng tôi"
+  },
+  "DashboardMain": {
+    "fromLabel": "Từ",
+    "toLabel": "Đến",
+    "fromPlaceholder": "Từ ngày",
+    "toPlaceholder": "Đến ngày",
+    "reset": "Đặt lại",
+    "totalRevenue": "Tổng doanh thu",
+    "customers": "Khách hàng",
+    "orders": "Đơn hàng",
+    "tablesInUse": "Bàn đang phục vụ"
+  },
+  "OrderTable": {
+    "fromLabel": "Từ",
+    "toLabel": "Đến",
+    "fromPlaceholder": "Từ ngày",
+    "toPlaceholder": "Đến ngày",
+    "reset": "Đặt lại",
+    "customerNamePlaceholder": "Tên khách hàng",
+    "tableNumberPlaceholder": "Số bàn",
+    "statusPlaceholder": "Trạng thái",
+    "noResults": "Không có kết quả.",
+    "showingSummary": "Hiển thị {count} trên tổng {total} kết quả",
+    "toastUpdatedDish": "Món {name} (SL: {quantity}) vừa được cập nhật sang trạng thái \"{status}\"",
+    "toastNewOrder": "{guestName} tại bàn {tableNumber} vừa gọi {count} món",
+    "toastPayment": "{guestName} tại bàn {tableNumber} vừa thanh toán thành công {count} món"
+  },
+  "GuestLoginForm": {
+    "title": "Tên khách",
+    "description": "Cho chúng tôi biết bạn là ai để nhân viên dễ dàng nhận ra bàn của bạn và phục vụ nhanh hơn.",
+    "nameLabel": "Tên",
+    "continueButton": "Tiếp tục"
   }
 }

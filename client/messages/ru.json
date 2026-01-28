@@ -1,0 +1,141 @@
+{
+  "ErrorMessage": {
+    "invalidEmail": "Неверный адрес электронной почты",
+    "required": "Это поле обязательно для заполнения",
+    "minmaxPassword": "Пароль должен содержать от 6 до 100 символов"
+  },
+  "Brand": {
+    "title": "Ресторан Big Boy",
+    "defaultTitle": "Big Boy"
+  },
+  "HomePage": {
+    "title": "Главная страница",
+    "description": "Хотите ощутить классическую атмосферу американской закусочной? Добро пожаловать в Big Boy! Попробуйте наш фирменный бургер Big Boy — сочный и ароматный, в паре с густыми молочными коктейлями и хрустящей картошкой фри. Идеально для семей и компаний друзей!",
+    "slogan": "Вкусно в каждый момент",
+    "h2": "Разнообразие блюд",
+    "reviewsTitle": "Что говорят наши гости",
+    "reviewsSummary": "На основе {count} отзывов",
+    "foodQuality": "Качество еды",
+    "service": "Сервис",
+    "ambiance": "Атмосфера",
+    "priceValue": "Соотношение цена/качество",
+    "viewAllReviews": "Смотреть все отзывы",
+    "featuredArticles": "Избранные статьи",
+    "viewAllBlogPosts": "Смотреть все записи блога"
+  },
+  "Login": {
+    "title": "Вход",
+    "description": "Зона входа для менеджера",
+    "cardDescription": "Введите свой email и пароль, чтобы войти в систему",
+    "buttonLogin": "Войти",
+    "loginWithGoogle": "Войти через Google"
+  },
+  "DishDetail": {
+    "notFound": "Блюдо не найдено"
+  },
+  "LoginGuest": {
+    "title": "Вход для заказа",
+    "description": "Введите данные для входа, чтобы сделать заказ"
+  },
+  "GuestMenu": {
+    "title": "Меню",
+    "description": "Выберите свои любимые блюда"
+  },
+  "ManageAccounts": {
+    "title": "Управление аккаунтами",
+    "description": "Управление аккаунтами сотрудников"
+  },
+  "Dashboard": {
+    "title": "Панель управления",
+    "description": "Просмотр и анализ данных о продажах"
+  },
+  "Dishes": {
+    "title": "Блюда",
+    "description": "Управление блюдами"
+  },
+  "Orders": {
+    "title": "Заказы",
+    "description": "Управление заказами"
+  },
+  "Setting": {
+    "title": "Настройки",
+    "description": "Управление настройками вашего аккаунта"
+  },
+  "Tables": {
+    "title": "Столы",
+    "description": "Управление столами"
+  },
+  "SwitchLanguage": {
+    "title": "Сменить язык",
+    "en": "Английский",
+    "vi": "Вьетнамский",
+    "ru": "Русский"
+  },
+  "NavItem": {
+    "home": "Главная",
+    "reviews": "Отзывы",
+    "blogs": "Блоги",
+    "qrCodes": "QR-коды",
+    "menu": "Меню",
+    "orders": "Заказы",
+    "login": "Вход",
+    "logout": "Выход",
+    "manage": "Управление",
+    "logoutDialog": {
+      "logoutQuestion": "Вы уверены, что хотите выйти?",
+      "logoutCancel": "Отмена",
+      "logoutConfirm": "Выход может привести к потере ваших заказов"
+    }
+  },
+  "Reviews": {
+    "title": "Отзывы клиентов",
+    "description": "Читайте, что говорят наши гости о своем опыте"
+  },
+  "QRCodes": {
+    "title": "QR-коды — список столов",
+    "description": "Отсканируйте QR-код, чтобы сделать заказ со своего стола",
+    "tableNumber": "Стол {number}",
+    "scanToOrder": "Сканировать для заказа",
+    "capacity": "Вместимость: {capacity} человек",
+    "noTables": "Нет доступных столов"
+  },
+  "Blog": {
+    "title": "Блоги",
+    "description": "Читайте наши последние записи в блоге"
+  },
+  "DashboardMain": {
+    "fromLabel": "С",
+    "toLabel": "По",
+    "fromPlaceholder": "С даты",
+    "toPlaceholder": "По дату",
+    "reset": "Сбросить",
+    "totalRevenue": "Общий доход",
+    "customers": "Клиенты",
+    "orders": "Заказы",
+    "tablesInUse": "Столы в использовании"
+  },
+  "OrderTable": {
+    "fromLabel": "С",
+    "toLabel": "По",
+    "fromPlaceholder": "С даты",
+    "toPlaceholder": "По дату",
+    "reset": "Сбросить",
+    "customerNamePlaceholder": "Имя клиента",
+    "tableNumberPlaceholder": "Номер стола",
+    "statusPlaceholder": "Статус",
+    "noResults": "Нет результатов.",
+    "showingSummary": "Показано {count} из {total} результатов",
+    "toastUpdatedDish": "Блюдо {name} (Кол-во: {quantity}) только что обновлено до статуса \"{status}\"",
+    "toastNewOrder": "{guestName} за столом {tableNumber} только что сделал {count} заказ(ов)",
+    "toastPayment": "{guestName} за столом {tableNumber} успешно оплатил(а) {count} заказ(ов)"
+  },
+  "GuestLoginForm": {
+    "title": "Имя гостя",
+    "description": "Расскажите нам, кто вы, чтобы персонал мог распознать ваш стол и обслужить вас быстрее.",
+    "nameLabel": "Имя",
+    "continueButton": "Продолжить"
+  }
+}
+
+
+

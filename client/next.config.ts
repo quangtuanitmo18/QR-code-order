@@ -38,7 +38,11 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   productionBrowserSourceMaps: false,
 
-  experimental: {},
+  experimental: {
+    // Optimize package imports to avoid loading entire libraries (e.g. lucide-react) as barrels.
+    // This keeps ergonomic imports while reducing bundle size.
+    optimizePackageImports: ['lucide-react'],
+  },
   // Add the new turbopack configuration
   turbopack: {},
 }
