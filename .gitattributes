@@ -1,0 +1,38 @@
+## Git attributes for packaging/source exports.
+##
+## NOTE:
+## - `export-ignore` affects `git archive` (zip/tar exports), NOT `git clone/pull`.
+## - To prevent files from being tracked on clone/pull, use `.gitignore` and/or
+##   remove them from git history (`git rm --cached ...`).
+
+# AI/agent tooling metadata (do not ship in release source archives)
+AGENTS.md export-ignore
+.agents/ export-ignore
+
+# Cursor / IDE / editor metadata
+.cursor/ export-ignore
+.vscode/ export-ignore
+.idea/ export-ignore
+
+# GitHub-only files (actions, templates)
+.github/ export-ignore
+
+.husky/ export-ignore
+
+
+# Documentation
+docs/ export-ignore
+docs/**/*.md export-ignore
+docs/**/*.mdd export-ignore
+docs/**/*.mdx export-ignore
+docs/**/*.mdx export-ignore
+
+# Docker
+docker/ export-ignore
+docker/**/*.yml export-ignore
+docker/**/*.yaml export-ignore
+docker/**/*.json export-ignore
+docker/**/*.jsonc export-ignore
+docker/**/*.json5 export-ignore
+docker/**/*.jsonnet export-ignore
+docker/**/*.jsonnet export-ignore
