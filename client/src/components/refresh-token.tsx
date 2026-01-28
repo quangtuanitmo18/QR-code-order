@@ -1,12 +1,12 @@
 'use client'
 
 import { useAppStore } from '@/components/app-provider'
-import { checkAndRefreshToken } from '@/lib/utils'
 import { usePathname, useRouter } from '@/i18n/routing'
+import { checkAndRefreshToken } from '@/lib/utils'
 import { useEffect } from 'react'
 
 // Những page sau sẽ không check refesh token
-const UNAUTHENTICATED_PATH = ['/login', '/logout', '/refresh-token']
+const UNAUTHENTICATED_PATH = ['/manage/login', '/logout', '/manage/refresh-token']
 export default function RefreshToken() {
   const pathname = usePathname()
   const router = useRouter()
@@ -21,7 +21,7 @@ export default function RefreshToken() {
         onError: () => {
           clearInterval(interval)
           disconnectSocket()
-          router.push('/login')
+          router.push('/manage/login')
         },
         force,
       })

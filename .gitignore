@@ -27,3 +27,4 @@ docs/*.md
 docs/**/*.md
 
 .cursor/**/*.md
+.github/prompts

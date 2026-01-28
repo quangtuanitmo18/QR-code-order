@@ -18,6 +18,9 @@ Table Account {
   payments Payment [not null]
   refreshToken RefreshToken [not null]
   sockets Socket
+  approvedReviews Review [not null]
+  repliedReviews Review [not null]
+  blogPosts BlogPost [not null]
 }
 
 Table Dish {
@@ -95,6 +98,7 @@ Table Guest {
   orders Order [not null]
   payments Payment [not null]
   sockets Socket
+  reviews Review [not null]
 }
 
 Table Payment {
@@ -139,6 +143,50 @@ Table Socket {
   account Account
 }
 
+Table Review {
+  id Int [pk, increment]
+  guestId Int [not null]
+  overallRating Int [not null]
+  foodQuality Int [not null]
+  serviceQuality Int [not null]
+  ambiance Int [not null]
+  priceValue Int [not null]
+  comment String [not null]
+  images String
+  status String [not null, default: 'HIDDEN']
+  ipAddress String
+  userAgent String
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  approvedAt DateTime
+  approvedBy Int
+  replyContent String
+  repliedAt DateTime
+  repliedBy Int
+  guest Guest [not null]
+  approver Account
+  replier Account
+}
+
+Table BlogPost {
+  id Int [pk, increment]
+  title String [not null]
+  slug String [unique, not null]
+  excerpt String
+  content String [not null]
+  featuredImage String
+  status String [not null, default: 'DRAFT']
+  featured Boolean [not null, default: false]
+  viewCount Int [not null, default: 0]
+  category String
+  tags String
+  authorId Int [not null]
+  publishedAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  author Account [not null]
+}
+
 Ref: Account.ownerId - Account.id
 
 Ref: DishSnapshot.dishId > Dish.id
@@ -164,3 +212,11 @@ Ref: Payment.guestId > Guest.id
 Ref: Socket.guestId - Guest.id
 
 Ref: Socket.accountId - Account.id
+
+Ref: Review.guestId > Guest.id
+
+Ref: Review.approvedBy > Account.id
+
+Ref: Review.repliedBy > Account.id
+
+Ref: BlogPost.authorId > Account.id

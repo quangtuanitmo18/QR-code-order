@@ -1,4 +1,4 @@
-import Oauth from '@/app/[locale]/(public)/(auth)/login/oauth/oauth'
+import Oauth from '@/app/[locale]/manage/(auth)/login/oauth/oauth'
 import { Metadata } from 'next'
 
 export const metadata: Metadata = {

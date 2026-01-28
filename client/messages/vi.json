@@ -63,6 +63,8 @@
   },
   "NavItem": {
     "home": "Trang chủ",
+    "reviews": "Đánh giá",
+    "blogs": "Blogs",
     "qrCodes": "Mã QR",
     "menu": "Thực đơn",
     "orders": "Đơn hàng",
@@ -75,6 +77,10 @@
       "logoutConfirm": "Đăng xuất có thể dẫn đến mất dữ liệu đơn hàng của bạn"
     }
   },
+  "Reviews": {
+    "title": "Đánh giá khách hàng",
+    "description": "Xem những gì khách hàng nói về trải nghiệm ăn uống của họ"
+  },
   "QRCodes": {
     "title": "Mã QR - Danh sách bàn",
     "description": "Quét mã QR để đặt món từ bàn của bạn",
@@ -82,5 +88,9 @@
     "scanToOrder": "Quét để đặt món",
     "capacity": "Sức chứa: {capacity} người",
     "noTables": "Không có bàn nào"
+  },
+  "Blog": {
+    "title": "Blogs",
+    "description": "Đọc các bài viết blog mới nhất của chúng tôi"
   }
 }

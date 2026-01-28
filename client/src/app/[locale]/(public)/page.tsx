@@ -1,9 +1,15 @@
+import blogApiRequest from '@/apiRequests/blog'
 import dishApiRequest from '@/apiRequests/dish'
+import reviewApiRequest from '@/apiRequests/review'
+import BlogCard from '@/components/blog/blog-card'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent } from '@/components/ui/card'
 import envConfig, { Locale } from '@/config'
 import { Link } from '@/i18n/routing'
 import { htmlToTextForDescription } from '@/lib/server-utils'
 import { formatCurrency, generateSlugUrl } from '@/lib/utils'
 import { DishListResType } from '@/schemaValidations/dish.schema'
+import { Star } from 'lucide-react'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 import Image from 'next/image'
 
@@ -32,12 +38,22 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
   setRequestLocale(locale)
   const t = await getTranslations('HomePage')
   let dishList: DishListResType['data'] = []
+  let reviewStats = null
+  let featuredBlogPosts: any[] = []
+
   try {
-    const result = await dishApiRequest.list()
-    const {
-      payload: { data },
-    } = result
-    dishList = data
+    const [dishResult, statsResult, blogResult] = await Promise.all([
+      dishApiRequest.list(),
+      reviewApiRequest.getStats().catch(() => null),
+      blogApiRequest.getBlogPosts({ page: 1, limit: 3, featured: true }).catch(() => ({
+        payload: { data: [] },
+      })),
+    ])
+    dishList = dishResult.payload.data
+    if (statsResult) {
+      reviewStats = statsResult.payload.data
+    }
+    featuredBlogPosts = blogResult.payload.data || []
   } catch (error) {
     return <div>Something went wrong</div>
   }
@@ -64,6 +80,100 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
           </p>
         </div>
       </section>
+
+      {/* Reviews Section */}
+      {reviewStats && reviewStats.totalReviews > 0 && (
+        <section className="space-y-6 bg-muted/50 px-4 py-8 sm:space-y-8 sm:px-6 sm:py-12 md:px-8 md:py-16">
+          <div className="mx-auto max-w-7xl">
+            <h2 className="mb-6 text-center text-2xl font-bold sm:text-3xl md:text-4xl">
+              What Our Customers Say
+            </h2>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {/* Overall Rating Card */}
+              <Card className="md:col-span-1">
+                <CardContent className="flex flex-col items-center justify-center p-6">
+                  <div className="text-5xl font-bold text-primary">
+                    {reviewStats.averageOverallRating.toFixed(1)}
+                  </div>
+                  <div className="mt-2 flex gap-1">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`h-5 w-5 ${
+                          star <= Math.round(reviewStats.averageOverallRating)
+                            ? 'fill-yellow-400 text-yellow-400'
+                            : 'text-gray-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Based on {reviewStats.totalReviews} reviews
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Quick Stats */}
+              <Card className="md:col-span-2">
+                <CardContent className="grid grid-cols-2 gap-4 p-6">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Food Quality</p>
+                    <p className="text-2xl font-semibold">
+                      {reviewStats.averageFoodQuality.toFixed(1)}/5
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Service</p>
+                    <p className="text-2xl font-semibold">
+                      {reviewStats.averageServiceQuality.toFixed(1)}/5
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Ambiance</p>
+                    <p className="text-2xl font-semibold">
+                      {reviewStats.averageAmbiance.toFixed(1)}/5
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Price Value</p>
+                    <p className="text-2xl font-semibold">
+                      {reviewStats.averagePriceValue.toFixed(1)}/5
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="mt-8 text-center">
+              <Link href="/reviews">
+                <Button size="lg">View All Reviews</Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Featured Blog Posts Section */}
+      {featuredBlogPosts.length > 0 && (
+        <section className="space-y-6 bg-muted/30 px-4 py-8 sm:space-y-8 sm:px-6 sm:py-12 md:px-8 md:py-16">
+          <div className="mx-auto max-w-7xl">
+            <h2 className="mb-6 text-center text-2xl font-bold sm:text-3xl md:text-4xl">
+              Featured Articles
+            </h2>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {featuredBlogPosts.map((post) => (
+                <BlogCard key={post.id} post={post} locale={locale} />
+              ))}
+            </div>
+            <div className="mt-8 text-center">
+              <Link href="/blogs">
+                <Button size="lg">View All Blog Posts</Button>
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Dishes Section */}
       <section className="space-y-6 px-4 py-8 sm:space-y-8 sm:px-6 sm:py-12 md:px-8 md:py-16">

@@ -63,6 +63,8 @@
   },
   "NavItem": {
     "home": "Home",
+    "reviews": "Reviews",
+    "blogs": "Blogs",
     "qrCodes": "QR Codes",
     "menu": "Menu",
     "orders": "Orders",
@@ -75,6 +77,10 @@
       "logoutConfirm": "Signing out may result in loss of your orders"
     }
   },
+  "Reviews": {
+    "title": "Customer Reviews",
+    "description": "Read what our customers say about their dining experience"
+  },
   "QRCodes": {
     "title": "QR Codes - Table List",
     "description": "Scan QR code to order from your table",
@@ -82,5 +88,9 @@
     "scanToOrder": "Scan to order",
     "capacity": "Capacity: {capacity} people",
     "noTables": "No tables available"
+  },
+  "Blog": {
+    "title": "Blogs",
+    "description": "Read our latest blog posts"
   }
 }

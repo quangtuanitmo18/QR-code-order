@@ -29,6 +29,14 @@ const menuItems: {
     href: '/',
   },
   {
+    title: 'reviews',
+    href: '/reviews',
+  },
+  {
+    title: 'blogs',
+    href: '/blogs',
+  },
+  {
     title: 'qrCodes',
     href: '/qr-codes',
   },
@@ -41,11 +49,6 @@ const menuItems: {
     title: 'orders',
     href: '/guest/orders',
     role: [Role.Guest],
-  },
-  {
-    title: 'login',
-    href: '/login',
-    hideWhenLogin: true,
   },
   {
     title: 'manage',

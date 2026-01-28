@@ -1,5 +1,5 @@
-import LoginForm from '@/app/[locale]/(public)/(auth)/login/login-form'
-import Logout from '@/app/[locale]/(public)/(auth)/login/logout'
+import LoginForm from '@/app/[locale]/manage/(auth)/login/login-form'
+import Logout from '@/app/[locale]/manage/(auth)/login/logout'
 import envConfig, { Locale } from '@/config'
 import { getTranslations, setRequestLocale } from 'next-intl/server'
 
@@ -9,7 +9,7 @@ export async function generateMetadata(props: { params: Promise<{ locale: Locale
   const { locale } = params
 
   const t = await getTranslations({ locale, namespace: 'Login' })
-  const url = envConfig.NEXT_PUBLIC_URL + `/${locale}/login`
+  const url = envConfig.NEXT_PUBLIC_URL + `/${locale}/manage/login`
 
   return {
     title: t('title'),

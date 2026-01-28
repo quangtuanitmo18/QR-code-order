@@ -1,4 +1,4 @@
-import RefreshToken from '@/app/[locale]/(public)/(auth)/refresh-token/refresh-token'
+import RefreshToken from '@/app/[locale]/manage/(auth)/refresh-token/refresh-token'
 import { Metadata } from 'next'
 import { Suspense } from 'react'
 

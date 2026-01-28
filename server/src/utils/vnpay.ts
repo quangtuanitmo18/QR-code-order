@@ -14,7 +14,7 @@ async function getVnpay() {
     VnpLocaleEnum = vnpayModule.VnpLocale
     ProductCodeEnum = vnpayModule.ProductCode
     HashAlgorithmEnum = vnpayModule.HashAlgorithm
-    
+
     vnpayInstance = new vnpayModule.VNPay({
       tmnCode: envConfig.VNPAY_TMN_CODE,
       secureSecret: envConfig.VNPAY_SECURE_SECRET,
@@ -39,7 +39,6 @@ export interface BuildPaymentUrlParams {
 export const buildVNPayPaymentUrl = async (params: BuildPaymentUrlParams) => {
   const vnpay = await getVnpay()
   const { amount, orderId, orderInfo, ipAddr, locale, returnUrl } = params
-
 
   return vnpay.buildPaymentUrl({
     vnp_Amount: amount,

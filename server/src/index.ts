@@ -7,12 +7,14 @@ import { socketPlugin } from '@/plugins/socket.plugins'
 import validatorCompilerPlugin from '@/plugins/validatorCompiler.plugins'
 import accountRoutes from '@/routes/account.route'
 import authRoutes from '@/routes/auth.route'
+import blogRoutes from '@/routes/blog.route'
 import dishRoutes from '@/routes/dish.route'
 import guestRoutes from '@/routes/guest.route'
 import indicatorRoutes from '@/routes/indicator.route'
 import mediaRoutes from '@/routes/media.route'
 import orderRoutes from '@/routes/order.route'
 import paymentRoutes from '@/routes/payment.route'
+import reviewRoutes from '@/routes/review.route'
 import staticRoutes from '@/routes/static.route'
 import tablesRoutes from '@/routes/table.route'
 import testRoutes from '@/routes/test.route'
@@ -23,12 +25,14 @@ import fastifyCookie from '@fastify/cookie'
 import cors from '@fastify/cors'
 import fastifyHelmet from '@fastify/helmet'
 import Fastify from 'fastify'
+import rawBody from 'fastify-raw-body'
 import fastifySocketIO from 'fastify-socket.io'
 import path from 'path'
 import autoCheckHeartbeatJob from './jobs/autoCheckHeartBeatSentry.job'
 
 const fastify = Fastify({
-  logger: true
+  logger: true,
+  bodyLimit: 1048576 //10MB
 
   // https - reverse proxy nginx config
   // https: {
@@ -57,6 +61,14 @@ const start = async () => {
     fastify.register(cors, {
       origin: whitelist,
       credentials: true
+    })
+
+    // Raw body plugin - config global nhưng chỉ bật cho route được chỉ định
+    await fastify.register(rawBody, {
+      field: 'rawBody',
+      global: false,
+      encoding: 'utf8',
+      runFirst: true
     })
 
     fastify.register(fastifyAuth, {
@@ -119,7 +131,9 @@ const start = async () => {
       prefix: '/indicators'
     })
     fastify.register(paymentRoutes, { prefix: '/payment' })
-    
+    fastify.register(reviewRoutes, { prefix: '/reviews' })
+    fastify.register(blogRoutes, { prefix: '/blog-posts' })
+
     await initOwnerAccount()
     await fastify.listen({
       port: envConfig.PORT,

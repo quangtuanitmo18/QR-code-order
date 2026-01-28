@@ -117,7 +117,7 @@ export const CreatePaymentBodyWithCurrency = z.object({
   paymentMethod: z.enum(PaymentMethodValues),
   returnUrl: z.string().url().optional(),
   note: z.string().optional(),
-  currency: z.enum(['USD', 'VND']).default('USD') 
+  currency: z.enum(['USD', 'VND']).default('USD')
 })
 
 export type CreatePaymentBodyWithCurrencyType = z.TypeOf<typeof CreatePaymentBodyWithCurrency>

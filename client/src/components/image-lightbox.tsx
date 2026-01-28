@@ -1,0 +1,129 @@
+'use client'
+
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import Image from 'next/image'
+import { useCallback, useEffect, useState } from 'react'
+
+interface ImageLightboxProps {
+  images: string[]
+  open: boolean
+  onClose: () => void
+  initialIndex?: number
+}
+
+export default function ImageLightbox({
+  images,
+  open,
+  onClose,
+  initialIndex = 0,
+}: ImageLightboxProps) {
+  const [currentIndex, setCurrentIndex] = useState(initialIndex)
+
+  useEffect(() => {
+    setCurrentIndex(initialIndex)
+  }, [initialIndex])
+
+  const handlePrevious = useCallback(() => {
+    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))
+  }, [images.length])
+
+  const handleNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))
+  }, [images.length])
+
+  useEffect(() => {
+    if (!open) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        handlePrevious()
+      } else if (e.key === 'ArrowRight') {
+        handleNext()
+      } else if (e.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [open, handlePrevious, handleNext, onClose])
+
+  if (images.length === 0) return null
+
+  return (
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="max-w-[95vw] border-0 bg-black/95 p-8 md:max-w-4xl">
+        {/* Navigation buttons - only show if more than 1 image */}
+        {images.length > 1 && (
+          <>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePrevious}
+              className="absolute left-4 top-1/2 z-50 h-12 w-12 -translate-y-1/2 rounded-full bg-black/50 text-white hover:bg-black/70"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNext}
+              className="absolute right-4 top-1/2 z-50 h-12 w-12 -translate-y-1/2 rounded-full bg-black/50 text-white hover:bg-black/70"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </Button>
+          </>
+        )}
+
+        {/* Main image */}
+        <div className="relative flex h-[60vh] items-center justify-center md:h-[70vh]">
+          <Image
+            src={images[currentIndex]}
+            alt={`Image ${currentIndex + 1} of ${images.length}`}
+            width={1200}
+            height={800}
+            className="max-h-full max-w-full object-contain"
+            unoptimized
+          />
+        </div>
+
+        {/* Image counter and thumbnails */}
+        <div className="border-t border-white/10 bg-black/50 p-4">
+          {/* Counter */}
+          <div className="mb-3 text-center text-sm text-white/80">
+            {currentIndex + 1} / {images.length}
+          </div>
+
+          {/* Thumbnail strip - only show if more than 1 image */}
+          {images.length > 1 && (
+            <div className="flex justify-center gap-2 overflow-x-auto pb-2">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentIndex(idx)}
+                  className={`flex-shrink-0 overflow-hidden rounded-md border-2 transition-all ${
+                    idx === currentIndex
+                      ? 'scale-105 border-white'
+                      : 'border-transparent opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <Image
+                    src={img}
+                    alt={`Thumbnail ${idx + 1}`}
+                    width={80}
+                    height={80}
+                    className="h-16 w-16 object-cover md:h-20 md:w-20"
+                    unoptimized
+                  />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}

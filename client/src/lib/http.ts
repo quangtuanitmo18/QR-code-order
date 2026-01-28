@@ -11,6 +11,7 @@ import { LoginResType } from '@/schemaValidations/auth.schema'
 import Cookies from 'js-cookie'
 type CustomOptions = Omit<RequestInit, 'method'> & {
   baseUrl?: string | undefined
+  params?: Record<string, any>
 }
 
 const ENTITY_ERROR_STATUS = 422
@@ -64,7 +65,7 @@ export class EntityError extends HttpError {
 let clientLogoutRequest: null | Promise<any> = null
 const isClient = typeof window !== 'undefined'
 const request = async <Response>(
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   url: string,
   options?: CustomOptions | undefined
 ) => {
@@ -94,7 +95,18 @@ const request = async <Response>(
   const baseUrl =
     options?.baseUrl === undefined ? envConfig.NEXT_PUBLIC_API_ENDPOINT : options.baseUrl
 
-  const fullUrl = `${baseUrl}/${normalizePath(url)}`
+  let fullUrl = `${baseUrl}/${normalizePath(url)}`
+  if (options?.params) {
+    const queryString = new URLSearchParams(
+      Object.entries(options.params)
+        .filter(([_, value]) => value !== undefined && value !== null)
+        .map(([key, value]) => [key, String(value)])
+    ).toString()
+    if (queryString) {
+      fullUrl += `?${queryString}`
+    }
+  }
+
   console.log('Requesting:', method, fullUrl)
   const res = await fetch(fullUrl, {
     ...options,
@@ -105,6 +117,7 @@ const request = async <Response>(
     body,
     method,
   })
+
   const payload: Response = await res.json()
   const data = {
     status: res.status,
@@ -141,7 +154,11 @@ const request = async <Response>(
             // Nếu không không được xử lý đúng cách
             // Vì nếu rơi vào trường hợp tại trang Login, chúng ta có gọi các API cần access token
             // Mà access token đã bị xóa thì nó lại nhảy vào đây, và cứ thế nó sẽ bị lặp
-            location.href = `/${locale}/login`
+            // Check if already at login page to prevent loop
+            const currentPath = window.location.pathname
+            if (!currentPath.includes('/manage/login')) {
+              location.href = `/${locale}/manage/login`
+            }
           }
         }
       } else {
@@ -150,7 +167,7 @@ const request = async <Response>(
         const accessToken = (options?.headers as any)?.Authorization.split('Bearer ')[1]
         const locale = Cookies.get('NEXT_LOCALE')
         redirect({
-          href: `/login?accessToken=${accessToken}`,
+          href: `/manage/login?accessToken=${accessToken}`,
           locale: locale ?? defaultLocale,
         })
       }
@@ -188,6 +205,9 @@ const http = {
   },
   put<Response>(url: string, body: any, options?: Omit<CustomOptions, 'body'> | undefined) {
     return request<Response>('PUT', url, { ...options, body })
+  },
+  patch<Response>(url: string, body: any, options?: Omit<CustomOptions, 'body'> | undefined) {
+    return request<Response>('PATCH', url, { ...options, body })
   },
   delete<Response>(url: string, options?: Omit<CustomOptions, 'body'> | undefined) {
     return request<Response>('DELETE', url, { ...options })
