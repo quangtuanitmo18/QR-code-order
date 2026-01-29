@@ -28,3 +28,5 @@ docs/**/*.md
 
 .cursor/**/*.md
 .github/prompts
+
+shadcn-dashboard-landing-template/

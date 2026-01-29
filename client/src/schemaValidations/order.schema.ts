@@ -14,6 +14,19 @@ const DishSnapshotSchema = z.object({
   createdAt: z.date(),
   updatedAt: z.date(),
 })
+
+export const OrderItemSchema = z.object({
+  id: z.number(),
+  orderId: z.number(),
+  dishSnapshotId: z.number(),
+  quantity: z.number(),
+  unitPrice: z.number(),
+  totalPrice: z.number(),
+  dishSnapshot: DishSnapshotSchema,
+  createdAt: z.date(),
+  updatedAt: z.date(),
+})
+
 export const OrderSchema = z.object({
   id: z.number(),
   guestId: z.number().nullable(),
@@ -27,20 +40,17 @@ export const OrderSchema = z.object({
     })
     .nullable(),
   tableNumber: z.number().nullable(),
-  dishSnapshotId: z.number(),
-  dishSnapshot: DishSnapshotSchema,
-  quantity: z.number(),
   orderHandlerId: z.number().nullable(),
   orderHandler: AccountSchema.nullable(),
   status: z.enum(OrderStatusValues),
+  totalAmount: z.number(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  items: z.array(OrderItemSchema),
 })
 
 export const UpdateOrderBody = z.object({
   status: z.enum(OrderStatusValues),
-  dishId: z.number(),
-  quantity: z.number(),
 })
 
 export type UpdateOrderBodyType = z.TypeOf<typeof UpdateOrderBody>
@@ -117,8 +127,8 @@ export type CreateOrdersResType = z.TypeOf<typeof CreateOrdersRes>
 export const CreateVNPayPaymentRes = z.object({
   message: z.string(),
   data: z.object({
-    paymentUrl: z.string()
-  })
+    paymentUrl: z.string(),
+  }),
 })
 
 export type CreateVNPayPaymentResType = z.TypeOf<typeof CreateVNPayPaymentRes>

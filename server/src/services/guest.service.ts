@@ -130,59 +130,76 @@ export const guestService = {
         throw new Error(`Table ${table.number} has been reserved, please logout and choose another table`)
       }
 
-      const orders = await Promise.all(
-        body.map(async (order) => {
-          const dish = await tx.dish.findUniqueOrThrow({
-            where: {
-              id: order.dishId
-            }
-          })
-          if (dish.status === DishStatus.Unavailable) {
-            throw new Error(`Dish ${dish.name} is unavailable`)
-          }
-          if (dish.status === DishStatus.Hidden) {
-            throw new Error(`Dish ${dish.name} can not be ordered`)
-          }
+      let totalAmount = 0
+      const itemsData: {
+        dishSnapshotId: number
+        quantity: number
+        unitPrice: number
+        totalPrice: number
+      }[] = []
 
-          const dishSnapshot = await tx.dishSnapshot.create({
-            data: {
-              description: dish.description,
-              image: dish.image,
-              name: dish.name,
-              price: dish.price,
-              dishId: dish.id,
-              status: dish.status
-            }
-          })
-
-          const orderRecord = await tx.order.create({
-            data: {
-              dishSnapshotId: dishSnapshot.id,
-              guestId,
-              quantity: order.quantity,
-              tableNumber: guest.tableNumber,
-              orderHandlerId: null,
-              status: OrderStatus.Pending
-            },
-            include: {
-              dishSnapshot: true,
-              guest: true,
-              orderHandler: true
-            }
-          })
-
-          type OrderRecord = typeof orderRecord
-          return orderRecord as OrderRecord & {
-            status: (typeof OrderStatus)[keyof typeof OrderStatus]
-            dishSnapshot: OrderRecord['dishSnapshot'] & {
-              status: (typeof DishStatus)[keyof typeof DishStatus]
-            }
+      for (const order of body) {
+        const dish = await tx.dish.findUniqueOrThrow({
+          where: {
+            id: order.dishId
           }
         })
-      )
-      return orders
+        if (dish.status === DishStatus.Unavailable) {
+          throw new Error(`Dish ${dish.name} is unavailable`)
+        }
+        if (dish.status === DishStatus.Hidden) {
+          throw new Error(`Dish ${dish.name} can not be ordered`)
+        }
+
+        const dishSnapshot = await tx.dishSnapshot.create({
+          data: {
+            description: dish.description,
+            image: dish.image,
+            name: dish.name,
+            price: dish.price,
+            dishId: dish.id,
+            status: dish.status
+          }
+        })
+
+        const unitPrice = dishSnapshot.price
+        const totalPrice = unitPrice * order.quantity
+        totalAmount += totalPrice
+
+        itemsData.push({
+          dishSnapshotId: dishSnapshot.id,
+          quantity: order.quantity,
+          unitPrice,
+          totalPrice
+        })
+      }
+
+      const createdOrder = await tx.order.create({
+        data: {
+          guestId,
+          tableNumber: guest.tableNumber,
+          orderHandlerId: null,
+          status: OrderStatus.Pending,
+          totalAmount,
+          items: {
+            create: itemsData
+          }
+        },
+        include: {
+          items: {
+            include: {
+              dishSnapshot: true
+            }
+          },
+          guest: true,
+          orderHandler: true
+        }
+      })
+
+      return createdOrder
     })
-    return result
+    // Keep response backward-compatible: return as an array of orders
+    return [result]
   },
 
   // Get guest orders

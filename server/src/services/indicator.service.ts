@@ -16,7 +16,7 @@ export const indicatorService = {
     let revenue = 0
     // number of customers who ordered dish successfully
     const guestCount = guests.length
-    // Số lượng đơn
+    // Số lượng đơn (bill)
     const orderCount = orders.length
     // statistics of dishes
     const dishIndicatorObj: Record<
@@ -48,12 +48,15 @@ export const indicatorService = {
     const tableNumberObj: { [key: number]: boolean } = {}
     orders.forEach((order) => {
       if (order.status === OrderStatus.Paid) {
-        revenue += order.dishSnapshot.price * order.quantity
-        if (order.dishSnapshot.dishId && dishIndicatorObj[order.dishSnapshot.dishId]) {
-          dishIndicatorObj[order.dishSnapshot.dishId].successOrders++
-        }
-        const date = formatInTimeZone(order.createdAt, envConfig.SERVER_TIMEZONE, 'dd/MM/yyyy')
-        revenueByDateObj[date] = (revenueByDateObj[date] ?? 0) + order.dishSnapshot.price * order.quantity
+        // revenue & dish stats by items
+        order.items.forEach((item: any) => {
+          revenue += item.totalPrice
+          if (item.dishSnapshot.dishId && dishIndicatorObj[item.dishSnapshot.dishId]) {
+            dishIndicatorObj[item.dishSnapshot.dishId].successOrders++
+          }
+          const date = formatInTimeZone(order.createdAt, envConfig.SERVER_TIMEZONE, 'dd/MM/yyyy')
+          revenueByDateObj[date] = (revenueByDateObj[date] ?? 0) + item.totalPrice
+        })
       }
       if (
         [OrderStatus.Processing, OrderStatus.Pending, OrderStatus.Delivered].includes(order.status as any) &&

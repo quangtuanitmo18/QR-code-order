@@ -66,7 +66,11 @@ export const orderRepository = {
   async findOrders(filters: { fromDate?: Date; toDate?: Date }) {
     return await prisma.order.findMany({
       include: {
-        dishSnapshot: true,
+        items: {
+          include: {
+            dishSnapshot: true
+          }
+        },
         orderHandler: true,
         guest: true
       },
@@ -87,41 +91,14 @@ export const orderRepository = {
     return await prisma.order.findUniqueOrThrow({
       where: { id: orderId },
       include: {
-        dishSnapshot: true,
+        items: {
+          include: {
+            dishSnapshot: true
+          }
+        },
         orderHandler: true,
         guest: true,
         table: true
-      }
-    })
-  },
-
-  // Find order with dishSnapshot
-  async findOrderWithDishSnapshot(orderId: number) {
-    return await prisma.order.findUniqueOrThrow({
-      where: { id: orderId },
-      include: {
-        dishSnapshot: true
-      }
-    })
-  },
-
-  // Update order
-  async updateOrder(
-    orderId: number,
-    data: {
-      status?: string
-      dishSnapshotId?: number
-      quantity?: number
-      orderHandlerId?: number
-    }
-  ) {
-    return await prisma.order.update({
-      where: { id: orderId },
-      data,
-      include: {
-        dishSnapshot: true,
-        orderHandler: true,
-        guest: true
       }
     })
   }

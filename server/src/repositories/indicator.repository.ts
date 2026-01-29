@@ -6,7 +6,11 @@ export const indicatorRepository = {
   async findOrdersWithDetails(fromDate: Date, toDate: Date) {
     return await prisma.order.findMany({
       include: {
-        dishSnapshot: true,
+        items: {
+          include: {
+            dishSnapshot: true
+          }
+        },
         table: true
       },
       orderBy: {

@@ -45,17 +45,17 @@ model Dish {
 }
 
 model DishSnapshot {
-  id          Int      @id @default(autoincrement())
+  id          Int         @id @default(autoincrement())
   name        String
   price       Int
   description String
   image       String
-  status      String   @default("Available")
+  status      String      @default("Available")
   dishId      Int?
-  updatedAt   DateTime @updatedAt
-  createdAt   DateTime @default(now())
-  dish        Dish?    @relation(fields: [dishId], references: [id], onUpdate: NoAction)
-  order       Order?
+  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime    @default(now())
+  dish        Dish?       @relation(fields: [dishId], references: [id], onUpdate: NoAction)
+  orderItems  OrderItem[]
 }
 
 model Table {
@@ -73,8 +73,7 @@ model Order {
   id             Int          @id @default(autoincrement())
   guestId        Int?
   tableNumber    Int?
-  dishSnapshotId Int          @unique
-  quantity       Int
+  totalAmount    Int          @default(0)
   orderHandlerId Int?
   status         String       @default("Pending")
   paymentId      Int?
@@ -82,9 +81,22 @@ model Order {
   updatedAt      DateTime     @updatedAt
   payment        Payment?     @relation(fields: [paymentId], references: [id], onUpdate: NoAction)
   orderHandler   Account?     @relation(fields: [orderHandlerId], references: [id], onUpdate: NoAction)
-  dishSnapshot   DishSnapshot @relation(fields: [dishSnapshotId], references: [id], onDelete: Cascade)
   table          Table?       @relation(fields: [tableNumber], references: [number], onUpdate: NoAction)
   guest          Guest?       @relation(fields: [guestId], references: [id], onUpdate: NoAction)
+  items          OrderItem[]
+}
+
+model OrderItem {
+  id             Int          @id @default(autoincrement())
+  orderId        Int
+  dishSnapshotId Int
+  quantity       Int
+  unitPrice      Int
+  totalPrice     Int
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  order          Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  dishSnapshot   DishSnapshot @relation(fields: [dishSnapshotId], references: [id], onUpdate: NoAction)
 }
 
 model RefreshToken {

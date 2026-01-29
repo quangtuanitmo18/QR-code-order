@@ -5,7 +5,7 @@ import { orderRepository } from '@/repositories/order.repository'
 import { CreateOrdersBodyType, UpdateOrderBodyType } from '@/schemaValidations/order.schema'
 
 export const orderService = {
-  // Create orders
+  // Create order (bill) with multiple items
   async createOrders(orderHandlerId: number, body: CreateOrdersBodyType) {
     const { guestId, orders } = body
 
@@ -23,68 +23,80 @@ export const orderService = {
       )
     }
 
-    // Create orders in transaction
-    const [ordersRecord, socketRecord] = await Promise.all([
+    // Create single order (bill) with multiple items in transaction
+    const [orderRecord, socketRecord] = await Promise.all([
       prisma.$transaction(async (tx) => {
-        const ordersRecord = await Promise.all(
-          orders.map(async (order) => {
-            // Validate dish
-            const dish = await tx.dish.findUniqueOrThrow({
-              where: {
-                id: order.dishId
-              }
-            })
-            if (dish.status === DishStatus.Unavailable) {
-              throw new Error(`Dish ${dish.name} is unavailable`)
-            }
-            if (dish.status === DishStatus.Hidden) {
-              throw new Error(`Dish ${dish.name} can not be ordered`)
-            }
+        // Validate dishes and create snapshots + items
+        let totalAmount = 0
 
-            // Create dish snapshot
-            const dishSnapshot = await tx.dishSnapshot.create({
-              data: {
-                description: dish.description,
-                image: dish.image,
-                name: dish.name,
-                price: dish.price,
-                dishId: dish.id,
-                status: dish.status
-              }
-            })
+        const itemsData = []
 
-            // Create order
-            const orderRecord = await tx.order.create({
-              data: {
-                dishSnapshotId: dishSnapshot.id,
-                guestId,
-                quantity: order.quantity,
-                tableNumber: guest.tableNumber,
-                orderHandlerId,
-                status: OrderStatus.Pending
-              },
-              include: {
-                dishSnapshot: true,
-                guest: true,
-                orderHandler: true
-              }
-            })
-            type OrderRecord = typeof orderRecord
-            return orderRecord as OrderRecord & {
-              status: (typeof OrderStatus)[keyof typeof OrderStatus]
-              dishSnapshot: OrderRecord['dishSnapshot'] & {
-                status: (typeof DishStatus)[keyof typeof DishStatus]
-              }
+        for (const order of orders) {
+          const dish = await tx.dish.findUniqueOrThrow({
+            where: {
+              id: order.dishId
             }
           })
-        )
-        return ordersRecord
+          if (dish.status === DishStatus.Unavailable) {
+            throw new Error(`Dish ${dish.name} is unavailable`)
+          }
+          if (dish.status === DishStatus.Hidden) {
+            throw new Error(`Dish ${dish.name} can not be ordered`)
+          }
+
+          const dishSnapshot = await tx.dishSnapshot.create({
+            data: {
+              description: dish.description,
+              image: dish.image,
+              name: dish.name,
+              price: dish.price,
+              dishId: dish.id,
+              status: dish.status
+            }
+          })
+
+          const unitPrice = dishSnapshot.price
+          const totalPrice = unitPrice * order.quantity
+          totalAmount += totalPrice
+
+          itemsData.push({
+            dishSnapshotId: dishSnapshot.id,
+            quantity: order.quantity,
+            unitPrice,
+            totalPrice
+          })
+        }
+
+        const createdOrder = await tx.order.create({
+          data: {
+            guestId,
+            tableNumber: guest.tableNumber,
+            orderHandlerId,
+            status: OrderStatus.Pending,
+            totalAmount,
+            items: {
+              create: itemsData
+            }
+          },
+          include: {
+            items: {
+              include: {
+                dishSnapshot: true
+              }
+            },
+            guest: true,
+            orderHandler: true
+          }
+        })
+
+        return createdOrder
       }),
       orderRepository.findSocketByGuestId(guestId)
     ])
 
     return {
-      orders: ordersRecord,
+      // keep shape compatible with existing consumers that expect an array
+      orders: [orderRecord],
       socketId: socketRecord?.socketId
     }
   },
@@ -136,51 +148,23 @@ export const orderService = {
 
   // Update order
   async updateOrder(orderId: number, body: UpdateOrderBodyType & { orderHandlerId: number }) {
-    const { dishId, quantity, status, orderHandlerId } = body
+    const { status, orderHandlerId } = body
 
-    const orderRecord = await prisma.$transaction(async (tx) => {
-      const order = await tx.order.findUniqueOrThrow({
-        where: { id: orderId },
-        include: {
-          dishSnapshot: true
-        }
-      })
-
-      let dishSnapshotId = order.dishSnapshotId
-
-      // If dish changed, create new snapshot
-      if (order.dishSnapshot.dishId !== dishId) {
-        const dish = await tx.dish.findUniqueOrThrow({
-          where: { id: dishId }
-        })
-        const dishSnapshot = await tx.dishSnapshot.create({
-          data: {
-            description: dish.description,
-            image: dish.image,
-            name: dish.name,
-            price: dish.price,
-            dishId: dish.id,
-            status: dish.status
+    const orderRecord = await prisma.order.update({
+      where: { id: orderId },
+      data: {
+        status,
+        orderHandlerId
+      },
+      include: {
+        items: {
+          include: {
+            dishSnapshot: true
           }
-        })
-        dishSnapshotId = dishSnapshot.id
-      }
-
-      // Update order
-      return await tx.order.update({
-        where: { id: orderId },
-        data: {
-          status,
-          dishSnapshotId,
-          quantity,
-          orderHandlerId
         },
-        include: {
-          dishSnapshot: true,
-          orderHandler: true,
-          guest: true
-        }
-      })
+        orderHandler: true,
+        guest: true
+      }
     })
 
     const socketRecord = await prisma.socket.findUnique({

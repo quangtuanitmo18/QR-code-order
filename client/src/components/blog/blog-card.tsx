@@ -43,7 +43,6 @@ export default function BlogCard({ post, locale }: BlogCardProps) {
             <Image
               src={post.featuredImage}
               alt={post.title}
-              fill
               width={1200}
               height={630}
               quality={80}

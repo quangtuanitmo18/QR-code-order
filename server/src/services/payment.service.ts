@@ -20,7 +20,7 @@ export const paymentService = {
   }) {
     const { guestId, paymentMethod, note, ipAddr, paymentHandlerId, currency } = params
 
-    // Get unpaid orders
+    // Get unpaid orders (bills)
     const orders = await paymentRepository.findUnpaidOrdersByGuestId(guestId)
 
     if (orders.length === 0) {
@@ -29,14 +29,14 @@ export const paymentService = {
 
     // Calculate total amount in USD (app's base currency)
     const totalAmountUSD = orders.reduce((sum, order) => {
-      return sum + order.dishSnapshot.price * order.quantity
+      return sum + order.totalAmount
     }, 0)
 
     const guest = orders[0].guest
     const transactionRef = `PAY_${guestId}_${Date.now()}`
 
     // Description includes both USD and VND for clarity
-    const description = `Payment $${totalAmountUSD.toFixed(2)} - ${orders.length} dishes - ${guest?.name}`
+    const description = `Payment $${totalAmountUSD.toFixed(2)} - ${orders.length} orders - ${guest?.name}`
 
     // Handle based on payment method
     if (paymentMethod === PaymentMethod.Cash) {
@@ -146,7 +146,7 @@ export const paymentService = {
         }
       })
 
-      // Get updated orders
+      // Get updated orders with items
       const updatedOrders = await tx.order.findMany({
         where: {
           id: {
@@ -154,7 +154,11 @@ export const paymentService = {
           }
         },
         include: {
-          dishSnapshot: true,
+          items: {
+            include: {
+              dishSnapshot: true
+            }
+          },
           orderHandler: true,
           guest: true
         }

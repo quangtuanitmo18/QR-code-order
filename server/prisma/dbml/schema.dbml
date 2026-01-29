@@ -46,7 +46,7 @@ Table DishSnapshot {
   updatedAt DateTime [not null]
   createdAt DateTime [default: `now()`, not null]
   dish Dish
-  order Order
+  orderItems OrderItem [not null]
 }
 
 Table Table {
@@ -64,8 +64,7 @@ Table Order {
   id Int [pk, increment]
   guestId Int
   tableNumber Int
-  dishSnapshotId Int [unique, not null]
-  quantity Int [not null]
+  totalAmount Int [not null, default: 0]
   orderHandlerId Int
   status String [not null, default: 'Pending']
   paymentId Int
@@ -73,9 +72,22 @@ Table Order {
   updatedAt DateTime [not null]
   payment Payment
   orderHandler Account
-  dishSnapshot DishSnapshot [not null]
   table Table
   guest Guest
+  items OrderItem [not null]
+}
+
+Table OrderItem {
+  id Int [pk, increment]
+  orderId Int [not null]
+  dishSnapshotId Int [not null]
+  quantity Int [not null]
+  unitPrice Int [not null]
+  totalPrice Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  order Order [not null]
+  dishSnapshot DishSnapshot [not null]
 }
 
 Table RefreshToken {
@@ -195,11 +207,13 @@ Ref: Order.paymentId > Payment.id
 
 Ref: Order.orderHandlerId > Account.id
 
-Ref: Order.dishSnapshotId - DishSnapshot.id [delete: Cascade]
-
 Ref: Order.tableNumber > Table.number
 
 Ref: Order.guestId > Guest.id
+
+Ref: OrderItem.orderId > Order.id [delete: Cascade]
+
+Ref: OrderItem.dishSnapshotId > DishSnapshot.id
 
 Ref: RefreshToken.accountId > Account.id [delete: Cascade]
 

@@ -95,7 +95,11 @@ export const guestRepository = {
     return await prisma.order.findMany({
       where: { guestId },
       include: {
-        dishSnapshot: true,
+        items: {
+          include: {
+            dishSnapshot: true
+          }
+        },
         orderHandler: true,
         guest: true
       }

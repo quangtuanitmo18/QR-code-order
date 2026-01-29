@@ -7,19 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { UpdateOrderBody, UpdateOrderBodyType } from '@/schemaValidations/order.schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { getOrderStatus, handleErrorApi } from '@/lib/utils'
 import { OrderStatus, OrderStatusValues } from '@/constants/type'
 import {
@@ -29,10 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { DishesDialog } from '@/app/[locale]/manage/orders/dishes-dialog'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useEffect, useState } from 'react'
-import { DishListResType } from '@/schemaValidations/dish.schema'
+import { useEffect } from 'react'
 import { useGetOrderDetailQuery, useUpdateOrderMutation } from '@/queries/useOrder'
 import { toast } from '@/components/ui/use-toast'
 
@@ -45,7 +33,6 @@ export default function EditOrder({
   setId: (value: number | undefined) => void
   onSubmitSuccess?: () => void
 }) {
-  const [selectedDish, setSelectedDish] = useState<DishListResType['data'][0] | null>(null)
   const updateOrderMutation = useUpdateOrderMutation()
   const { data } = useGetOrderDetailQuery({
     id: id as number,
@@ -56,24 +43,15 @@ export default function EditOrder({
     resolver: zodResolver(UpdateOrderBody),
     defaultValues: {
       status: OrderStatus.Pending,
-      dishId: 0,
-      quantity: 1,
     },
   })
 
   useEffect(() => {
     if (data) {
-      const {
-        status,
-        dishSnapshot: { dishId },
-        quantity,
-      } = data.payload.data
+      const { status } = data.payload.data
       form.reset({
         status,
-        dishId: dishId ?? 0,
-        quantity,
       })
-      setSelectedDish(data.payload.data.dishSnapshot)
     }
   }, [data, form])
 
@@ -123,62 +101,6 @@ export default function EditOrder({
             onSubmit={form.handleSubmit(onSubmit, console.log)}
           >
             <div className="grid gap-4 py-4">
-              <FormField
-                control={form.control}
-                name="dishId"
-                render={({ field }) => (
-                  <FormItem className="grid grid-cols-4 items-center justify-items-start gap-4">
-                    <FormLabel>Dish</FormLabel>
-                    <div className="col-span-2 flex items-center space-x-4">
-                      <Avatar className="aspect-square h-[50px] w-[50px] rounded-md object-cover">
-                        <AvatarImage src={selectedDish?.image} />
-                        <AvatarFallback className="rounded-none">
-                          {selectedDish?.name}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>{selectedDish?.name}</div>
-                    </div>
-
-                    <DishesDialog
-                      onChoose={(dish) => {
-                        field.onChange(dish.id)
-                        setSelectedDish(dish)
-                      }}
-                    />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="quantity"
-                render={({ field }) => (
-                  <FormItem>
-                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="quantity">Quantity</Label>
-                      <div className="col-span-3 w-full space-y-2">
-                        <Input
-                          id="quantity"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          className="w-16 text-center"
-                          {...field}
-                          value={field.value}
-                          onChange={(e) => {
-                            let value = e.target.value
-                            const numberValue = Number(value)
-                            if (isNaN(numberValue)) {
-                              return
-                            }
-                            field.onChange(numberValue)
-                          }}
-                        />
-                        <FormMessage />
-                      </div>
-                    </div>
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="status"

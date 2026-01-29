@@ -33,8 +33,8 @@ import { ColumnDef } from '@tanstack/react-table'
 import Image from 'next/image'
 import { useContext } from 'react'
 
-type OrderItem = GetOrdersResType['data'][0]
-const orderTableColumns: ColumnDef<OrderItem>[] = [
+type OrderRow = GetOrdersResType['data'][0]
+const orderTableColumns: ColumnDef<OrderRow>[] = [
   {
     accessorKey: 'tableNumber',
     header: 'Table',
@@ -79,50 +79,66 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
     },
   },
   {
-    id: 'dishName',
-    header: 'Dish',
+    id: 'items',
+    header: 'Items',
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Image
-              src={row.original.dishSnapshot.image}
-              alt={row.original.dishSnapshot.name}
-              width={50}
-              height={50}
-              unoptimized
-              className="h-[50px] w-[50px] cursor-pointer rounded-md object-cover"
-            />
-          </PopoverTrigger>
-          <PopoverContent>
-            <div className="flex flex-wrap gap-2">
-              <Image
-                src={row.original.dishSnapshot.image}
-                alt={row.original.dishSnapshot.name}
-                width={100}
-                height={100}
-                className="h-[100px] w-[100px] rounded-md object-cover"
-              />
-              <div className="space-y-1 text-sm">
-                <h3 className="font-semibold">{row.original.dishSnapshot.name}</h3>
-                <div className="italic">{formatCurrency(row.original.dishSnapshot.price)}</div>
-                <div>{row.original.dishSnapshot.description}</div>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+        {row.original.items.length > 0 && (
+          <>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Image
+                  src={row.original.items[0].dishSnapshot.image}
+                  alt={row.original.items[0].dishSnapshot.name}
+                  width={50}
+                  height={50}
+                  unoptimized
+                  className="h-[50px] w-[50px] cursor-pointer rounded-md object-cover"
+                />
+              </PopoverTrigger>
+              <PopoverContent>
+                <div className="space-y-2 text-sm">
+                  {row.original.items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-2">
+                      <Image
+                        src={item.dishSnapshot.image}
+                        alt={item.dishSnapshot.name}
+                        width={40}
+                        height={40}
+                        className="h-[40px] w-[40px] rounded-md object-cover"
+                      />
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">{item.dishSnapshot.name}</span>
+                          <Badge className="px-1" variant={'secondary'}>
+                            x{item.quantity}
+                          </Badge>
+                        </div>
+                        <div className="italic">
+                          {formatCurrency(item.unitPrice)} ·{' '}
+                          <span className="font-semibold">{formatCurrency(item.totalPrice)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
 
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <span>{row.original.dishSnapshot.name}</span>
-            <Badge className="px-1" variant={'secondary'}>
-              x{row.original.quantity}
-            </Badge>
-          </div>
-          <span className="italic">
-            {formatCurrency(row.original.dishSnapshot.price * row.original.quantity)}
-          </span>
-        </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span>
+                  {row.original.items[0].dishSnapshot.name}
+                  {row.original.items.length > 1 && ` + ${row.original.items.length - 1} more`}
+                </span>
+                <Badge className="px-1" variant={'secondary'}>
+                  x{row.original.items.reduce((sum, item) => sum + item.quantity, 0)}
+                </Badge>
+              </div>
+              <span className="italic">{formatCurrency(row.original.totalAmount)}</span>
+            </div>
+          </>
+        )}
       </div>
     ),
   },
@@ -134,9 +150,7 @@ const orderTableColumns: ColumnDef<OrderItem>[] = [
       const changeOrderStatus = async (status: (typeof OrderStatusValues)[number]) => {
         changeStatus({
           orderId: row.original.id,
-          dishId: row.original.dishSnapshot.dishId!,
-          status: status,
-          quantity: row.original.quantity,
+          status,
         })
       }
       return (

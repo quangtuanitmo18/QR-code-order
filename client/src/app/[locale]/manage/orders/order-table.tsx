@@ -7,30 +7,30 @@ import { useOrderService } from '@/app/[locale]/manage/orders/order.service'
 import AutoPagination from '@/components/auto-pagination'
 import { Input } from '@/components/ui/input'
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table'
 import { OrderStatusValues } from '@/constants/type'
 import { getOrderStatus, handleErrorApi } from '@/lib/utils'
 import {
-    GetOrdersResType,
-    PayGuestOrdersResType,
-    UpdateOrderResType,
+  GetOrdersResType,
+  PayGuestOrdersResType,
+  UpdateOrderResType,
 } from '@/schemaValidations/order.schema'
 import {
-    ColumnFiltersState,
-    SortingState,
-    VisibilityState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from '@tanstack/react-table'
 import { Check, ChevronsUpDown } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
@@ -52,12 +52,7 @@ import { useTranslations } from 'next-intl'
 export const OrderTableContext = createContext({
   setOrderIdEdit: (value: number | undefined) => {},
   orderIdEdit: undefined as number | undefined,
-  changeStatus: (payload: {
-    orderId: number
-    dishId: number
-    status: (typeof OrderStatusValues)[number]
-    quantity: number
-  }) => {},
+  changeStatus: (payload: { orderId: number; status: (typeof OrderStatusValues)[number] }) => {},
   orderObjectByGuestId: {} as OrderObjectByGuestID,
 })
 
@@ -105,9 +100,7 @@ export default function OrderTable() {
 
   const changeStatus = async (body: {
     orderId: number
-    dishId: number
     status: (typeof OrderStatusValues)[number]
-    quantity: number
   }) => {
     try {
       await updateOrderMutation.mutateAsync(body)
@@ -173,10 +166,9 @@ export default function OrderTable() {
     }
 
     function onUpdateOrder(data: UpdateOrderResType['data']) {
-      const {
-        dishSnapshot: { name },
-        quantity,
-      } = data
+      const firstItem = data.items[0]
+      const name = firstItem?.dishSnapshot.name ?? 'Order'
+      const quantity = data.items.reduce((sum, item) => sum + item.quantity, 0)
       toast({
         description: t('toastUpdatedDish', {
           name,

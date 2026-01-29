@@ -25,15 +25,21 @@ export default function OrderGuestDetail({
   orders: Orders
   onPaySuccess?: (data: PayGuestOrdersResType) => void
 }) {
-  const ordersFilterToPurchase = guest
+  const unpaidOrders = guest
     ? orders.filter(
         (order) => order.status !== OrderStatus.Paid && order.status !== OrderStatus.Rejected
       )
     : []
-  const purchasedOrderFilter = guest
-    ? orders.filter((order) => order.status === OrderStatus.Paid)
-    : []
+  const paidOrders = guest ? orders.filter((order) => order.status === OrderStatus.Paid) : []
   const payForGuestMutation = usePayForGuestMutation()
+
+  // Flatten orders to line items for display
+  const orderLines = orders.flatMap((order) =>
+    order.items.map((item) => ({
+      order,
+      item,
+    }))
+  )
 
   const pay = async () => {
     if (payForGuestMutation.isPending || !guest) return
@@ -70,9 +76,9 @@ export default function OrderGuestDetail({
 
       <div className="space-y-1">
         <div className="font-semibold">Order:</div>
-        {orders.map((order, index) => {
+        {orderLines.map(({ order, item }, index) => {
           return (
-            <div key={order.id} className="flex items-center gap-2 text-xs">
+            <div key={item.id} className="flex items-center gap-2 text-xs">
               <span className="w-[10px]">{index + 1}</span>
               <span title={getOrderStatus(order.status)}>
                 {order.status === OrderStatus.Pending && (
@@ -92,23 +98,21 @@ export default function OrderGuestDetail({
                 )}
               </span>
               <Image
-                src={order.dishSnapshot.image}
-                alt={order.dishSnapshot.name}
-                title={order.dishSnapshot.name}
+                src={item.dishSnapshot.image}
+                alt={item.dishSnapshot.name}
+                title={item.dishSnapshot.name}
                 width={30}
                 height={30}
                 unoptimized
                 className="h-[30px] w-[30px] rounded object-cover"
               />
-              <span className="w-[70px] truncate sm:w-[100px]" title={order.dishSnapshot.name}>
-                {order.dishSnapshot.name}
+              <span className="w-[70px] truncate sm:w-[100px]" title={item.dishSnapshot.name}>
+                {item.dishSnapshot.name}
               </span>
-              <span className="font-semibold" title={`Total: ${order.quantity}`}>
-                x{order.quantity}
+              <span className="font-semibold" title={`Total: ${item.quantity}`}>
+                x{item.quantity}
               </span>
-              <span className="italic">
-                {formatCurrency(order.quantity * order.dishSnapshot.price)}
-              </span>
+              <span className="italic">{formatCurrency(item.totalPrice)}</span>
               <span
                 className="hidden sm:inline"
                 title={`Create: ${formatDateTimeToLocaleString(
@@ -138,8 +142,8 @@ export default function OrderGuestDetail({
         <Badge>
           <span>
             {formatCurrency(
-              ordersFilterToPurchase.reduce((acc, order) => {
-                return acc + order.quantity * order.dishSnapshot.price
+              unpaidOrders.reduce((acc, order) => {
+                return acc + order.totalAmount
               }, 0)
             )}
           </span>
@@ -150,8 +154,8 @@ export default function OrderGuestDetail({
         <Badge variant={'outline'}>
           <span>
             {formatCurrency(
-              purchasedOrderFilter.reduce((acc, order) => {
-                return acc + order.quantity * order.dishSnapshot.price
+              paidOrders.reduce((acc, order) => {
+                return acc + order.totalAmount
               }, 0)
             )}
           </span>
@@ -163,10 +167,10 @@ export default function OrderGuestDetail({
           className="w-full"
           size={'sm'}
           variant={'secondary'}
-          disabled={ordersFilterToPurchase.length === 0}
+          disabled={unpaidOrders.length === 0}
           onClick={pay}
         >
-          <span>Pay all ({ordersFilterToPurchase.length} orders)</span>
+          <span>Pay all ({unpaidOrders.length} orders)</span>
         </Button>
       </div>
     </div>

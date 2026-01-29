@@ -34,6 +34,8 @@ export default function OrdersCart() {
   const { waitingForPaying, paid } = useMemo(() => {
     return orders.reduce(
       (result, order) => {
+        const totalQuantity = order.items.reduce((sum, item) => sum + item.quantity, 0)
+
         if (
           order.status === OrderStatus.Delivered ||
           order.status === OrderStatus.Processing ||
@@ -42,8 +44,8 @@ export default function OrdersCart() {
           return {
             ...result,
             waitingForPaying: {
-              price: result.waitingForPaying.price + order.dishSnapshot.price * order.quantity,
-              quantity: result.waitingForPaying.quantity + order.quantity,
+              price: result.waitingForPaying.price + order.totalAmount,
+              quantity: result.waitingForPaying.quantity + totalQuantity,
             },
           }
         }
@@ -51,8 +53,8 @@ export default function OrdersCart() {
           return {
             ...result,
             paid: {
-              price: result.paid.price + order.dishSnapshot.price * order.quantity,
-              quantity: result.paid.quantity + order.quantity,
+              price: result.paid.price + order.totalAmount,
+              quantity: result.paid.quantity + totalQuantity,
             },
           }
         }
@@ -177,35 +179,41 @@ export default function OrdersCart() {
         {orders.map((order, index) => (
           <div
             key={order.id}
-            className="flex gap-3 rounded-lg border bg-card p-3 shadow-sm sm:gap-4 sm:p-4"
+            className="flex flex-col gap-2 rounded-lg border bg-card p-3 shadow-sm sm:gap-3 sm:p-4"
           >
-            <div className="flex min-w-[24px] items-start pt-1 text-sm font-semibold text-muted-foreground sm:text-base">
-              {index + 1}
+            <div className="flex items-center justify-between text-sm font-semibold text-muted-foreground sm:text-base">
+              <span>Order #{order.id}</span>
+              <Badge variant={'outline'} className="text-xs sm:text-sm">
+                {getOrderStatus(order.status)}
+              </Badge>
             </div>
-            <div className="relative flex-shrink-0">
-              <Image
-                src={order.dishSnapshot.image}
-                alt={order.dishSnapshot.name}
-                height={120}
-                width={120}
-                quality={75}
-                unoptimized
-                className="h-[80px] w-[80px] rounded-md object-cover sm:h-[100px] sm:w-[100px]"
-              />
-            </div>
-            <div className="flex flex-1 flex-col space-y-1 sm:space-y-2">
-              <h3 className="text-sm font-semibold sm:text-base">{order.dishSnapshot.name}</h3>
-              <div className="flex flex-wrap items-center gap-2 text-xs font-semibold sm:text-sm">
-                <span>{formatCurrency(order.dishSnapshot.price)}</span>
-                <span className="text-muted-foreground">×</span>
-                <Badge className="px-2 py-0.5">{order.quantity}</Badge>
+            {order.items.map((item) => (
+              <div
+                key={item.id}
+                className="flex gap-3 border-t pt-2 first:border-t-0 first:pt-0 sm:gap-4"
+              >
+                <div className="relative flex-shrink-0">
+                  <Image
+                    src={item.dishSnapshot.image}
+                    alt={item.dishSnapshot.name}
+                    height={120}
+                    width={120}
+                    quality={75}
+                    unoptimized
+                    className="h-[60px] w-[60px] rounded-md object-cover sm:h-[80px] sm:w-[80px]"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col space-y-1 sm:space-y-2">
+                  <h3 className="text-sm font-semibold sm:text-base">{item.dishSnapshot.name}</h3>
+                  <div className="flex flex-wrap items-center gap-2 text-xs font-semibold sm:text-sm">
+                    <span>{formatCurrency(item.unitPrice)}</span>
+                    <span className="text-muted-foreground">×</span>
+                    <Badge className="px-2 py-0.5">{item.quantity}</Badge>
+                    <span className="ml-auto italic">{formatCurrency(item.totalPrice)}</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center pt-1">
-                <Badge variant={'outline'} className="text-xs sm:text-sm">
-                  {getOrderStatus(order.status)}
-                </Badge>
-              </div>
-            </div>
+            ))}
           </div>
         ))}
       </div>

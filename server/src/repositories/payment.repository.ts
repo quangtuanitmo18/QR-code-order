@@ -12,7 +12,11 @@ export const paymentRepository = {
         }
       },
       include: {
-        dishSnapshot: true,
+        items: {
+          include: {
+            dishSnapshot: true
+          }
+        },
         guest: true
       }
     })
@@ -108,7 +112,11 @@ export const paymentRepository = {
         id: { in: orderIds }
       },
       include: {
-        dishSnapshot: true,
+        items: {
+          include: {
+            dishSnapshot: true
+          }
+        },
         orderHandler: true,
         guest: true
       }
@@ -120,7 +128,11 @@ export const paymentRepository = {
     return await prisma.order.findMany({
       where: { paymentId },
       include: {
-        dishSnapshot: true,
+        items: {
+          include: {
+            dishSnapshot: true
+          }
+        },
         orderHandler: true,
         guest: true
       }
@@ -208,7 +220,11 @@ export const paymentRepository = {
       include: {
         orders: {
           include: {
-            dishSnapshot: true
+            items: {
+              include: {
+                dishSnapshot: true
+              }
+            }
           }
         }
       },
