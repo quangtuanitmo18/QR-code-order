@@ -7,12 +7,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { UpdateOrderBody, UpdateOrderBodyType } from '@/schemaValidations/order.schema'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { Form, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { getOrderStatus, handleErrorApi } from '@/lib/utils'
-import { OrderStatus, OrderStatusValues } from '@/constants/type'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import {
   Select,
   SelectContent,
@@ -20,9 +22,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useEffect } from 'react'
-import { useGetOrderDetailQuery, useUpdateOrderMutation } from '@/queries/useOrder'
 import { toast } from '@/components/ui/use-toast'
+import { OrderStatus, OrderStatusValues } from '@/constants/type'
+import { getOrderStatus, handleErrorApi } from '@/lib/utils'
+import { useGetOrderDetailQuery, useUpdateOrderMutation } from '@/queries/useOrder'
+import { UpdateOrderBody, UpdateOrderBodyType } from '@/schemaValidations/order.schema'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
 
 export default function EditOrder({
   id,

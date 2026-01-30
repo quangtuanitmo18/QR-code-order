@@ -12,24 +12,28 @@ datasource db {
 }
 
 model Account {
-  id              Int            @id @default(autoincrement())
-  name            String
-  email           String         @unique
-  password        String
-  avatar          String?
-  role            String         @default("Employee")
-  ownerId         Int?
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  owner           Account?       @relation("OwnerEmployee", fields: [ownerId], references: [id], onUpdate: NoAction)
-  employees       Account[]      @relation("OwnerEmployee")
-  orders          Order[]
-  payments        Payment[]
-  refreshToken    RefreshToken[]
-  sockets         Socket?
-  approvedReviews Review[]       @relation("ReviewApprover")
-  repliedReviews  Review[]       @relation("ReviewReplier")
-  blogPosts       BlogPost[]
+  id               Int                       @id @default(autoincrement())
+  name             String
+  email            String                    @unique
+  password         String
+  avatar           String?
+  role             String                    @default("Employee")
+  ownerId          Int?
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+  owner            Account?                  @relation("OwnerEmployee", fields: [ownerId], references: [id], onUpdate: NoAction)
+  employees        Account[]                 @relation("OwnerEmployee")
+  orders           Order[]
+  payments         Payment[]
+  refreshToken     RefreshToken[]
+  sockets          Socket?
+  approvedReviews  Review[]                  @relation("ReviewApprover")
+  repliedReviews   Review[]                  @relation("ReviewReplier")
+  blogPosts        BlogPost[]
+  createdEvents      CalendarEvent[]           @relation("EventCreator")
+  eventAssignments   CalendarEventAssignment[] @relation("EventAssignment")
+  notifications      CalendarNotification[]    @relation("UserNotifications")
+  createdCalendarTypes CalendarType[]           @relation("CalendarTypeCreator")
 }
 
 model Dish {
@@ -70,19 +74,19 @@ model Table {
 }
 
 model Order {
-  id             Int          @id @default(autoincrement())
+  id             Int         @id @default(autoincrement())
   guestId        Int?
   tableNumber    Int?
-  totalAmount    Int          @default(0)
+  totalAmount    Int         @default(0)
   orderHandlerId Int?
-  status         String       @default("Pending")
+  status         String      @default("Pending")
   paymentId      Int?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  payment        Payment?     @relation(fields: [paymentId], references: [id], onUpdate: NoAction)
-  orderHandler   Account?     @relation(fields: [orderHandlerId], references: [id], onUpdate: NoAction)
-  table          Table?       @relation(fields: [tableNumber], references: [number], onUpdate: NoAction)
-  guest          Guest?       @relation(fields: [guestId], references: [id], onUpdate: NoAction)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  payment        Payment?    @relation(fields: [paymentId], references: [id], onUpdate: NoAction)
+  orderHandler   Account?    @relation(fields: [orderHandlerId], references: [id], onUpdate: NoAction)
+  table          Table?      @relation(fields: [tableNumber], references: [number], onUpdate: NoAction)
+  guest          Guest?      @relation(fields: [guestId], references: [id], onUpdate: NoAction)
   items          OrderItem[]
 }
 
@@ -194,27 +198,108 @@ model Review {
 }
 
 model BlogPost {
-  id            Int      @id @default(autoincrement())
-  title         String   // Required, 10-200 chars (validated in schema)
-  slug          String   @unique // URL-friendly, unique, lowercase, hyphens only
-  excerpt       String?  // Optional, max 500 chars (validated in schema, auto-generated if not provided)
-  content       String   // Markdown format, required, min 100 chars
-  featuredImage String?  // URL to image (optional but recommended)
-  status        String   @default("DRAFT") // DRAFT, PUBLISHED, ARCHIVED
-  featured      Boolean  @default(false)
-  viewCount     Int      @default(0)
-  category      String?  // Optional, free-form string (not enum), can create new categories
-  tags          String?  // JSON array of strings (max 10 tags, each max 30 chars), stored as JSON string
-  authorId      Int      // Foreign key to Account
+  id            Int       @id @default(autoincrement())
+  title         String // Required, 10-200 chars (validated in schema)
+  slug          String    @unique // URL-friendly, unique, lowercase, hyphens only
+  excerpt       String? // Optional, max 500 chars (validated in schema, auto-generated if not provided)
+  content       String // Markdown format, required, min 100 chars
+  featuredImage String? // URL to image (optional but recommended)
+  status        String    @default("DRAFT") // DRAFT, PUBLISHED, ARCHIVED
+  featured      Boolean   @default(false)
+  viewCount     Int       @default(0)
+  category      String? // Optional, free-form string (not enum), can create new categories
+  tags          String? // JSON array of strings (max 10 tags, each max 30 chars), stored as JSON string
+  authorId      Int // Foreign key to Account
   publishedAt   DateTime? // Set automatically when status changes from DRAFT to PUBLISHED
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
-  author        Account  @relation(fields: [authorId], references: [id], onUpdate: NoAction)
-  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  author Account @relation(fields: [authorId], references: [id], onUpdate: NoAction)
+
   @@index([slug])
   @@index([status, publishedAt])
   @@index([authorId])
   @@index([category])
   @@index([featured, publishedAt])
+}
+
+model CalendarType {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // Unique name like "work_shift", "meeting", etc.
+  label       String // Display name like "Work Shifts", "Meetings"
+  color       String   @default("bg-blue-500") // Color code for UI
+  category    String   @default("personal") // "personal", "work", "shared"
+  visible     Boolean  @default(true) // Whether this type is visible in calendar
+  createdById Int // Owner who created this type
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy Account        @relation("CalendarTypeCreator", fields: [createdById], references: [id], onUpdate: NoAction)
+  events    CalendarEvent[]
+
+  @@index([category])
+  @@index([visible])
+  @@index([createdById])
+}
+
+model CalendarEvent {
+  id            Int      @id @default(autoincrement())
+  title         String
+  description   String?
+  typeId        Int // Foreign key to CalendarType
+  startDate     DateTime
+  endDate       DateTime
+  allDay        Boolean  @default(false)
+  location      String?
+  color         String? // Optional, can inherit from CalendarType
+  isRecurring   Boolean  @default(false)
+  recurringRule String? // JSON string for recurrence pattern
+  // Example: {"type":"weekly","interval":1,"dayOfWeek":1}
+  // Example: {"type":"monthly","interval":1,"dayOfMonth":15}
+  // Example: {"type":"daily","interval":1}
+  createdById   Int // Owner/Admin who created the event
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  type          CalendarType              @relation(fields: [typeId], references: [id], onUpdate: NoAction)
+  createdBy     Account                   @relation("EventCreator", fields: [createdById], references: [id], onUpdate: NoAction)
+  assignments   CalendarEventAssignment[]
+  notifications CalendarNotification[]
+
+  @@index([startDate, endDate])
+  @@index([typeId])
+  @@index([createdById])
+}
+
+model CalendarEventAssignment {
+  id         Int      @id @default(autoincrement())
+  eventId    Int
+  employeeId Int // Employee assigned to this event (for work shifts)
+  createdAt  DateTime @default(now())
+
+  event    CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  employee Account       @relation("EventAssignment", fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, employeeId])
+  @@index([employeeId, eventId])
+  @@index([eventId])
+}
+
+model CalendarNotification {
+  id               Int       @id @default(autoincrement())
+  eventId          Int
+  userId           Int // User to notify
+  notificationType String // "reminder", "new_event", "updated_event", "cancelled_event"
+  message          String
+  scheduledFor     DateTime // When to show this notification
+  isRead           Boolean   @default(false)
+  readAt           DateTime?
+  createdAt        DateTime  @default(now())
+
+  event CalendarEvent @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user  Account       @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, scheduledFor])
+  @@index([eventId])
+  @@index([scheduledFor])
 }

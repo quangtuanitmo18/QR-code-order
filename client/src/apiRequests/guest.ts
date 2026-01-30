@@ -63,10 +63,9 @@ const guestApiRequest = {
   // payment
   createPayment: (body: CreatePaymentBodyType) =>
     http.post<CreatePaymentResType>('/guest/orders/create-payment', body),
-  
+
   // Get my payments
-  getMyPayments: () =>
-    http.get('/payment/guest/my-payments'),
+  getMyPayments: () => http.get('/payment/guest/my-payments'),
 }
 
 export default guestApiRequest

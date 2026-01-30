@@ -10,7 +10,8 @@ import dynamic from 'next/dynamic'
 import { useState } from 'react'
 
 const RevenueLineChart = dynamic(
-  () => import('@/app/[locale]/manage/dashboard/revenue-line-chart').then((m) => m.RevenueLineChart),
+  () =>
+    import('@/app/[locale]/manage/dashboard/revenue-line-chart').then((m) => m.RevenueLineChart),
   { ssr: false }
 )
 

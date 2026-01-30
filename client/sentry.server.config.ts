@@ -1,9 +1,7 @@
-import envConfig from '@/config';
-import * as Sentry from '@sentry/nextjs';
+import envConfig from '@/config'
+import * as Sentry from '@sentry/nextjs'
 const SENTRY_ENABLED =
-  process.env.NEXT_PUBLIC_SENTRY_ENABLED === "true" &&
-  process.env.NODE_ENV === "production";
-
+  process.env.NEXT_PUBLIC_SENTRY_ENABLED === 'true' && process.env.NODE_ENV === 'production'
 
 if (SENTRY_ENABLED) {
   Sentry.init({

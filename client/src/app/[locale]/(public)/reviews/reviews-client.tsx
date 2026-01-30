@@ -1,8 +1,8 @@
 'use client'
 
-import ReviewForm from '@/components/review-form'
-import ReviewList from '@/components/review-list'
-import ReviewStats from '@/components/review-stats'
+import ReviewForm from '@/components/review/review-form'
+import ReviewList from '@/components/review/review-list'
+import ReviewStats from '@/components/review/review-stats'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {

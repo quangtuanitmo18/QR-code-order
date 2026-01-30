@@ -184,8 +184,8 @@ export default function OrderTable() {
       const { guest } = data[0]
       toast({
         description: t('toastNewOrder', {
-          guestName: guest?.name,
-          tableNumber: guest?.tableNumber,
+          guestName: guest?.name ?? '',
+          tableNumber: guest?.tableNumber ?? 0,
           count: data.length,
         }),
       })
@@ -197,8 +197,8 @@ export default function OrderTable() {
       const { guest } = data[0]
       toast({
         description: t('toastPayment', {
-          guestName: guest?.name,
-          tableNumber: guest?.tableNumber,
+          guestName: guest?.name ?? '',
+          tableNumber: guest?.tableNumber ?? 0,
           count: data.length,
         }),
       })
@@ -219,7 +219,7 @@ export default function OrderTable() {
       socket?.off('new-order', onNewOrder)
       socket?.off('payment', onPayment)
     }
-  }, [refetchOrderList, fromDate, toDate, socket])
+  }, [refetchOrderList, fromDate, toDate, socket, t])
 
   return (
     <OrderTableContext.Provider

@@ -139,10 +139,9 @@ export default function OrdersCart() {
     }
 
     function onUpdateOrder(data: UpdateOrderResType['data']) {
-      const {
-        dishSnapshot: { name },
-        quantity,
-      } = data
+      const firstItem = data.items[0]
+      const name = firstItem?.dishSnapshot.name ?? 'Order'
+      const quantity = data.items.reduce((sum, item) => sum + item.quantity, 0)
       toast({
         description: `Dish ${name} (Qty: ${quantity}) has just been updated to status "${getOrderStatus(
           data.status

@@ -21,6 +21,10 @@ Table Account {
   approvedReviews Review [not null]
   repliedReviews Review [not null]
   blogPosts BlogPost [not null]
+  createdEvents CalendarEvent [not null]
+  eventAssignments CalendarEventAssignment [not null]
+  notifications CalendarNotification [not null]
+  createdCalendarTypes CalendarType [not null]
 }
 
 Table Dish {
@@ -199,6 +203,68 @@ Table BlogPost {
   author Account [not null]
 }
 
+Table CalendarType {
+  id Int [pk, increment]
+  name String [unique, not null]
+  label String [not null]
+  color String [not null, default: 'bg-blue-500']
+  category String [not null, default: 'personal']
+  visible Boolean [not null, default: true]
+  createdById Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  createdBy Account [not null]
+  events CalendarEvent [not null]
+}
+
+Table CalendarEvent {
+  id Int [pk, increment]
+  title String [not null]
+  description String
+  typeId Int [not null]
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  allDay Boolean [not null, default: false]
+  location String
+  color String
+  isRecurring Boolean [not null, default: false]
+  recurringRule String
+  createdById Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  type CalendarType [not null]
+  createdBy Account [not null]
+  assignments CalendarEventAssignment [not null]
+  notifications CalendarNotification [not null]
+}
+
+Table CalendarEventAssignment {
+  id Int [pk, increment]
+  eventId Int [not null]
+  employeeId Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  event CalendarEvent [not null]
+  employee Account [not null]
+
+  indexes {
+    (eventId, employeeId) [unique]
+  }
+}
+
+Table CalendarNotification {
+  id Int [pk, increment]
+  eventId Int [not null]
+  userId Int [not null]
+  notificationType String [not null]
+  message String [not null]
+  scheduledFor DateTime [not null]
+  isRead Boolean [not null, default: false]
+  readAt DateTime
+  createdAt DateTime [default: `now()`, not null]
+  event CalendarEvent [not null]
+  user Account [not null]
+}
+
 Ref: Account.ownerId - Account.id
 
 Ref: DishSnapshot.dishId > Dish.id
@@ -234,3 +300,17 @@ Ref: Review.approvedBy > Account.id
 Ref: Review.repliedBy > Account.id
 
 Ref: BlogPost.authorId > Account.id
+
+Ref: CalendarType.createdById > Account.id
+
+Ref: CalendarEvent.typeId > CalendarType.id
+
+Ref: CalendarEvent.createdById > Account.id
+
+Ref: CalendarEventAssignment.eventId > CalendarEvent.id [delete: Cascade]
+
+Ref: CalendarEventAssignment.employeeId > Account.id [delete: Cascade]
+
+Ref: CalendarNotification.eventId > CalendarEvent.id [delete: Cascade]
+
+Ref: CalendarNotification.userId > Account.id [delete: Cascade]

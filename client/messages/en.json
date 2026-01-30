@@ -134,5 +134,9 @@
     "description": "Tell us who you are so the staff can recognize your table and serve you faster.",
     "nameLabel": "Name",
     "continueButton": "Continue"
+  },
+  "Calendar": {
+    "title": "Calendar",
+    "description": "Work Schedule Calendar"
   }
 }

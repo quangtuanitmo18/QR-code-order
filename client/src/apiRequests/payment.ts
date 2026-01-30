@@ -1,8 +1,5 @@
 import http from '@/lib/http'
-import {
-  GetPaymentDetailResType,
-  GetPaymentsResType
-} from '@/schemaValidations/payment.schema'
+import { GetPaymentDetailResType, GetPaymentsResType } from '@/schemaValidations/payment.schema'
 
 const paymentApiRequest = {
   // For admin/manager
@@ -17,12 +14,12 @@ const paymentApiRequest = {
     if (params?.toDate) queryParams.append('toDate', params.toDate.toISOString())
     if (params?.status) queryParams.append('status', params.status)
     if (params?.paymentMethod) queryParams.append('paymentMethod', params.paymentMethod)
-    
+
     return http.get<GetPaymentsResType>(`/payment?${queryParams.toString()}`)
   },
-  
+
   getPaymentDetail: (paymentId: number) =>
-    http.get<GetPaymentDetailResType>(`/payment/${paymentId}`)
+    http.get<GetPaymentDetailResType>(`/payment/${paymentId}`),
 }
 
 export default paymentApiRequest

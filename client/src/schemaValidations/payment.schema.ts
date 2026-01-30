@@ -32,7 +32,7 @@ export const PaymentSchema = z.object({
   paymentHandlerId: z.number().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
-  paidAt: z.date().nullable()
+  paidAt: z.date().nullable(),
 })
 
 export type PaymentSchemaType = z.TypeOf<typeof PaymentSchema>
@@ -41,7 +41,7 @@ export const CreatePaymentBody = z.object({
   paymentMethod: z.enum(PaymentMethodValues),
   returnUrl: z.string().url().optional(),
   currency: z.enum(['USD', 'VND']).default('USD'),
-  note: z.string().optional()
+  note: z.string().optional(),
 })
 
 export type CreatePaymentBodyType = z.TypeOf<typeof CreatePaymentBody>
@@ -51,8 +51,8 @@ export const CreatePaymentRes = z.object({
   data: z.object({
     payment: PaymentSchema,
     paymentUrl: z.string().optional(),
-    orders: z.array(OrderSchema).optional()
-  })
+    orders: z.array(OrderSchema).optional(),
+  }),
 })
 
 export type CreatePaymentResType = z.TypeOf<typeof CreatePaymentRes>
@@ -65,12 +65,12 @@ export const GetPaymentsRes = z.object({
         .object({
           id: z.number(),
           name: z.string(),
-          tableNumber: z.number().nullable()
+          tableNumber: z.number().nullable(),
         })
         .nullable(),
-      paymentHandler: AccountSchema.nullable()
+      paymentHandler: AccountSchema.nullable(),
     })
-  )
+  ),
 })
 
 export type GetPaymentsResType = z.TypeOf<typeof GetPaymentsRes>
@@ -83,11 +83,11 @@ export const GetPaymentDetailRes = z.object({
       .object({
         id: z.number(),
         name: z.string(),
-        tableNumber: z.number().nullable()
+        tableNumber: z.number().nullable(),
       })
       .nullable(),
-    paymentHandler: AccountSchema.nullable()
-  })
+    paymentHandler: AccountSchema.nullable(),
+  }),
 })
 
 export type GetPaymentDetailResType = z.TypeOf<typeof GetPaymentDetailRes>

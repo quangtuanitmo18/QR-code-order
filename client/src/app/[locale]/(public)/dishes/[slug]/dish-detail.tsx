@@ -34,7 +34,7 @@ export default async function DishDetail({ dish }: { dish: DishResType['data'] |
           <div className="text-xl font-bold text-primary sm:text-2xl lg:text-3xl">
             {formatCurrency(dish.price)}
           </div>
-          <div className="prose prose-sm sm:prose-base max-w-none">
+          <div className="prose prose-sm max-w-none sm:prose-base">
             <p className="text-muted-foreground">{dish.description}</p>
           </div>
         </div>

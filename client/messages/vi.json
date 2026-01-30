@@ -134,5 +134,9 @@
     "description": "Cho chúng tôi biết bạn là ai để nhân viên dễ dàng nhận ra bàn của bạn và phục vụ nhanh hơn.",
     "nameLabel": "Tên",
     "continueButton": "Tiếp tục"
+  },
+  "Calendar": {
+    "title": "Lịch",
+    "description": "Lịch làm việc"
   }
 }

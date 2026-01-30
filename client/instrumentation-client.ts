@@ -1,14 +1,11 @@
-import envConfig from '@/config';
-import * as Sentry from '@sentry/nextjs';
+import envConfig from '@/config'
+import * as Sentry from '@sentry/nextjs'
 
 export const onRequestError = Sentry.captureRequestError
 const SENTRY_ENABLED =
-  process.env.NEXT_PUBLIC_SENTRY_ENABLED === "true" &&
-  process.env.NODE_ENV === "production";
+  process.env.NEXT_PUBLIC_SENTRY_ENABLED === 'true' && process.env.NODE_ENV === 'production'
 
-  
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart
-
 
 if (SENTRY_ENABLED) {
   Sentry.init({

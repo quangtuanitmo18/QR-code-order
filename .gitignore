@@ -22,9 +22,7 @@ npm-debug.log*
 node_modules/
 package-lock.json
 
-# Documentation - ignored on deploy branch only
-docs/*.md
-docs/**/*.md
+docs/
 
 .cursor/**/*.md
 .github/prompts
