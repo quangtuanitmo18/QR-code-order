@@ -12,28 +12,29 @@ datasource db {
 }
 
 model Account {
-  id               Int                       @id @default(autoincrement())
-  name             String
-  email            String                    @unique
-  password         String
-  avatar           String?
-  role             String                    @default("Employee")
-  ownerId          Int?
-  createdAt        DateTime                  @default(now())
-  updatedAt        DateTime                  @updatedAt
-  owner            Account?                  @relation("OwnerEmployee", fields: [ownerId], references: [id], onUpdate: NoAction)
-  employees        Account[]                 @relation("OwnerEmployee")
-  orders           Order[]
-  payments         Payment[]
-  refreshToken     RefreshToken[]
-  sockets          Socket?
-  approvedReviews  Review[]                  @relation("ReviewApprover")
-  repliedReviews   Review[]                  @relation("ReviewReplier")
-  blogPosts        BlogPost[]
-  createdEvents      CalendarEvent[]           @relation("EventCreator")
-  eventAssignments   CalendarEventAssignment[] @relation("EventAssignment")
-  notifications      CalendarNotification[]    @relation("UserNotifications")
-  createdCalendarTypes CalendarType[]           @relation("CalendarTypeCreator")
+  id                   Int                       @id @default(autoincrement())
+  name                 String
+  email                String                    @unique
+  password             String
+  avatar               String?
+  role                 String                    @default("Employee")
+  ownerId              Int?
+  createdAt            DateTime                  @default(now())
+  updatedAt            DateTime                  @updatedAt
+  owner                Account?                  @relation("OwnerEmployee", fields: [ownerId], references: [id], onUpdate: NoAction)
+  employees            Account[]                 @relation("OwnerEmployee")
+  orders               Order[]
+  payments             Payment[]
+  refreshToken         RefreshToken[]
+  sockets              Socket?
+  approvedReviews      Review[]                  @relation("ReviewApprover")
+  repliedReviews       Review[]                  @relation("ReviewReplier")
+  blogPosts            BlogPost[]
+  createdEvents        CalendarEvent[]           @relation("EventCreator")
+  eventAssignments     CalendarEventAssignment[] @relation("EventAssignment")
+  notifications        CalendarNotification[]    @relation("UserNotifications")
+  createdCalendarTypes CalendarType[]            @relation("CalendarTypeCreator")
+  coupons              Coupon[]                  @relation("CouponCreator")
 }
 
 model Dish {
@@ -74,20 +75,24 @@ model Table {
 }
 
 model Order {
-  id             Int         @id @default(autoincrement())
+  id             Int           @id @default(autoincrement())
   guestId        Int?
   tableNumber    Int?
-  totalAmount    Int         @default(0)
+  totalAmount    Int           @default(0)
   orderHandlerId Int?
-  status         String      @default("Pending")
+  status         String        @default("Pending")
   paymentId      Int?
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  payment        Payment?    @relation(fields: [paymentId], references: [id], onUpdate: NoAction)
-  orderHandler   Account?    @relation(fields: [orderHandlerId], references: [id], onUpdate: NoAction)
-  table          Table?      @relation(fields: [tableNumber], references: [number], onUpdate: NoAction)
-  guest          Guest?      @relation(fields: [guestId], references: [id], onUpdate: NoAction)
+  couponId       Int?
+  discountAmount Int?          @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  payment        Payment?      @relation(fields: [paymentId], references: [id], onUpdate: NoAction)
+  orderHandler   Account?      @relation(fields: [orderHandlerId], references: [id], onUpdate: NoAction)
+  table          Table?        @relation(fields: [tableNumber], references: [number], onUpdate: NoAction)
+  guest          Guest?        @relation(fields: [guestId], references: [id], onUpdate: NoAction)
+  coupon         Coupon?       @relation(fields: [couponId], references: [id], onUpdate: NoAction)
   items          OrderItem[]
+  couponUsages   CouponUsage[]
 }
 
 model OrderItem {
@@ -112,28 +117,29 @@ model RefreshToken {
 }
 
 model Guest {
-  id                    Int       @id @default(autoincrement())
+  id                    Int           @id @default(autoincrement())
   name                  String
   tableNumber           Int?
   refreshToken          String?
   refreshTokenExpiresAt DateTime?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-  table                 Table?    @relation(fields: [tableNumber], references: [number], onUpdate: NoAction)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  table                 Table?        @relation(fields: [tableNumber], references: [number], onUpdate: NoAction)
   orders                Order[]
   payments              Payment[]
   sockets               Socket?
   reviews               Review[]
+  couponUsages          CouponUsage[]
 }
 
 model Payment {
-  id                    Int       @id @default(autoincrement())
+  id                    Int           @id @default(autoincrement())
   guestId               Int?
   tableNumber           Int?
   amount                Int
   paymentMethod         String
-  status                String    @default("Pending")
-  transactionRef        String    @unique
+  status                String        @default("Pending")
+  transactionRef        String        @unique
   externalTransactionId String?
   externalCustomerId    String?
   externalSessionId     String?
@@ -147,17 +153,21 @@ model Payment {
   paymentIntentStatus   String?
   last4Digits           String?
   cardBrand             String?
-  currency              String?   @default("VND")
+  currency              String?       @default("VND")
   metadata              String?
   description           String?
   note                  String?
   paymentHandlerId      Int?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
+  couponId              Int?
+  discountAmount        Int?          @default(0)
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
   paidAt                DateTime?
   orders                Order[]
-  paymentHandler        Account?  @relation(fields: [paymentHandlerId], references: [id], onUpdate: NoAction)
-  guest                 Guest?    @relation(fields: [guestId], references: [id], onUpdate: NoAction)
+  paymentHandler        Account?      @relation(fields: [paymentHandlerId], references: [id], onUpdate: NoAction)
+  guest                 Guest?        @relation(fields: [guestId], references: [id], onUpdate: NoAction)
+  coupon                Coupon?       @relation(fields: [couponId], references: [id], onUpdate: NoAction)
+  couponUsages          CouponUsage[]
 }
 
 model Socket {
@@ -166,6 +176,50 @@ model Socket {
   guestId   Int?     @unique
   guest     Guest?   @relation(fields: [guestId], references: [id], onUpdate: NoAction)
   account   Account? @relation(fields: [accountId], references: [id], onUpdate: NoAction)
+}
+
+model Coupon {
+  id                Int      @id @default(autoincrement())
+  code              String   @unique
+  discountType      String // PERCENTAGE | FIXED_AMOUNT
+  discountValue     Int
+  minOrderAmount    Int?
+  applicableDishIds String? // JSON array of dish IDs, null = all dishes
+  maxTotalUsage     Int?
+  maxUsagePerGuest  Int?
+  usageCount        Int      @default(0)
+  startDate         DateTime
+  endDate           DateTime
+  status            String   @default("ACTIVE") // ACTIVE | EXPIRED | DISABLED
+  createdById       Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  createdBy Account       @relation("CouponCreator", fields: [createdById], references: [id], onUpdate: NoAction)
+  usages    CouponUsage[]
+  orders    Order[]
+  payments  Payment[]
+
+  @@index([code])
+  @@index([status, startDate, endDate])
+}
+
+model CouponUsage {
+  id             Int      @id @default(autoincrement())
+  couponId       Int
+  guestId        Int?
+  orderId        Int?
+  paymentId      Int?
+  discountAmount Int
+  usedAt         DateTime @default(now())
+
+  coupon  Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  guest   Guest?   @relation(fields: [guestId], references: [id], onUpdate: NoAction)
+  order   Order?   @relation(fields: [orderId], references: [id], onUpdate: NoAction)
+  payment Payment? @relation(fields: [paymentId], references: [id], onUpdate: NoAction)
+
+  @@index([couponId])
+  @@index([guestId, couponId])
 }
 
 model Review {
@@ -234,7 +288,7 @@ model CalendarType {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  createdBy Account        @relation("CalendarTypeCreator", fields: [createdById], references: [id], onUpdate: NoAction)
+  createdBy Account         @relation("CalendarTypeCreator", fields: [createdById], references: [id], onUpdate: NoAction)
   events    CalendarEvent[]
 
   @@index([category])

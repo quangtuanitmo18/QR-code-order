@@ -1,13 +1,15 @@
 import { DishStatus, OrderStatus, PaymentMethod, TableStatus } from '@/constants/type'
 import { createPaymentController } from '@/controllers/payment.controller'
 import prisma from '@/database'
+import { couponRepository } from '@/repositories/coupon.repository'
 import { orderRepository } from '@/repositories/order.repository'
 import { CreateOrdersBodyType, UpdateOrderBodyType } from '@/schemaValidations/order.schema'
+import { couponService } from '@/services/coupon.service'
 
 export const orderService = {
   // Create order (bill) with multiple items
   async createOrders(orderHandlerId: number, body: CreateOrdersBodyType) {
-    const { guestId, orders } = body
+    const { guestId, couponId, orders } = body
 
     // Validate guest
     const guest = await orderRepository.findGuestById(guestId)
@@ -28,7 +30,7 @@ export const orderService = {
       prisma.$transaction(async (tx) => {
         // Validate dishes and create snapshots + items
         let totalAmount = 0
-
+        const dishIds: number[] = []
         const itemsData = []
 
         for (const order of orders) {
@@ -37,6 +39,7 @@ export const orderService = {
               id: order.dishId
             }
           })
+          dishIds.push(dish.id)
           if (dish.status === DishStatus.Unavailable) {
             throw new Error(`Dish ${dish.name} is unavailable`)
           }
@@ -67,6 +70,52 @@ export const orderService = {
           })
         }
 
+        let orderCouponId: number | null = null
+        let discountAmount = 0
+
+        if (couponId) {
+          const coupon = await couponRepository.findById(couponId)
+          if (!coupon) {
+            throw new Error('Mã giảm giá không tồn tại')
+          }
+
+          const validateResult = await couponService.validate({
+            code: coupon.code,
+            orderTotal: totalAmount,
+            dishIds: [...new Set(dishIds)],
+            guestId
+          })
+
+          if (!validateResult.valid) {
+            throw new Error(validateResult.message)
+          }
+
+          discountAmount = validateResult.discountAmount
+          orderCouponId = coupon.id
+
+          // Check maxUsagePerGuest within transaction
+          if (coupon.maxUsagePerGuest !== null && guestId !== null) {
+            const usageCount = await tx.couponUsage.count({
+              where: { couponId: coupon.id, guestId }
+            })
+            if (usageCount >= coupon.maxUsagePerGuest) {
+              throw new Error('Bạn đã sử dụng mã này đủ số lần')
+            }
+          }
+
+          const rowsAffected = (await tx.$executeRaw`
+            UPDATE Coupon
+            SET usageCount = usageCount + 1
+            WHERE id = ${coupon.id}
+              AND status = 'ACTIVE'
+              AND (maxTotalUsage IS NULL OR usageCount < maxTotalUsage)
+          `) as number
+
+          if (rowsAffected === 0) {
+            throw new Error('Mã đã hết lượt dùng')
+          }
+        }
+
         const createdOrder = await tx.order.create({
           data: {
             guestId,
@@ -74,6 +123,8 @@ export const orderService = {
             orderHandlerId,
             status: OrderStatus.Pending,
             totalAmount,
+            couponId: orderCouponId,
+            discountAmount: orderCouponId !== null ? discountAmount : undefined,
             items: {
               create: itemsData
             }
@@ -88,6 +139,18 @@ export const orderService = {
             orderHandler: true
           }
         })
+
+        // Create CouponUsage record even if discountAmount = 0 (to track usage)
+        if (orderCouponId !== null) {
+          await tx.couponUsage.create({
+            data: {
+              couponId: orderCouponId,
+              guestId,
+              orderId: createdOrder.id,
+              discountAmount
+            }
+          })
+        }
 
         return createdOrder
       }),
@@ -114,8 +177,9 @@ export const orderService = {
     ipAddr: string
     paymentHandlerId?: number
     currency?: string
+    couponId?: number
   }) {
-    const { guestId, paymentMethod, note, ipAddr, paymentHandlerId, currency } = params
+    const { guestId, paymentMethod, note, ipAddr, paymentHandlerId, currency, couponId } = params
 
     const result = await createPaymentController({
       guestId,
@@ -123,7 +187,8 @@ export const orderService = {
       note: note ? [note] : undefined,
       ipAddr,
       paymentHandlerId,
-      currency
+      currency,
+      couponId
     })
 
     // For Cash payment, return orders and socketId

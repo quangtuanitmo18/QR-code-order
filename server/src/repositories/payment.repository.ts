@@ -45,6 +45,8 @@ export const paymentRepository = {
     responseMessage?: string
     bankCode?: string
     cardType?: string
+    couponId?: number
+    discountAmount?: number
   }) {
     return await prisma.payment.create({ data })
   },

@@ -2,12 +2,12 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { OrderStatus } from '@/constants/type'
 import {
-  OrderStatusIcon,
-  formatCurrency,
-  formatDateTimeToLocaleString,
-  formatDateTimeToTimeString,
-  getOrderStatus,
-  handleErrorApi,
+    OrderStatusIcon,
+    formatCurrency,
+    formatDateTimeToLocaleString,
+    formatDateTimeToTimeString,
+    getOrderStatus,
+    handleErrorApi,
 } from '@/lib/utils'
 import { usePayForGuestMutation } from '@/queries/useOrder'
 import { GetOrdersResType, PayGuestOrdersResType } from '@/schemaValidations/order.schema'
@@ -138,27 +138,46 @@ export default function OrderGuestDetail({
 
       <div className="space-x-1">
         <span className="font-semibold">Unpaid:</span>
-
         <Badge>
-          <span>
-            {formatCurrency(
-              unpaidOrders.reduce((acc, order) => {
-                return acc + order.totalAmount
-              }, 0)
+          <div className="space-y-0.5">
+            {unpaidOrders.some((o) => o.discountAmount && o.discountAmount > 0) && (
+              <div className="text-xs text-green-600 dark:text-green-400">
+                -{formatCurrency(
+                  unpaidOrders.reduce((acc, order) => acc + (order.discountAmount || 0), 0)
+                )}{' '}
+                discount
+              </div>
             )}
-          </span>
+            <span>
+              {formatCurrency(
+                unpaidOrders.reduce((acc, order) => {
+                  return acc + order.totalAmount - (order.discountAmount || 0)
+                }, 0)
+              )}
+            </span>
+          </div>
         </Badge>
       </div>
       <div className="space-x-1">
         <span className="font-semibold">Paid:</span>
         <Badge variant={'outline'}>
-          <span>
-            {formatCurrency(
-              paidOrders.reduce((acc, order) => {
-                return acc + order.totalAmount
-              }, 0)
+          <div className="space-y-0.5">
+            {paidOrders.some((o) => o.discountAmount && o.discountAmount > 0) && (
+              <div className="text-xs text-green-600 dark:text-green-400">
+                -{formatCurrency(
+                  paidOrders.reduce((acc, order) => acc + (order.discountAmount || 0), 0)
+                )}{' '}
+                discount
+              </div>
             )}
-          </span>
+            <span>
+              {formatCurrency(
+                paidOrders.reduce((acc, order) => {
+                  return acc + order.totalAmount - (order.discountAmount || 0)
+                }, 0)
+              )}
+            </span>
+          </div>
         </Badge>
       </div>
 

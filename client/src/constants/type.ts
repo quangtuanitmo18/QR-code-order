@@ -92,3 +92,26 @@ export const PaymentStatusValues = [
   PaymentStatus.Cancelled,
   PaymentStatus.Refunded,
 ] as const
+
+// Coupon
+export const CouponDiscountType = {
+  Percentage: 'PERCENTAGE',
+  FixedAmount: 'FIXED_AMOUNT',
+} as const
+
+export const CouponDiscountTypeValues = [
+  CouponDiscountType.Percentage,
+  CouponDiscountType.FixedAmount,
+] as const
+
+export const CouponStatus = {
+  Active: 'ACTIVE',
+  Expired: 'EXPIRED',
+  Disabled: 'DISABLED',
+} as const
+
+export const CouponStatusValues = [
+  CouponStatus.Active,
+  CouponStatus.Expired,
+  CouponStatus.Disabled,
+] as const

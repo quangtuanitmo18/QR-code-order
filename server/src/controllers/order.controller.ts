@@ -15,12 +15,14 @@ export const payOrdersController = async ({
   guestId,
   orderHandlerId,
   paymentMethod = PaymentMethod.Cash,
-  note
+  note,
+  couponId
 }: {
   guestId: number
   orderHandlerId: number
   paymentMethod?: string
   note?: string
+  couponId?: number
 }) => {
   return await orderService.payOrders({
     guestId,
@@ -28,7 +30,8 @@ export const payOrdersController = async ({
     note,
     currency: 'USD',
     ipAddr: '127.0.0.1',
-    paymentHandlerId: orderHandlerId
+    paymentHandlerId: orderHandlerId,
+    couponId
   })
 }
 

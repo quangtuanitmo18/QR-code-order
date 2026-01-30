@@ -1,33 +1,33 @@
 import { ManagerRoom } from '@/constants/type'
 import {
-  createOrdersController,
-  getOrderDetailController,
-  getOrdersController,
-  payOrdersController,
-  updateOrderController
+    createOrdersController,
+    getOrderDetailController,
+    getOrdersController,
+    payOrdersController,
+    updateOrderController
 } from '@/controllers/order.controller'
 import { requireEmployeeHook, requireLoginedHook, requireOwnerHook } from '@/hooks/auth.hooks'
 import {
-  CreateOrdersBody,
-  CreateOrdersBodyType,
-  CreateOrdersRes,
-  CreateOrdersResType,
-  GetOrderDetailRes,
-  GetOrderDetailResType,
-  GetOrdersQueryParams,
-  GetOrdersQueryParamsType,
-  GetOrdersRes,
-  GetOrdersResType,
-  OrderParam,
-  OrderParamType,
-  PayGuestOrdersBody,
-  PayGuestOrdersBodyType,
-  PayGuestOrdersRes,
-  PayGuestOrdersResType,
-  UpdateOrderBody,
-  UpdateOrderBodyType,
-  UpdateOrderRes,
-  UpdateOrderResType
+    CreateOrdersBody,
+    CreateOrdersBodyType,
+    CreateOrdersRes,
+    CreateOrdersResType,
+    GetOrderDetailRes,
+    GetOrderDetailResType,
+    GetOrdersQueryParams,
+    GetOrdersQueryParamsType,
+    GetOrdersRes,
+    GetOrdersResType,
+    OrderParam,
+    OrderParamType,
+    PayGuestOrdersBody,
+    PayGuestOrdersBodyType,
+    PayGuestOrdersRes,
+    PayGuestOrdersResType,
+    UpdateOrderBody,
+    UpdateOrderBodyType,
+    UpdateOrderRes,
+    UpdateOrderResType
 } from '@/schemaValidations/order.schema'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 
@@ -148,7 +148,8 @@ export default async function orderRoutes(fastify: FastifyInstance, options: Fas
       const result = await payOrdersController({
         guestId: request.body.guestId,
         orderHandlerId: request.decodedAccessToken?.userId as number,
-        paymentMethod: 'Cash' // Owner/Employee chỉ thanh toán tiền mặt
+        paymentMethod: 'Cash', // Owner/Employee chỉ thanh toán tiền mặt
+        couponId: request.body.couponId
       })
 
       // Cash payment always returns { orders, socketId }

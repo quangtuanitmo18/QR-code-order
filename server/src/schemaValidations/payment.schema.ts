@@ -41,7 +41,8 @@ export const CreatePaymentBody = z.object({
   paymentMethod: z.enum(PaymentMethodValues),
   returnUrl: z.string().url().optional(),
   note: z.string().optional(),
-  currency: z.enum(['USD', 'VND']).default('USD')
+  currency: z.enum(['USD', 'VND']).default('USD'),
+  couponId: z.number().int().positive().optional()
 })
 
 export type CreatePaymentBodyType = z.TypeOf<typeof CreatePaymentBody>

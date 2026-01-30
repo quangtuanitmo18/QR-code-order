@@ -21,6 +21,7 @@ import { cn, formatCurrency, handleErrorApi } from '@/lib/utils'
 import { useCreateGuestMutation } from '@/queries/useAccount'
 import { useDishListQuery } from '@/queries/useDish'
 import { useCreateOrderMutation } from '@/queries/useOrder'
+import { useValidateCouponMutation } from '@/queries/useCoupon'
 import { GetListGuestsResType } from '@/schemaValidations/account.schema'
 import { GuestLoginBody, GuestLoginBodyType } from '@/schemaValidations/guest.schema'
 import { CreateOrdersBodyType } from '@/schemaValidations/order.schema'
@@ -47,6 +48,12 @@ export default function AddOrder() {
   }, [dishes, orders])
   const createOrderMutation = useCreateOrderMutation()
   const createGuestMutation = useCreateGuestMutation()
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('')
+  const [couponId, setCouponId] = useState<number | undefined>()
+  const [discountAmount, setDiscountAmount] = useState(0)
+  const [couponError, setCouponError] = useState<string | null>(null)
+  const validateCouponMutation = useValidateCouponMutation()
 
   const form = useForm<GuestLoginBodyType>({
     resolver: zodResolver(GuestLoginBody),
@@ -73,6 +80,49 @@ export default function AddOrder() {
     })
   }
 
+  const handleValidateCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError(null)
+      setCouponId(undefined)
+      setDiscountAmount(0)
+      return
+    }
+
+    if (totalPrice === 0) {
+      setCouponError('No items to apply coupon')
+      return
+    }
+
+    try {
+      const dishIds = orders.map((order) => order.dishId)
+      const guestId = selectedGuest?.id ?? (isNewGuest ? undefined : undefined)
+
+      const result = await validateCouponMutation.mutateAsync({
+        code: couponCode.toUpperCase(),
+        orderTotal: totalPrice,
+        dishIds: dishIds.length > 0 ? dishIds : undefined,
+        guestId,
+      })
+
+      if (result.payload.valid) {
+        setCouponId(result.payload.coupon.id)
+        setDiscountAmount(result.payload.discountAmount)
+        setCouponError(null)
+        toast({
+          description: `Coupon applied! Discount: ${formatCurrency(result.payload.discountAmount)}`,
+        })
+      } else {
+        setCouponError(result.payload.message)
+        setCouponId(undefined)
+        setDiscountAmount(0)
+      }
+    } catch (error: any) {
+      setCouponError(error?.payload?.message || 'Failed to validate coupon')
+      setCouponId(undefined)
+      setDiscountAmount(0)
+    }
+  }
+
   const handleOrder = async () => {
     try {
       let guestId = selectedGuest?.id
@@ -92,6 +142,7 @@ export default function AddOrder() {
       await createOrderMutation.mutateAsync({
         guestId,
         orders,
+        couponId,
       })
       reset()
     } catch (error) {
@@ -107,6 +158,10 @@ export default function AddOrder() {
     setSelectedGuest(null)
     setIsNewGuest(true)
     setOrders([])
+    setCouponCode('')
+    setCouponId(undefined)
+    setDiscountAmount(0)
+    setCouponError(null)
     setOpen(false)
   }
 
@@ -240,6 +295,41 @@ export default function AddOrder() {
               </div>
             </div>
           ))}
+        {/* Coupon Input */}
+        {orders.length > 0 && (
+          <div className="space-y-2">
+            <Label className="text-sm font-semibold">Coupon Code (optional):</Label>
+            <div className="flex gap-2">
+              <Input
+                placeholder="Enter coupon code"
+                value={couponCode}
+                onChange={(e) => {
+                  setCouponCode(e.target.value.toUpperCase())
+                  setCouponError(null)
+                }}
+                onBlur={handleValidateCoupon}
+                className="flex-1 uppercase"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleValidateCoupon}
+                disabled={validateCouponMutation.isPending}
+              >
+                Apply
+              </Button>
+            </div>
+            {couponError && (
+              <p className="text-sm text-red-600 dark:text-red-400">{couponError}</p>
+            )}
+            {discountAmount > 0 && (
+              <p className="text-sm text-green-600 dark:text-green-400">
+                ✓ Coupon applied: {formatCurrency(discountAmount)} discount
+              </p>
+            )}
+          </div>
+        )}
+
         <DialogFooter>
           <Button
             className="w-full justify-between"
@@ -247,7 +337,14 @@ export default function AddOrder() {
             disabled={orders.length === 0}
           >
             <span>Order · {orders.length} dishes</span>
-            <span>{formatCurrency(totalPrice)}</span>
+            <span>
+              {formatCurrency(totalPrice - discountAmount)}
+              {discountAmount > 0 && (
+                <span className="ml-2 text-xs text-green-600 line-through">
+                  {formatCurrency(totalPrice)}
+                </span>
+              )}
+            </span>
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -138,5 +138,9 @@
   "Calendar": {
     "title": "Lịch",
     "description": "Lịch làm việc"
+  },
+  "Coupons": {
+    "title": "Mã giảm giá",
+    "description": "Quản lý mã giảm giá"
   }
 }

@@ -30,6 +30,8 @@ export const PaymentSchema = z.object({
   description: z.string().nullable(),
   note: z.string().nullable(),
   paymentHandlerId: z.number().nullable(),
+  couponId: z.number().nullable(),
+  discountAmount: z.number().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
   paidAt: z.date().nullable(),
@@ -42,6 +44,7 @@ export const CreatePaymentBody = z.object({
   returnUrl: z.string().url().optional(),
   currency: z.enum(['USD', 'VND']).default('USD'),
   note: z.string().optional(),
+  couponId: z.number().int().positive().optional(),
 })
 
 export type CreatePaymentBodyType = z.TypeOf<typeof CreatePaymentBody>

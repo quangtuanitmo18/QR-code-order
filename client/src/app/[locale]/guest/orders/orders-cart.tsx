@@ -1,10 +1,12 @@
 'use client'
 
+import couponApiRequest from '@/apiRequests/coupon'
 import guestApiRequest from '@/apiRequests/guest'
 import { useAppStore } from '@/components/app-provider'
 import { PaymentTestInfoDialog } from '@/components/payment-test-info-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { toast } from '@/components/ui/use-toast'
@@ -13,6 +15,7 @@ import { useRouter } from '@/i18n/routing'
 import { convertUSDtoRUB, convertUSDtoVND, formatRUB, formatUSD, formatVND } from '@/lib/currency'
 import { formatCurrency, getOrderStatus } from '@/lib/utils'
 import { useGuestGetOrderListQuery } from '@/queries/useGuest'
+import { useValidateCouponMutation } from '@/queries/useCoupon'
 import { PayGuestOrdersResType, UpdateOrderResType } from '@/schemaValidations/order.schema'
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
@@ -30,6 +33,12 @@ export default function OrdersCart() {
   // Payment state
   const [isPaymentLoading, setIsPaymentLoading] = useState(false)
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>(PaymentMethod.Cash)
+  // Coupon state
+  const [couponCode, setCouponCode] = useState('')
+  const [couponId, setCouponId] = useState<number | undefined>()
+  const [discountAmount, setDiscountAmount] = useState(0)
+  const [couponError, setCouponError] = useState<string | null>(null)
+  const validateCouponMutation = useValidateCouponMutation()
 
   const { waitingForPaying, paid } = useMemo(() => {
     return orders.reduce(
@@ -73,6 +82,57 @@ export default function OrdersCart() {
     )
   }, [orders])
 
+  const handleValidateCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError(null)
+      setCouponId(undefined)
+      setDiscountAmount(0)
+      return
+    }
+
+    if (waitingForPaying.price === 0) {
+      setCouponError('No orders to apply coupon')
+      return
+    }
+
+    try {
+      const dishIds = orders
+        .filter((order) =>
+          [OrderStatus.Pending, OrderStatus.Processing, OrderStatus.Delivered].includes(
+            order.status as any
+          )
+        )
+        .flatMap((order) => order.items.map((item) => item.dishSnapshot.dishId).filter(Boolean))
+      const uniqueDishIds = [...new Set(dishIds)] as number[]
+
+      const guestId = orders[0]?.guestId ?? undefined
+
+      const result = await validateCouponMutation.mutateAsync({
+        code: couponCode.toUpperCase(),
+        orderTotal: waitingForPaying.price,
+        dishIds: uniqueDishIds.length > 0 ? uniqueDishIds : undefined,
+        guestId,
+      })
+
+      if (result.payload.valid) {
+        setCouponId(result.payload.coupon.id)
+        setDiscountAmount(result.payload.discountAmount)
+        setCouponError(null)
+        toast({
+          description: `Coupon applied! Discount: ${formatCurrency(result.payload.discountAmount)}`,
+        })
+      } else {
+        setCouponError(result.payload.message)
+        setCouponId(undefined)
+        setDiscountAmount(0)
+      }
+    } catch (error: any) {
+      setCouponError(error?.payload?.message || 'Failed to validate coupon')
+      setCouponId(undefined)
+      setDiscountAmount(0)
+    }
+  }
+
   const handlePayment = async () => {
     try {
       setIsPaymentLoading(true)
@@ -80,6 +140,7 @@ export default function OrdersCart() {
       const result = await guestApiRequest.createPayment({
         paymentMethod: selectedPaymentMethod as any,
         currency: 'USD',
+        couponId,
       })
 
       if (result.payload.data.paymentUrl) {
@@ -108,11 +169,12 @@ export default function OrdersCart() {
   useEffect(() => {
     const fetchAmount = async () => {
       try {
-        const amountVND = await convertUSDtoVND(waitingForPaying.price)
-        const amountRUB = await convertUSDtoRUB(waitingForPaying.price)
+        const finalAmount = waitingForPaying.price - discountAmount
+        const amountVND = await convertUSDtoVND(finalAmount)
+        const amountRUB = await convertUSDtoRUB(finalAmount)
         setAmountVND(amountVND)
         setAmountRUB(amountRUB)
-        const formattedAmountUSD = formatUSD(waitingForPaying.price)
+        const formattedAmountUSD = formatUSD(finalAmount)
         setFormattedAmountUSD(formattedAmountUSD)
         const formattedAmountVND = formatVND(amountVND)
         setFormattedAmountVND(formattedAmountVND)
@@ -123,7 +185,7 @@ export default function OrdersCart() {
       }
     }
     fetchAmount()
-  }, [waitingForPaying.price])
+  }, [waitingForPaying.price, discountAmount])
 
   useEffect(() => {
     if (socket?.connected) {
@@ -226,14 +288,54 @@ export default function OrdersCart() {
                 Waiting for paying · {waitingForPaying.quantity} dishes
               </span>
               <div className="flex flex-col items-end">
+                {discountAmount > 0 && (
+                  <div className="mb-1 text-sm text-green-600 dark:text-green-400">
+                    -{formatCurrency(discountAmount)} discount
+                  </div>
+                )}
                 <span className="text-lg font-bold text-orange-700 dark:text-orange-300 sm:text-xl">
-                  {formattedAmountUSD}
+                  {formatCurrency(waitingForPaying.price - discountAmount)}
                 </span>
                 <div className="flex flex-col items-end gap-0.5 text-sm text-orange-600 dark:text-orange-400">
                   <span>≈ {formattedAmountVND}</span>
                   <span>≈ {formattedAmountRUB}</span>
                 </div>
               </div>
+            </div>
+
+            {/* Coupon Input */}
+            <div className="mt-4 space-y-2">
+              <Label className="text-sm font-semibold text-orange-700 dark:text-orange-300">
+                Coupon Code (optional):
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Enter coupon code"
+                  value={couponCode}
+                  onChange={(e) => {
+                    setCouponCode(e.target.value.toUpperCase())
+                    setCouponError(null)
+                  }}
+                  onBlur={handleValidateCoupon}
+                  className="flex-1 uppercase"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleValidateCoupon}
+                  disabled={validateCouponMutation.isPending}
+                >
+                  Apply
+                </Button>
+              </div>
+              {couponError && (
+                <p className="text-sm text-red-600 dark:text-red-400">{couponError}</p>
+              )}
+              {discountAmount > 0 && (
+                <p className="text-sm text-green-600 dark:text-green-400">
+                  ✓ Coupon applied: {formatCurrency(discountAmount)} discount
+                </p>
+              )}
             </div>
 
             {/* Payment Method Selection */}
@@ -281,14 +383,7 @@ export default function OrdersCart() {
             >
               {isPaymentLoading
                 ? 'Processing...'
-                : selectedPaymentMethod === PaymentMethod.Cash ||
-                    selectedPaymentMethod === PaymentMethod.Stripe
-                  ? `Pay ${formattedAmountUSD}`
-                  : selectedPaymentMethod === PaymentMethod.VNPay
-                    ? `Pay ${formattedAmountVND}`
-                    : selectedPaymentMethod === PaymentMethod.YooKassa
-                      ? `Pay ${formattedAmountRUB}`
-                      : `Pay ${formattedAmountUSD}`}
+                : `Pay ${formatCurrency(waitingForPaying.price - discountAmount)}`}
             </Button>
           </div>
         )}

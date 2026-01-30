@@ -25,6 +25,7 @@ Table Account {
   eventAssignments CalendarEventAssignment [not null]
   notifications CalendarNotification [not null]
   createdCalendarTypes CalendarType [not null]
+  coupons Coupon [not null]
 }
 
 Table Dish {
@@ -72,13 +73,17 @@ Table Order {
   orderHandlerId Int
   status String [not null, default: 'Pending']
   paymentId Int
+  couponId Int
+  discountAmount Int [default: 0]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
   payment Payment
   orderHandler Account
   table Table
   guest Guest
+  coupon Coupon
   items OrderItem [not null]
+  couponUsages CouponUsage [not null]
 }
 
 Table OrderItem {
@@ -115,6 +120,7 @@ Table Guest {
   payments Payment [not null]
   sockets Socket
   reviews Review [not null]
+  couponUsages CouponUsage [not null]
 }
 
 Table Payment {
@@ -143,12 +149,16 @@ Table Payment {
   description String
   note String
   paymentHandlerId Int
+  couponId Int
+  discountAmount Int [default: 0]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
   paidAt DateTime
   orders Order [not null]
   paymentHandler Account
   guest Guest
+  coupon Coupon
+  couponUsages CouponUsage [not null]
 }
 
 Table Socket {
@@ -157,6 +167,42 @@ Table Socket {
   guestId Int [unique]
   guest Guest
   account Account
+}
+
+Table Coupon {
+  id Int [pk, increment]
+  code String [unique, not null]
+  discountType String [not null]
+  discountValue Int [not null]
+  minOrderAmount Int
+  applicableDishIds String
+  maxTotalUsage Int
+  maxUsagePerGuest Int
+  usageCount Int [not null, default: 0]
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  status String [not null, default: 'ACTIVE']
+  createdById Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  createdBy Account [not null]
+  usages CouponUsage [not null]
+  orders Order [not null]
+  payments Payment [not null]
+}
+
+Table CouponUsage {
+  id Int [pk, increment]
+  couponId Int [not null]
+  guestId Int
+  orderId Int
+  paymentId Int
+  discountAmount Int [not null]
+  usedAt DateTime [default: `now()`, not null]
+  coupon Coupon [not null]
+  guest Guest
+  order Order
+  payment Payment
 }
 
 Table Review {
@@ -277,6 +323,8 @@ Ref: Order.tableNumber > Table.number
 
 Ref: Order.guestId > Guest.id
 
+Ref: Order.couponId > Coupon.id
+
 Ref: OrderItem.orderId > Order.id [delete: Cascade]
 
 Ref: OrderItem.dishSnapshotId > DishSnapshot.id
@@ -289,9 +337,21 @@ Ref: Payment.paymentHandlerId > Account.id
 
 Ref: Payment.guestId > Guest.id
 
+Ref: Payment.couponId > Coupon.id
+
 Ref: Socket.guestId - Guest.id
 
 Ref: Socket.accountId - Account.id
+
+Ref: Coupon.createdById > Account.id
+
+Ref: CouponUsage.couponId > Coupon.id [delete: Cascade]
+
+Ref: CouponUsage.guestId > Guest.id
+
+Ref: CouponUsage.orderId > Order.id
+
+Ref: CouponUsage.paymentId > Payment.id
 
 Ref: Review.guestId > Guest.id
 

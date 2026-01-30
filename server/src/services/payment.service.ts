@@ -1,7 +1,9 @@
 import envConfig from '@/config'
 import { OrderStatus, PaymentMethod, PaymentStatus } from '@/constants/type'
 import prisma from '@/database'
+import { couponRepository } from '@/repositories/coupon.repository'
 import { paymentRepository } from '@/repositories/payment.repository'
+import { couponService } from '@/services/coupon.service'
 import { convertUSDtoRUB, convertUSDtoVND, getLiveExchangeRate } from '@/utils/currency'
 import { createStripeCheckoutSession, getStripeSession, stripe } from '@/utils/stripe'
 import { buildVNPayPaymentUrl, verifyVNPayReturn } from '@/utils/vnpay'
@@ -17,8 +19,9 @@ export const paymentService = {
     ipAddr: string
     paymentHandlerId?: number
     currency?: string
+    couponId?: number
   }) {
-    const { guestId, paymentMethod, note, ipAddr, paymentHandlerId, currency } = params
+    const { guestId, paymentMethod, note, ipAddr, paymentHandlerId, currency, couponId } = params
 
     // Get unpaid orders (bills)
     const orders = await paymentRepository.findUnpaidOrdersByGuestId(guestId)
@@ -27,59 +30,99 @@ export const paymentService = {
       throw new Error('No orders need to be paid')
     }
 
-    // Calculate total amount in USD (app's base currency)
+    // Calculate total amount (sum of order amounts minus order-level discounts)
     const totalAmountUSD = orders.reduce((sum, order) => {
-      return sum + order.totalAmount
+      return sum + order.totalAmount - (order.discountAmount || 0)
     }, 0)
+
+    let finalAmountUSD = totalAmountUSD
+    let discountAmount = 0
+    let couponIdToUse: number | null = null
+
+    if (couponId) {
+      const coupon = await couponRepository.findById(couponId)
+      if (!coupon) {
+        throw new Error('Mã giảm giá không tồn tại')
+      }
+
+      const dishIds = [
+        ...new Set(
+          orders.flatMap((o) => o.items?.map((i) => i.dishSnapshot?.dishId).filter(Boolean) || [])
+        )
+      ] as number[]
+
+      const validateResult = await couponService.validate({
+        code: coupon.code,
+        orderTotal: totalAmountUSD,
+        dishIds,
+        guestId
+      })
+
+      if (!validateResult.valid) {
+        throw new Error(validateResult.message)
+      }
+
+      discountAmount = validateResult.discountAmount
+      finalAmountUSD = validateResult.finalAmount
+      couponIdToUse = coupon.id
+    }
 
     const guest = orders[0].guest
     const transactionRef = `PAY_${guestId}_${Date.now()}`
 
     // Description includes both USD and VND for clarity
-    const description = `Payment $${totalAmountUSD.toFixed(2)} - ${orders.length} orders - ${guest?.name}`
+    const description = `Payment $${finalAmountUSD.toFixed(2)} - ${orders.length} orders - ${guest?.name}`
 
     // Handle based on payment method
     if (paymentMethod === PaymentMethod.Cash) {
       return await this.processCashPayment({
         guestId,
-        totalAmount: totalAmountUSD,
+        totalAmount: finalAmountUSD,
         currency,
         transactionRef,
         description,
         note,
         orders,
         paymentHandlerId,
-        guest
+        guest,
+        couponId: couponIdToUse,
+        discountAmount
       })
     } else if (paymentMethod === PaymentMethod.VNPay) {
       return await this.processVNPayPayment({
         guestId,
-        totalAmountUSD,
+        totalAmountUSD: finalAmountUSD,
         currency,
         transactionRef,
         description,
         note,
         ipAddr,
         orders,
-        guest
+        guest,
+        couponId: couponIdToUse,
+        discountAmount
       })
     } else if (paymentMethod === PaymentMethod.Stripe) {
       return await this.processStripePayment({
         guestId,
-        totalAmountUSD,
+        totalAmountUSD: finalAmountUSD,
         transactionRef,
         description,
         orders,
-        guest
+        guest,
+        couponId: couponIdToUse,
+        discountAmount
       })
     } else if (paymentMethod === PaymentMethod.YooKassa) {
       return await this.processYooKassaPayment({
         guestId,
-        totalAmountUSD,
+        totalAmountUSD: finalAmountUSD,
         transactionRef,
         description,
         orders,
-        guest
+        guest,
+        couponId: couponIdToUse,
+        discountAmount
       })
     }
 
@@ -97,14 +140,40 @@ export const paymentService = {
     orders: any[]
     paymentHandlerId?: number
     guest: any
+    couponId?: number | null
+    discountAmount?: number
   }) {
-    const { guestId, totalAmount, currency, transactionRef, description, note, orders, paymentHandlerId, guest } =
+    const { guestId, totalAmount, currency, transactionRef, description, note, orders, paymentHandlerId, guest, couponId, discountAmount } =
       params
 
     const exchangeRate = currency === 'USD' ? await getLiveExchangeRate() : 1
     const amountVND = currency === 'USD' ? await convertUSDtoVND(totalAmount) : totalAmount
 
     const result = await prisma.$transaction(async (tx) => {
+      if (couponId) {
+        // Check maxUsagePerGuest within transaction
+        const coupon = await tx.coupon.findUnique({ where: { id: couponId } })
+        if (coupon && coupon.maxUsagePerGuest !== null && guestId !== null) {
+          const usageCount = await tx.couponUsage.count({
+            where: { couponId, guestId }
+          })
+          if (usageCount >= coupon.maxUsagePerGuest) {
+            throw new Error('Bạn đã sử dụng mã này đủ số lần')
+          }
+        }
+
+        const rowsAffected = (await tx.$executeRaw`
+          UPDATE Coupon
+          SET usageCount = usageCount + 1
+          WHERE id = ${couponId}
+            AND status = 'ACTIVE'
+            AND (maxTotalUsage IS NULL OR usageCount < maxTotalUsage)
+        `) as number
+        if (rowsAffected === 0) {
+          throw new Error('Mã đã hết lượt dùng')
+        }
+      }
+
       // Create payment record with USD
       const payment = await tx.payment.create({
         data: {
@@ -128,9 +197,23 @@ export const paymentService = {
             conversionDate: new Date().toISOString()
           }),
           paymentHandlerId,
-          paidAt: new Date()
+          paidAt: new Date(),
+          couponId: couponId || undefined,
+          discountAmount: couponId !== null ? discountAmount : undefined
         }
       })
+
+      // Create CouponUsage record even if discountAmount = 0 (to track usage)
+      if (couponId !== null && couponId !== undefined) {
+        await tx.couponUsage.create({
+          data: {
+            couponId: couponId as number,
+            guestId,
+            paymentId: payment.id,
+            discountAmount: discountAmount || 0
+          }
+        })
+      }
 
       // Update orders to Paid status and link to payment
       await tx.order.updateMany({
@@ -187,8 +270,10 @@ export const paymentService = {
     ipAddr: string
     orders: any[]
     guest: any
+    couponId?: number | null
+    discountAmount?: number
   }) {
-    const { guestId, totalAmountUSD, currency, transactionRef, description, note, ipAddr, guest } = params
+    const { guestId, totalAmountUSD, currency, transactionRef, description, note, ipAddr, guest, couponId, discountAmount } = params
 
     const exchangeRate = await getLiveExchangeRate()
     const totalAmountVND = await convertUSDtoVND(totalAmountUSD)
@@ -202,8 +287,7 @@ export const paymentService = {
       returnUrl: envConfig.VNPAY_RETURN_URL
     })
 
-    // Create pending payment record with USD
-    const payment = await paymentRepository.createPayment({
+    const paymentData = {
       guestId,
       tableNumber: guest?.tableNumber,
       amount: totalAmountUSD,
@@ -225,11 +309,42 @@ export const paymentService = {
         convertedCurrency: 'VND',
         exchangeRate: exchangeRate,
         conversionDate: new Date().toISOString()
-      })
-    })
+      }),
+      couponId: couponId || undefined,
+      discountAmount: couponId !== null ? discountAmount : undefined
+    }
 
-    console.log('payment', payment)
-    console.log('paymentUrl', paymentUrl)
+    let payment
+    if (couponId) {
+      payment = await prisma.$transaction(async (tx) => {
+        // Check maxUsagePerGuest within transaction
+        const coupon = await tx.coupon.findUnique({ where: { id: couponId } })
+        if (coupon && coupon.maxUsagePerGuest !== null && guestId !== null) {
+          const usageCount = await tx.couponUsage.count({
+            where: { couponId, guestId }
+          })
+          if (usageCount >= coupon.maxUsagePerGuest) {
+            throw new Error('Bạn đã sử dụng mã này đủ số lần')
+          }
+        }
+
+        const rowsAffected = (await tx.$executeRaw`
+          UPDATE Coupon SET usageCount = usageCount + 1
+          WHERE id = ${couponId} AND status = 'ACTIVE'
+            AND (maxTotalUsage IS NULL OR usageCount < maxTotalUsage)
+        `) as number
+        if (rowsAffected === 0) throw new Error('Mã đã hết lượt dùng')
+
+        const p = await tx.payment.create({ data: paymentData })
+        // Create CouponUsage record even if discountAmount = 0 (to track usage)
+        await tx.couponUsage.create({
+          data: { couponId, guestId, paymentId: p.id, discountAmount: discountAmount || 0 }
+        })
+        return p
+      })
+    } else {
+      payment = await paymentRepository.createPayment(paymentData)
+    }
 
     return {
       payment,
@@ -245,8 +360,10 @@ export const paymentService = {
     description: string
     orders: any[]
     guest: any
+    couponId?: number | null
+    discountAmount?: number
   }) {
-    const { guestId, totalAmountUSD, transactionRef, description, guest } = params
+    const { guestId, totalAmountUSD, transactionRef, description, guest, couponId, discountAmount } = params
 
     // Convert USD to cents (Stripe requires integer cents)
     const amountInCents = Math.round(totalAmountUSD * 100)
@@ -260,11 +377,10 @@ export const paymentService = {
       guestEmail: undefined // No email field in Guest model
     })
 
-    // Create pending payment record
-    const payment = await paymentRepository.createPayment({
+    const paymentData = {
       guestId,
       tableNumber: guest?.tableNumber,
-      amount: totalAmountUSD, // Store in USD (original)
+      amount: totalAmountUSD,
       currency: 'USD',
       paymentMethod: PaymentMethod.Stripe,
       status: PaymentStatus.Pending,
@@ -277,11 +393,41 @@ export const paymentService = {
         stripeSessionId: session.id,
         amountInCents,
         expiresAt: new Date(session.expires_at * 1000).toISOString()
-      })
-    })
+      }),
+      couponId: couponId || undefined,
+      discountAmount: couponId !== null ? discountAmount : undefined
+    }
 
-    console.log('Stripe payment created:', payment.id, payment.transactionRef)
-    console.log('Stripe checkout URL:', session.url)
+    let payment
+    if (couponId) {
+      payment = await prisma.$transaction(async (tx) => {
+        // Check maxUsagePerGuest within transaction
+        const coupon = await tx.coupon.findUnique({ where: { id: couponId } })
+        if (coupon && coupon.maxUsagePerGuest !== null && guestId !== null) {
+          const usageCount = await tx.couponUsage.count({
+            where: { couponId, guestId }
+          })
+          if (usageCount >= coupon.maxUsagePerGuest) {
+            throw new Error('Bạn đã sử dụng mã này đủ số lần')
+          }
+        }
+
+        const rowsAffected = (await tx.$executeRaw`
+          UPDATE Coupon SET usageCount = usageCount + 1
+          WHERE id = ${couponId} AND status = 'ACTIVE'
+            AND (maxTotalUsage IS NULL OR usageCount < maxTotalUsage)
+        `) as number
+        if (rowsAffected === 0) throw new Error('Mã đã hết lượt dùng')
+        const p = await tx.payment.create({ data: paymentData })
+        // Create CouponUsage record even if discountAmount = 0 (to track usage)
+        await tx.couponUsage.create({
+          data: { couponId, guestId, paymentId: p.id, discountAmount: discountAmount || 0 }
+        })
+        return p
+      })
+    } else {
+      payment = await paymentRepository.createPayment(paymentData)
+    }
 
     return {
       payment,
@@ -298,14 +444,14 @@ export const paymentService = {
     description: string
     orders: any[]
     guest: any
+    couponId?: number | null
+    discountAmount?: number
   }) {
-    const { guestId, totalAmountUSD, transactionRef, description, guest } = params
+    const { guestId, totalAmountUSD, transactionRef, description, guest, couponId, discountAmount } = params
 
     const exchangeRate = await getLiveExchangeRate('RUB')
     const totalAmountRUB = await convertUSDtoRUB(totalAmountUSD)
 
-    // Create YooKassa Payment with transaction reference in return URL
-    // YooKassa does NOT automatically add query params, so we add them manually
     const returnUrlWithRef = `${envConfig.YOOKASSA_RETURN_URL}?txnRef=${transactionRef}`
 
     const yookassaPayment = await createYooKassaPayment({
@@ -313,21 +459,20 @@ export const paymentService = {
       transactionRef,
       description,
       returnUrl: returnUrlWithRef,
-      guestEmail: undefined // No email field in Guest model
+      guestEmail: undefined
     })
 
-    // Create pending payment record with USD
-    const payment = await paymentRepository.createPayment({
+    const paymentData = {
       guestId,
       tableNumber: guest?.tableNumber,
-      amount: totalAmountUSD, // Store in USD (original)
+      amount: totalAmountUSD,
       currency: 'USD',
       paymentMethod: PaymentMethod.YooKassa,
       status: PaymentStatus.Pending,
       transactionRef,
-      externalTransactionId: yookassaPayment.id, // YooKassa payment ID
+      externalTransactionId: yookassaPayment.id,
       paymentUrl: yookassaPayment.confirmation?.confirmation_url,
-      returnUrl: returnUrlWithRef, // Use the URL with transaction reference
+      returnUrl: returnUrlWithRef,
       description,
       metadata: JSON.stringify({
         originalAmount: totalAmountUSD,
@@ -338,11 +483,41 @@ export const paymentService = {
         conversionDate: new Date().toISOString(),
         yookassaPaymentId: yookassaPayment.id,
         yookassaStatus: yookassaPayment.status
-      })
-    })
+      }),
+      couponId: couponId || undefined,
+      discountAmount: couponId !== null ? discountAmount : undefined
+    }
 
-    console.log('YooKassa payment created:', payment.id, payment.transactionRef)
-    console.log('YooKassa payment URL:', yookassaPayment.confirmation?.confirmation_url)
+    let payment
+    if (couponId) {
+      payment = await prisma.$transaction(async (tx) => {
+        // Check maxUsagePerGuest within transaction
+        const coupon = await tx.coupon.findUnique({ where: { id: couponId } })
+        if (coupon && coupon.maxUsagePerGuest !== null && guestId !== null) {
+          const usageCount = await tx.couponUsage.count({
+            where: { couponId, guestId }
+          })
+          if (usageCount >= coupon.maxUsagePerGuest) {
+            throw new Error('Bạn đã sử dụng mã này đủ số lần')
+          }
+        }
+
+        const rowsAffected = (await tx.$executeRaw`
+          UPDATE Coupon SET usageCount = usageCount + 1
+          WHERE id = ${couponId} AND status = 'ACTIVE'
+            AND (maxTotalUsage IS NULL OR usageCount < maxTotalUsage)
+        `) as number
+        if (rowsAffected === 0) throw new Error('Mã đã hết lượt dùng')
+        const p = await tx.payment.create({ data: paymentData })
+        // Create CouponUsage record even if discountAmount = 0 (to track usage)
+        await tx.couponUsage.create({
+          data: { couponId, guestId, paymentId: p.id, discountAmount: discountAmount || 0 }
+        })
+        return p
+      })
+    } else {
+      payment = await paymentRepository.createPayment(paymentData)
+    }
 
     return {
       payment,

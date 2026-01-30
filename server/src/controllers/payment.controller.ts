@@ -8,7 +8,8 @@ export const createPaymentController = async ({
   note,
   ipAddr,
   paymentHandlerId,
-  currency
+  currency,
+  couponId
 }: {
   guestId: number
   paymentMethod: string
@@ -16,6 +17,7 @@ export const createPaymentController = async ({
   ipAddr: string
   paymentHandlerId?: number
   currency?: string
+  couponId?: number
 }) => {
   return await paymentService.createPayment({
     guestId,
@@ -23,7 +25,8 @@ export const createPaymentController = async ({
     note,
     ipAddr,
     paymentHandlerId,
-    currency
+    currency,
+    couponId
   })
 }
 

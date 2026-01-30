@@ -44,6 +44,8 @@ export const OrderSchema = z.object({
   orderHandler: AccountSchema.nullable(),
   status: z.enum(OrderStatusValues),
   totalAmount: z.number(),
+  couponId: z.number().nullable(),
+  discountAmount: z.number().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
   items: z.array(OrderItemSchema),
@@ -93,6 +95,7 @@ export type GetOrderDetailResType = z.TypeOf<typeof GetOrderDetailRes>
 
 export const PayGuestOrdersBody = z.object({
   guestId: z.number(),
+  couponId: z.number().int().positive().optional(),
 })
 
 export type PayGuestOrdersBodyType = z.TypeOf<typeof PayGuestOrdersBody>
@@ -104,6 +107,7 @@ export type PayGuestOrdersResType = z.TypeOf<typeof PayGuestOrdersRes>
 export const CreateOrdersBody = z
   .object({
     guestId: z.number(),
+    couponId: z.number().int().positive().optional(),
     orders: z.array(
       z.object({
         dishId: z.number(),

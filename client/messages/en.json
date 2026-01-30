@@ -138,5 +138,9 @@
   "Calendar": {
     "title": "Calendar",
     "description": "Work Schedule Calendar"
+  },
+  "Coupons": {
+    "title": "Coupons",
+    "description": "Manage discount coupons"
   }
 }

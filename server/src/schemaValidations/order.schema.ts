@@ -92,7 +92,8 @@ export const GetOrderDetailRes = z.object({
 export type GetOrderDetailResType = z.TypeOf<typeof GetOrderDetailRes>
 
 export const PayGuestOrdersBody = z.object({
-  guestId: z.number()
+  guestId: z.number(),
+  couponId: z.number().int().positive().optional()
 })
 
 export type PayGuestOrdersBodyType = z.TypeOf<typeof PayGuestOrdersBody>
@@ -104,6 +105,7 @@ export type PayGuestOrdersResType = z.TypeOf<typeof PayGuestOrdersRes>
 export const CreateOrdersBody = z
   .object({
     guestId: z.number(),
+    couponId: z.number().int().positive().optional(),
     orders: z.array(
       z.object({
         dishId: z.number(),

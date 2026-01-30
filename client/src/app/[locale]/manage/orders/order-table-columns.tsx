@@ -135,7 +135,21 @@ const orderTableColumns: ColumnDef<OrderRow>[] = [
                   x{row.original.items.reduce((sum, item) => sum + item.quantity, 0)}
                 </Badge>
               </div>
-              <span className="italic">{formatCurrency(row.original.totalAmount)}</span>
+              <div className="space-y-0.5">
+                {row.original.discountAmount && row.original.discountAmount > 0 && (
+                  <div className="text-xs text-green-600 dark:text-green-400">
+                    -{formatCurrency(row.original.discountAmount)} discount
+                  </div>
+                )}
+                <span className="italic">
+                  {formatCurrency(row.original.totalAmount - (row.original.discountAmount || 0))}
+                  {row.original.discountAmount && row.original.discountAmount > 0 && (
+                    <span className="ml-1 text-xs line-through text-muted-foreground">
+                      {formatCurrency(row.original.totalAmount)}
+                    </span>
+                  )}
+                </span>
+              </div>
             </div>
           </>
         )}

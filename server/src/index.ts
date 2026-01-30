@@ -9,8 +9,9 @@ import validatorCompilerPlugin from '@/plugins/validatorCompiler.plugins'
 import accountRoutes from '@/routes/account.route'
 import authRoutes from '@/routes/auth.route'
 import blogRoutes from '@/routes/blog.route'
-import calendarRoutes from '@/routes/calendar.route'
 import calendarTypeRoutes from '@/routes/calendar-type.route'
+import calendarRoutes from '@/routes/calendar.route'
+import couponRoutes from '@/routes/coupon.route'
 import dishRoutes from '@/routes/dish.route'
 import guestRoutes from '@/routes/guest.route'
 import indicatorRoutes from '@/routes/indicator.route'
@@ -135,6 +136,7 @@ const start = async () => {
     fastify.register(paymentRoutes, { prefix: '/payment' })
     fastify.register(reviewRoutes, { prefix: '/reviews' })
     fastify.register(blogRoutes, { prefix: '/blog-posts' })
+    fastify.register(couponRoutes, { prefix: '/coupons' })
     fastify.register(calendarRoutes, { prefix: '/calendar' })
     fastify.register(calendarTypeRoutes, { prefix: '/calendar-types' })
 
