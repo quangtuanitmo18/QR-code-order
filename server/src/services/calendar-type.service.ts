@@ -1,3 +1,5 @@
+import { Role } from '@/constants/type'
+import { accountRepository } from '@/repositories/account.repository'
 import { calendarTypeRepository } from '@/repositories/calendar-type.repository'
 import { EntityError } from '@/utils/errors'
 
@@ -160,6 +162,90 @@ export const calendarTypeService = {
       createdBy: updated.createdBy,
       createdAt: updated.createdAt.toISOString(),
       updatedAt: updated.updatedAt.toISOString()
+    }
+  },
+
+  /**
+   * Initialize default calendar types for the first owner account.
+   *
+   * This is intended to replace seeding logic inside migrations so that:
+   * - It works consistently in all environments (no shadow DB issues).
+   * - It does not assume a hard-coded owner ID (like 1).
+   */
+  async initDefaultCalendarTypes() {
+    // Find an owner account to attach as creator
+    const accounts = await accountRepository.findAll()
+    const owner = accounts.find((a) => a.role === Role.Owner)
+
+    if (!owner) {
+      // No owner yet, nothing to initialize
+      return
+    }
+
+    const defaultTypes: Array<{
+      name: string
+      label: string
+      color: string
+      category: string
+      visible: boolean
+    }> = [
+      {
+        name: 'work_shift',
+        label: 'Work Shifts',
+        color: 'bg-blue-500',
+        category: 'work',
+        visible: true
+      },
+      {
+        name: 'meeting',
+        label: 'Meetings',
+        color: 'bg-green-500',
+        category: 'work',
+        visible: true
+      },
+      {
+        name: 'personal',
+        label: 'Personal',
+        color: 'bg-pink-500',
+        category: 'personal',
+        visible: true
+      },
+      {
+        name: 'holiday',
+        label: 'Holidays',
+        color: 'bg-red-500',
+        category: 'shared',
+        visible: true
+      },
+      {
+        name: 'birthday',
+        label: 'Birthdays',
+        color: 'bg-purple-500',
+        category: 'shared',
+        visible: true
+      },
+      {
+        name: 'company_event',
+        label: 'Company Events',
+        color: 'bg-orange-500',
+        category: 'shared',
+        visible: true
+      }
+    ]
+
+    // Upsert-like logic using repository helpers
+    for (const t of defaultTypes) {
+      const existing = await calendarTypeRepository.findByName(t.name)
+      if (existing) continue
+
+      await calendarTypeRepository.create({
+        name: t.name,
+        label: t.label,
+        color: t.color,
+        category: t.category,
+        visible: t.visible,
+        createdById: owner.id
+      })
     }
   }
 }

@@ -26,6 +26,7 @@ import spinRewardRoutes from '@/routes/spin-reward.route'
 import staticRoutes from '@/routes/static.route'
 import tablesRoutes from '@/routes/table.route'
 import testRoutes from '@/routes/test.route'
+import { calendarTypeService } from '@/services/calendar-type.service'
 import { createFolder } from '@/utils/helpers'
 import fastifyAuth from '@fastify/auth'
 import fastifyCookie from '@fastify/cookie'
@@ -148,7 +149,9 @@ const start = async () => {
     fastify.register(employeeSpinRoutes, { prefix: '/employee-spin' })
     fastify.register(adminSpinRoutes, { prefix: '/admin/employee-spins' })
 
+    // Initialize system data
     await initOwnerAccount()
+    await calendarTypeService.initDefaultCalendarTypes()
     await fastify.listen({
       port: envConfig.PORT,
       // host: envConfig.DOCKER ? '0.0.0.0' : 'localhost'

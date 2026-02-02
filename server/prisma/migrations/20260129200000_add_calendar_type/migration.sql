@@ -18,8 +18,7 @@ CREATE INDEX "CalendarType_category_idx" ON "CalendarType"("category");
 CREATE INDEX "CalendarType_visible_idx" ON "CalendarType"("visible");
 CREATE INDEX "CalendarType_createdById_idx" ON "CalendarType"("createdById");
 
--- Insert default calendar types (assuming owner account with id=1 exists)
--- If owner doesn't exist, these will fail, so we'll handle it in a seed script
+-- Insert default calendar types (only if Account with id=1 exists to avoid FK errors)
 INSERT INTO "CalendarType" ("name", "label", "color", "category", "visible", "createdById", "createdAt", "updatedAt")
 SELECT 
     'work_shift' as "name",
@@ -30,7 +29,8 @@ SELECT
     1 as "createdById",
     CURRENT_TIMESTAMP as "createdAt",
     CURRENT_TIMESTAMP as "updatedAt"
-WHERE NOT EXISTS (SELECT 1 FROM "CalendarType" WHERE "name" = 'work_shift');
+WHERE EXISTS (SELECT 1 FROM "Account" WHERE "id" = 1)
+  AND NOT EXISTS (SELECT 1 FROM "CalendarType" WHERE "name" = 'work_shift');
 
 INSERT INTO "CalendarType" ("name", "label", "color", "category", "visible", "createdById", "createdAt", "updatedAt")
 SELECT 
@@ -42,7 +42,8 @@ SELECT
     1 as "createdById",
     CURRENT_TIMESTAMP as "createdAt",
     CURRENT_TIMESTAMP as "updatedAt"
-WHERE NOT EXISTS (SELECT 1 FROM "CalendarType" WHERE "name" = 'meeting');
+WHERE EXISTS (SELECT 1 FROM "Account" WHERE "id" = 1)
+  AND NOT EXISTS (SELECT 1 FROM "CalendarType" WHERE "name" = 'meeting');
 
 INSERT INTO "CalendarType" ("name", "label", "color", "category", "visible", "createdById", "createdAt", "updatedAt")
 SELECT 
@@ -54,7 +55,8 @@ SELECT
     1 as "createdById",
     CURRENT_TIMESTAMP as "createdAt",
     CURRENT_TIMESTAMP as "updatedAt"
-WHERE NOT EXISTS (SELECT 1 FROM "CalendarType" WHERE "name" = 'personal');
+WHERE EXISTS (SELECT 1 FROM "Account" WHERE "id" = 1)
+  AND NOT EXISTS (SELECT 1 FROM "CalendarType" WHERE "name" = 'personal');
 
 INSERT INTO "CalendarType" ("name", "label", "color", "category", "visible", "createdById", "createdAt", "updatedAt")
 SELECT 
@@ -66,7 +68,8 @@ SELECT
     1 as "createdById",
     CURRENT_TIMESTAMP as "createdAt",
     CURRENT_TIMESTAMP as "updatedAt"
-WHERE NOT EXISTS (SELECT 1 FROM "CalendarType" WHERE "name" = 'holiday');
+WHERE EXISTS (SELECT 1 FROM "Account" WHERE "id" = 1)
+  AND NOT EXISTS (SELECT 1 FROM "CalendarType" WHERE "name" = 'holiday');
 
 INSERT INTO "CalendarType" ("name", "label", "color", "category", "visible", "createdById", "createdAt", "updatedAt")
 SELECT 
@@ -78,7 +81,8 @@ SELECT
     1 as "createdById",
     CURRENT_TIMESTAMP as "createdAt",
     CURRENT_TIMESTAMP as "updatedAt"
-WHERE NOT EXISTS (SELECT 1 FROM "CalendarType" WHERE "name" = 'birthday');
+WHERE EXISTS (SELECT 1 FROM "Account" WHERE "id" = 1)
+  AND NOT EXISTS (SELECT 1 FROM "CalendarType" WHERE "name" = 'birthday');
 
 INSERT INTO "CalendarType" ("name", "label", "color", "category", "visible", "createdById", "createdAt", "updatedAt")
 SELECT 
@@ -90,7 +94,8 @@ SELECT
     1 as "createdById",
     CURRENT_TIMESTAMP as "createdAt",
     CURRENT_TIMESTAMP as "updatedAt"
-WHERE NOT EXISTS (SELECT 1 FROM "CalendarType" WHERE "name" = 'company_event');
+WHERE EXISTS (SELECT 1 FROM "Account" WHERE "id" = 1)
+  AND NOT EXISTS (SELECT 1 FROM "CalendarType" WHERE "name" = 'company_event');
 
 -- Add typeId column to CalendarEvent (nullable first)
 ALTER TABLE "CalendarEvent" ADD COLUMN "typeId" INTEGER;
