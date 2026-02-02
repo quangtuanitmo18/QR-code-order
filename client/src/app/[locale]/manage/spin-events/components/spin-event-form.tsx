@@ -25,10 +25,9 @@ import { handleErrorApi } from '@/lib/utils'
 import { useGetEmployeesQuery } from '@/queries/useAccount'
 import { useCreateSpinEventMutation, useUpdateSpinEventMutation } from '@/queries/useSpinEvent'
 import {
-  CreateSpinEventBody,
   CreateSpinEventBodyType,
   SpinEventType,
-  UpdateSpinEventBody
+  UpdateSpinEventBody,
 } from '@/schemaValidations/spin-event.schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
@@ -53,23 +52,38 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<number[]>([])
 
   const form = useForm<CreateSpinEventBodyType>({
-    resolver: zodResolver(event ? UpdateSpinEventBody : CreateSpinEventBody) as any,
-    defaultValues: event
-      ? {
-          name: event.name,
-          description: event.description || undefined,
-          startDate: new Date(event.startDate),
-          endDate: event.endDate ? new Date(event.endDate) : undefined,
-          isActive: event.isActive,
-        }
-      : {
-          name: '',
-          description: undefined,
-          startDate: new Date(),
-          endDate: undefined,
-          isActive: true,
-        },
+    resolver: zodResolver(UpdateSpinEventBody) as any,
+    defaultValues: {
+      name: '',
+      description: undefined,
+      startDate: new Date(),
+      endDate: undefined,
+      isActive: true,
+    },
   })
+
+  // Reset form when event prop changes (for editing)
+  useEffect(() => {
+    if (event) {
+      form.reset({
+        name: event.name,
+        description: event.description || undefined,
+        startDate: new Date(event.startDate),
+        endDate: event.endDate ? new Date(event.endDate) : undefined,
+        isActive: event.isActive,
+      })
+      // Update resolver when switching between create/edit mode
+      form.clearErrors()
+    } else {
+      form.reset({
+        name: '',
+        description: undefined,
+        startDate: new Date(),
+        endDate: undefined,
+        isActive: true,
+      })
+    }
+  }, [event, form])
 
   // Load employee IDs from event if editing
   useEffect(() => {
@@ -97,9 +111,9 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
       if (event) {
         const updateData: any = {
           name: data.name,
-          description: data.description === undefined ? undefined : (data.description || null),
+          description: data.description === undefined ? undefined : data.description || null,
           startDate: data.startDate,
-          endDate: data.endDate === undefined ? undefined : (data.endDate || null),
+          endDate: data.endDate === undefined ? undefined : data.endDate || null,
           isActive: data.isActive,
           employeeIds: selectedEmployeeIds,
         }
@@ -109,10 +123,24 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
           description: 'Event updated successfully',
         })
       } else {
+        // Validate required fields for create mode
+        if (!data.name || !data.startDate) {
+          form.setError('root', {
+            message: 'Name and start date are required',
+          })
+          if (!data.name) {
+            form.setError('name', { message: 'Name is required' })
+          }
+          if (!data.startDate) {
+            form.setError('startDate', { message: 'Start date is required' })
+          }
+          return
+        }
+
         const createData: any = {
-          name: data.name!,
+          name: data.name,
           description: data.description || undefined,
-          startDate: data.startDate!,
+          startDate: data.startDate,
           endDate: data.endDate || undefined,
           isActive: data.isActive ?? true,
           employeeIds: selectedEmployeeIds,
@@ -247,13 +275,11 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
         {/* Assign Employees Section */}
         <div className="space-y-2">
           <FormLabel>Assign Employees</FormLabel>
-          <FormDescription>
-            Select employees who can participate in this spin event
-          </FormDescription>
+          <FormDescription>Select employees who can participate in this spin event</FormDescription>
           <div className="space-y-3">
             {/* Selected Employees Display */}
             {selectedEmployeeIds.length > 0 && (
-              <div className="flex flex-wrap gap-2 rounded-lg border p-3 min-h-[3rem]">
+              <div className="flex min-h-[3rem] flex-wrap gap-2 rounded-lg border p-3">
                 {selectedEmployeeIds.map((employeeId) => {
                   const employee = employees.find((emp) => emp.id === employeeId)
                   if (!employee) return null
@@ -269,7 +295,7 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
                       <button
                         type="button"
                         onClick={() => removeEmployee(employeeId)}
-                        className="ml-1 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                        className="ml-1 rounded-full p-0.5 hover:bg-muted-foreground/20"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -331,4 +357,3 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
     </Form>
   )
 }
-
