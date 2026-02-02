@@ -74,6 +74,21 @@ export const GetSpinEventRes = z.object({
         })
       )
       .optional(),
+    spins: z
+      .array(
+        z.object({
+          id: z.number(),
+          employeeId: z.number(),
+          employee: z
+            .object({
+              id: z.number(),
+              name: z.string(),
+              email: z.string(),
+            })
+            .optional(),
+        })
+      )
+      .optional(),
   }),
   message: z.string(),
 })

@@ -1,11 +1,6 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Form,
   FormControl,
@@ -15,6 +10,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -22,6 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { toast } from '@/components/ui/use-toast'
+import { handleErrorApi } from '@/lib/utils'
+import { useGetSpinEventsQuery } from '@/queries/useSpinEvent'
+import { useCreateSpinRewardMutation, useUpdateSpinRewardMutation } from '@/queries/useSpinReward'
 import {
   CreateSpinRewardBody,
   CreateSpinRewardBodyType,
@@ -29,11 +30,9 @@ import {
   SpinRewardTypeValues,
   UpdateSpinRewardBodyType,
 } from '@/schemaValidations/spin-reward.schema'
-import { useCreateSpinRewardMutation, useUpdateSpinRewardMutation } from '@/queries/useSpinReward'
-import { useGetSpinEventsQuery } from '@/queries/useSpinEvent'
-import { toast } from '@/components/ui/use-toast'
-import { handleErrorApi } from '@/lib/utils'
-import { Checkbox } from '@/components/ui/checkbox'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect } from 'react'
+import { useForm } from 'react-hook-form'
 
 interface SpinRewardFormProps {
   reward?: SpinRewardType | null
@@ -55,7 +54,11 @@ const colorOptions = [
 export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormProps) {
   const createMutation = useCreateSpinRewardMutation()
   const updateMutation = useUpdateSpinRewardMutation()
-  const { data: eventsData } = useGetSpinEventsQuery({ isActive: true })
+  // When editing, load all events (including inactive) to show the current event
+  // When creating, only load active events
+  const { data: eventsData } = useGetSpinEventsQuery(reward ? undefined : { isActive: true })
+
+  const events = eventsData?.payload?.data ?? []
 
   const form = useForm<CreateSpinRewardBodyType>({
     resolver: zodResolver(CreateSpinRewardBody),
@@ -71,7 +74,7 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
           isActive: reward.isActive,
           order: reward.order,
           maxQuantity: reward.maxQuantity || undefined,
-          eventId: reward.eventId,
+          eventId: reward?.event?.id || undefined,
         }
       : {
           name: '',
@@ -84,9 +87,26 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
           isActive: true,
           order: 0,
           maxQuantity: undefined,
-          eventId: eventsData?.data?.[0]?.id || 0,
+          eventId: undefined,
         },
   })
+
+  // When creating a new reward, auto-select the first active event once loaded
+  useEffect(() => {
+    if (reward) {
+      // When editing, ensure eventId is set if reward has one
+      if (reward.eventId && !form.getValues('eventId')) {
+        form.setValue('eventId', reward.eventId)
+      }
+      return
+    }
+    if (!events.length) return
+
+    const currentEventId = form.getValues('eventId')
+    if (!currentEventId) {
+      form.setValue('eventId', events[0].id)
+    }
+  }, [events, form, reward])
 
   const onSubmit = async (data: CreateSpinRewardBodyType) => {
     try {
@@ -103,7 +123,11 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
           order: data.order,
           maxQuantity: data.maxQuantity,
         }
-        await updateMutation.mutateAsync({ id: reward.id, ...updateData })
+        // Remove undefined values to avoid sending empty body
+        const cleanedData = Object.fromEntries(
+          Object.entries(updateData).filter(([_, value]) => value !== undefined)
+        ) as UpdateSpinRewardBodyType
+        await updateMutation.mutateAsync({ id: reward.id, body: cleanedData })
         toast({
           title: 'Success',
           description: 'Reward updated successfully',
@@ -116,8 +140,8 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
         })
       }
       onSuccess()
-    } catch (error) {
-      handleErrorApi(error)
+    } catch (error: any) {
+      handleErrorApi({ error })
     }
   }
 
@@ -132,7 +156,7 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
               <FormLabel>Event *</FormLabel>
               <Select
                 onValueChange={(value) => field.onChange(Number(value))}
-                value={field.value?.toString()}
+                value={field.value ? field.value.toString() : undefined}
                 disabled={!!reward} // Can't change event for existing reward
               >
                 <FormControl>
@@ -141,7 +165,7 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  {eventsData?.data?.map((event) => (
+                  {events.map((event) => (
                     <SelectItem key={event.id} value={event.id.toString()}>
                       {event.name}
                     </SelectItem>

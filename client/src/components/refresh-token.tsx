@@ -17,11 +17,22 @@ export default function RefreshToken() {
     let interval: any = null
     // Phải gọi lần đầu tiên, vì interval sẽ chạy sau thời gian TIMEOUT
     const onRefreshToken = (force?: boolean) => {
+     
       checkAndRefreshToken({
         onError: () => {
+          console.error('[RefreshToken] ❌ Refresh token failed - redirecting to login', {
+            pathname,
+            timestamp: new Date().toISOString(),
+          })
           clearInterval(interval)
           disconnectSocket()
           router.push('/manage/login')
+        },
+        onSuccess: () => {
+          console.log('[RefreshToken] ✅ Token refreshed successfully', {
+            pathname,
+            timestamp: new Date().toISOString(),
+          })
         },
         force,
       })
@@ -46,6 +57,7 @@ export default function RefreshToken() {
     }
 
     function onRefreshTokenSocket() {
+      console.log('[RefreshToken] 🔔 Received refresh-token event from socket')
       onRefreshToken(true)
     }
     socket?.on('connect', onConnect)

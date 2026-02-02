@@ -1,45 +1,46 @@
 import { Role } from '@/constants/type'
 import {
-  changePasswordController,
-  changePasswordV2Controller,
-  createEmployeeAccount,
-  createGuestController,
-  deleteEmployeeAccount,
-  getAccountList,
-  getEmployeeAccount,
-  getGuestList,
-  getMeController,
-  updateEmployeeAccount,
-  updateMeController
+    changePasswordController,
+    changePasswordV2Controller,
+    createEmployeeAccount,
+    createGuestController,
+    deleteEmployeeAccount,
+    getAccountList,
+    getEmployeeAccount,
+    getEmployeeAccounts,
+    getGuestList,
+    getMeController,
+    updateEmployeeAccount,
+    updateMeController
 } from '@/controllers/account.controller'
 import { pauseApiHook, requireEmployeeHook, requireLoginedHook, requireOwnerHook } from '@/hooks/auth.hooks'
 import {
-  AccountIdParam,
-  AccountIdParamType,
-  AccountListRes,
-  AccountListResType,
-  AccountRes,
-  AccountResType,
-  ChangePasswordBody,
-  ChangePasswordBodyType,
-  ChangePasswordV2Body,
-  ChangePasswordV2BodyType,
-  ChangePasswordV2Res,
-  ChangePasswordV2ResType,
-  CreateEmployeeAccountBody,
-  CreateEmployeeAccountBodyType,
-  CreateGuestBody,
-  CreateGuestBodyType,
-  CreateGuestRes,
-  CreateGuestResType,
-  GetGuestListQueryParams,
-  GetGuestListQueryParamsType,
-  GetListGuestsRes,
-  GetListGuestsResType,
-  UpdateEmployeeAccountBody,
-  UpdateEmployeeAccountBodyType,
-  UpdateMeBody,
-  UpdateMeBodyType
+    AccountIdParam,
+    AccountIdParamType,
+    AccountListRes,
+    AccountListResType,
+    AccountRes,
+    AccountResType,
+    ChangePasswordBody,
+    ChangePasswordBodyType,
+    ChangePasswordV2Body,
+    ChangePasswordV2BodyType,
+    ChangePasswordV2Res,
+    ChangePasswordV2ResType,
+    CreateEmployeeAccountBody,
+    CreateEmployeeAccountBodyType,
+    CreateGuestBody,
+    CreateGuestBodyType,
+    CreateGuestRes,
+    CreateGuestResType,
+    GetGuestListQueryParams,
+    GetGuestListQueryParamsType,
+    GetListGuestsRes,
+    GetListGuestsResType,
+    UpdateEmployeeAccountBody,
+    UpdateEmployeeAccountBodyType,
+    UpdateMeBody,
+    UpdateMeBodyType
 } from '@/schemaValidations/account.schema'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 
@@ -60,6 +61,25 @@ export default async function accountRoutes(fastify: FastifyInstance, options: F
       reply.send({
         data: accounts as AccountListResType['data'],
         message: 'Get employee list successfully'
+      })
+    }
+  )
+
+  // Get all employees only
+  fastify.get<{ Reply: AccountListResType }>(
+    '/employees',
+    {
+      schema: {
+        response: {
+          200: AccountListRes
+        }
+      }
+    },
+    async (request, reply) => {
+      const employees = await getEmployeeAccounts()
+      reply.send({
+        data: employees as AccountListResType['data'],
+        message: 'Get employees successfully'
       })
     }
   )

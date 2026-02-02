@@ -15,11 +15,6 @@ CREATE TABLE IF NOT EXISTS "SpinEvent" (
 -- CreateIndex (only if not exists)
 CREATE INDEX IF NOT EXISTS "SpinEvent_isActive_startDate_endDate_idx" ON "SpinEvent"("isActive", "startDate", "endDate");
 
--- Add eventId column to SpinReward (if table exists and column doesn't exist)
--- SQLite doesn't support IF NOT EXISTS for ALTER TABLE, so we'll try to add it
--- If it fails, the column already exists (we'll handle manually)
-ALTER TABLE "SpinReward" ADD COLUMN "eventId" INTEGER;
-
 -- Create a default event for existing rewards
 -- Only create if SpinReward table exists and has data, and we have an Owner account
 INSERT INTO "SpinEvent" ("name", "description", "startDate", "isActive", "createdById", "createdAt", "updatedAt")
@@ -41,8 +36,37 @@ SET "eventId" = (SELECT id FROM "SpinEvent" WHERE name = 'Default Event' LIMIT 1
 WHERE "eventId" IS NULL
   AND EXISTS (SELECT 1 FROM "SpinEvent" WHERE name = 'Default Event');
 
--- CreateIndex for SpinReward eventId
-CREATE INDEX IF NOT EXISTS "SpinReward_eventId_isActive_idx" ON "SpinReward"("eventId", "isActive");
+-- Make eventId NOT NULL and add foreign key constraint
+-- SQLite doesn't support ALTER TABLE to modify column, so we need to recreate the table
+PRAGMA foreign_keys=OFF;
+CREATE TABLE "new_SpinReward" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "type" TEXT NOT NULL,
+    "value" TEXT,
+    "probability" REAL NOT NULL,
+    "color" TEXT NOT NULL DEFAULT 'bg-blue-500',
+    "icon" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "maxQuantity" INTEGER,
+    "currentQuantity" INTEGER NOT NULL DEFAULT 0,
+    "version" INTEGER NOT NULL DEFAULT 0,
+    "eventId" INTEGER NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "SpinReward_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "SpinEvent" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
+);
+INSERT INTO "new_SpinReward" ("id", "name", "description", "type", "value", "probability", "color", "icon", "isActive", "order", "maxQuantity", "currentQuantity", "version", "eventId", "createdAt", "updatedAt")
+SELECT "id", "name", "description", "type", "value", "probability", "color", "icon", "isActive", "order", "maxQuantity", "currentQuantity", "version", COALESCE("eventId", (SELECT id FROM "SpinEvent" WHERE name = 'Default Event' LIMIT 1)), "createdAt", "updatedAt" FROM "SpinReward";
+DROP TABLE "SpinReward";
+ALTER TABLE "new_SpinReward" RENAME TO "SpinReward";
+-- Recreate indexes
+CREATE INDEX "SpinReward_isActive_order_idx" ON "SpinReward"("isActive", "order");
+CREATE INDEX "SpinReward_isActive_currentQuantity_maxQuantity_idx" ON "SpinReward"("isActive", "currentQuantity", "maxQuantity");
+CREATE INDEX "SpinReward_eventId_isActive_idx" ON "SpinReward"("eventId", "isActive");
+PRAGMA foreign_keys=ON;
 
 -- Add eventId column to EmployeeSpin (if table exists)
 ALTER TABLE "EmployeeSpin" ADD COLUMN "eventId" INTEGER;

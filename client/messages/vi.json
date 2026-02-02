@@ -150,5 +150,13 @@
   "SpinRewards": {
     "title": "Phần thưởng quay thưởng",
     "description": "Quản lý phần thưởng cho sự kiện quay thưởng"
+  },
+  "EmployeeSpin": {
+    "title": "Quay thưởng nhân viên",
+    "description": "Quay vòng quay để nhận phần thưởng"
+  },
+  "Spin": {
+    "title": "Quản lý quay thưởng",
+    "description": "Quản lý sự kiện và phần thưởng quay thưởng"
   }
 }

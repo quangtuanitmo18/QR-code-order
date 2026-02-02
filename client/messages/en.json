@@ -150,5 +150,13 @@
   "SpinRewards": {
     "title": "Spin Rewards",
     "description": "Manage rewards for spin events"
+  },
+  "EmployeeSpin": {
+    "title": "Employee Spin",
+    "description": "Spin the wheel to win rewards"
+  },
+  "Spin": {
+    "title": "Spin Management",
+    "description": "Manage spin events and rewards"
   }
 }

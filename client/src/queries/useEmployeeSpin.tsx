@@ -1,14 +1,16 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import employeeSpinApiRequest from '@/apiRequests/employee-spin'
 import {
-  GetEmployeeSpinsQueryParamsType,
-  ExecuteSpinBodyType,
+    ExecuteSpinBodyType,
+    GetActiveRewardsQueryParamsType,
+    GetEmployeeSpinsQueryParamsType,
+    GetPendingRewardsQueryParamsType,
 } from '@/schemaValidations/employee-spin.schema'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
-export const useGetActiveRewardsQuery = () => {
+export const useGetActiveRewardsQuery = (queryParams?: GetActiveRewardsQueryParamsType) => {
   return useQuery({
-    queryFn: () => employeeSpinApiRequest.getActiveRewards(),
-    queryKey: ['employee-spin', 'rewards'],
+    queryFn: () => employeeSpinApiRequest.getActiveRewards(queryParams),
+    queryKey: ['employee-spin', 'rewards', queryParams],
   })
 }
 
@@ -19,10 +21,10 @@ export const useGetMySpinsQuery = (queryParams?: GetEmployeeSpinsQueryParamsType
   })
 }
 
-export const useGetPendingRewardsQuery = () => {
+export const useGetPendingRewardsQuery = (queryParams?: GetPendingRewardsQueryParamsType) => {
   return useQuery({
-    queryFn: () => employeeSpinApiRequest.getPendingRewards(),
-    queryKey: ['employee-spin', 'pending'],
+    queryFn: () => employeeSpinApiRequest.getPendingRewards(queryParams),
+    queryKey: ['employee-spin', 'pending', queryParams],
   })
 }
 

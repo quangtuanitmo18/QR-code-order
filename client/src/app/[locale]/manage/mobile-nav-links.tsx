@@ -17,6 +17,11 @@ import { Package2, PanelLeft } from 'lucide-react'
 export default function MobileNavLinks() {
   const pathname = usePathname()
   const role = useAppStore((state) => state.role)
+
+  if (pathname.includes('/manage/login')) {
+    return null
+  }
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -34,7 +39,7 @@ export default function MobileNavLinks() {
           <SheetTitle />
           <SheetDescription />
         </SheetHeader>
-        <nav className="grid gap-6 text-lg font-medium">
+        <nav className="grid gap-2 text-lg font-medium">
           <Link
             href="#"
             className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"

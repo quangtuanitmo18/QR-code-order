@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { SpinEventSchema } from './spin-event.schema'
 
 // SpinReward Type Enum
 export const SpinRewardTypeValues = [
@@ -24,7 +25,8 @@ export const SpinRewardSchema = z.object({
   maxQuantity: z.number().nullable(),
   currentQuantity: z.number(),
   version: z.number(),
-  eventId: z.number(), // Foreign key to SpinEvent
+  eventId: z.number().nullable().optional(), // Foreign key to SpinEvent
+  event: SpinEventSchema.nullable().optional().default(null),
   createdAt: z.string(), // ISO date string
   updatedAt: z.string(), // ISO date string
 })

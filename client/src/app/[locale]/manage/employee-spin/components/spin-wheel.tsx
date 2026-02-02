@@ -1,10 +1,10 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Loader2 } from 'lucide-react'
 import { GetActiveRewardsResType } from '@/schemaValidations/employee-spin.schema'
+import { Loader2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 interface SpinWheelProps {
   rewards: GetActiveRewardsResType['data']
@@ -12,6 +12,7 @@ interface SpinWheelProps {
   availableSpins: number
   pendingSpinId?: number | null
   isLoading?: boolean
+  wonRewardId?: number | null
 }
 
 export function SpinWheel({
@@ -143,7 +144,7 @@ export function SpinWheel({
             <svg className="h-full w-full" viewBox="0 0 400 400">
               <defs>
                 {segments.map((segment, index) => {
-                  // Convert Tailwind color class to hex (simplified - you may need a color mapping)
+                  // Convert Tailwind color class to hex
                   const colorMap: Record<string, string> = {
                     'bg-blue-500': '#3b82f6',
                     'bg-green-500': '#22c55e',
@@ -153,9 +154,26 @@ export function SpinWheel({
                     'bg-pink-500': '#ec4899',
                     'bg-orange-500': '#f97316',
                     'bg-indigo-500': '#6366f1',
+                    'bg-cyan-500': '#06b6d4',
+                    'bg-teal-500': '#14b8a6',
+                    'bg-lime-500': '#84cc16',
+                    'bg-amber-500': '#f59e0b',
+                    'bg-emerald-500': '#10b981',
+                    'bg-violet-500': '#8b5cf6',
+                    'bg-fuchsia-500': '#d946ef',
+                    'bg-rose-500': '#f43f5e',
                   }
-                  const baseColor =
-                    colorMap[segment.color] || segment.color.replace('bg-', '#3b82f6')
+                  
+                  // If color is already a hex code, use it directly
+                  let baseColor = '#3b82f6' // default
+                  if (segment.color?.startsWith('#')) {
+                    baseColor = segment.color
+                  } else if (segment.color && colorMap[segment.color]) {
+                    baseColor = colorMap[segment.color]
+                  } else if (segment.color?.startsWith('bg-')) {
+                    // Try to extract color from Tailwind class (fallback)
+                    baseColor = '#3b82f6'
+                  }
                   return (
                     <linearGradient
                       key={index}

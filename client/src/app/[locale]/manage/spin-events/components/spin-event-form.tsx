@@ -1,11 +1,7 @@
 'use client'
 
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import {
   Form,
   FormControl,
@@ -15,16 +11,30 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { toast } from '@/components/ui/use-toast'
+import { handleErrorApi } from '@/lib/utils'
+import { useGetEmployeesQuery } from '@/queries/useAccount'
+import { useCreateSpinEventMutation, useUpdateSpinEventMutation } from '@/queries/useSpinEvent'
 import {
   CreateSpinEventBody,
   CreateSpinEventBodyType,
   SpinEventType,
-  UpdateSpinEventBodyType,
+  UpdateSpinEventBody
 } from '@/schemaValidations/spin-event.schema'
-import { useCreateSpinEventMutation, useUpdateSpinEventMutation } from '@/queries/useSpinEvent'
-import { toast } from '@/components/ui/use-toast'
-import { handleErrorApi } from '@/lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
+import { X } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 
 interface SpinEventFormProps {
   event?: SpinEventType | null
@@ -35,9 +45,15 @@ interface SpinEventFormProps {
 export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps) {
   const createMutation = useCreateSpinEventMutation()
   const updateMutation = useUpdateSpinEventMutation()
+  const employeesQuery = useGetEmployeesQuery()
+
+  const employees = employeesQuery.data?.payload.data || []
+
+  // Separate state for employeeIds
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState<number[]>([])
 
   const form = useForm<CreateSpinEventBodyType>({
-    resolver: zodResolver(CreateSpinEventBody),
+    resolver: zodResolver(event ? UpdateSpinEventBody : CreateSpinEventBody) as any,
     defaultValues: event
       ? {
           name: event.name,
@@ -55,15 +71,37 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
         },
   })
 
+  // Load employee IDs from event if editing
+  useEffect(() => {
+    if (event) {
+      // Try to get employeeIds from spins if available
+      if ('spins' in event && Array.isArray(event.spins)) {
+        const employeeIds = Array.from(
+          new Set(
+            event.spins
+              .map((spin: any) => spin.employeeId)
+              .filter((id: any) => id !== undefined && id !== null)
+          )
+        ) as number[]
+        setSelectedEmployeeIds(employeeIds)
+      } else {
+        setSelectedEmployeeIds([])
+      }
+    } else {
+      setSelectedEmployeeIds([])
+    }
+  }, [event])
+
   const onSubmit = async (data: CreateSpinEventBodyType) => {
     try {
       if (event) {
-        const updateData: UpdateSpinEventBodyType = {
+        const updateData: any = {
           name: data.name,
-          description: data.description,
+          description: data.description === undefined ? undefined : (data.description || null),
           startDate: data.startDate,
-          endDate: data.endDate,
+          endDate: data.endDate === undefined ? undefined : (data.endDate || null),
           isActive: data.isActive,
+          employeeIds: selectedEmployeeIds,
         }
         await updateMutation.mutateAsync({ id: event.id, ...updateData })
         toast({
@@ -71,17 +109,37 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
           description: 'Event updated successfully',
         })
       } else {
-        await createMutation.mutateAsync(data)
+        const createData: any = {
+          name: data.name!,
+          description: data.description || undefined,
+          startDate: data.startDate!,
+          endDate: data.endDate || undefined,
+          isActive: data.isActive ?? true,
+          employeeIds: selectedEmployeeIds,
+        }
+        await createMutation.mutateAsync(createData)
         toast({
           title: 'Success',
           description: 'Event created successfully',
         })
       }
       onSuccess()
-    } catch (error) {
-      handleErrorApi(error)
+    } catch (error: any) {
+      handleErrorApi({ error })
     }
   }
+
+  const addEmployee = (employeeId: number) => {
+    if (!selectedEmployeeIds.includes(employeeId)) {
+      setSelectedEmployeeIds([...selectedEmployeeIds, employeeId])
+    }
+  }
+
+  const removeEmployee = (employeeId: number) => {
+    setSelectedEmployeeIds(selectedEmployeeIds.filter((id) => id !== employeeId))
+  }
+
+  const availableEmployees = employees.filter((emp) => !selectedEmployeeIds.includes(emp.id))
 
   return (
     <Form {...form}>
@@ -186,6 +244,77 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
           )}
         />
 
+        {/* Assign Employees Section */}
+        <div className="space-y-2">
+          <FormLabel>Assign Employees</FormLabel>
+          <FormDescription>
+            Select employees who can participate in this spin event
+          </FormDescription>
+          <div className="space-y-3">
+            {/* Selected Employees Display */}
+            {selectedEmployeeIds.length > 0 && (
+              <div className="flex flex-wrap gap-2 rounded-lg border p-3 min-h-[3rem]">
+                {selectedEmployeeIds.map((employeeId) => {
+                  const employee = employees.find((emp) => emp.id === employeeId)
+                  if (!employee) return null
+                  return (
+                    <Badge
+                      key={employeeId}
+                      variant="secondary"
+                      className="flex items-center gap-1 pr-1"
+                    >
+                      <span>
+                        {employee.name} ({employee.email})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeEmployee(employeeId)}
+                        className="ml-1 rounded-full hover:bg-muted-foreground/20 p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Select Dropdown */}
+            <Select
+              value=""
+              onValueChange={(value) => {
+                if (value) {
+                  addEmployee(Number(value))
+                }
+              }}
+              disabled={availableEmployees.length === 0}
+            >
+              <SelectTrigger>
+                <SelectValue
+                  placeholder={
+                    availableEmployees.length === 0
+                      ? 'All employees selected'
+                      : 'Select an employee to add...'
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {availableEmployees.length === 0 ? (
+                  <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                    No more employees available
+                  </div>
+                ) : (
+                  availableEmployees.map((employee) => (
+                    <SelectItem key={employee.id} value={employee.id.toString()}>
+                      {employee.name} ({employee.email})
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
@@ -202,3 +331,4 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
     </Form>
   )
 }
+

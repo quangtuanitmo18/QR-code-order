@@ -1,33 +1,33 @@
 import {
-  createCalendarTypeController,
-  deleteCalendarTypeController,
-  getCalendarTypeByIdController,
-  getCalendarTypesController,
-  toggleVisibilityController,
-  updateCalendarTypeController
+    createCalendarTypeController,
+    deleteCalendarTypeController,
+    getCalendarTypeByIdController,
+    getCalendarTypesController,
+    toggleVisibilityController,
+    updateCalendarTypeController
 } from '@/controllers/calendar-type.controller'
 import { requireLoginedHook, requireOwnerHook } from '@/hooks/auth.hooks'
 import {
-  CalendarTypeIdParam,
-  CalendarTypeIdParamType,
-  CreateCalendarTypeBody,
-  CreateCalendarTypeBodyType,
-  CreateCalendarTypeRes,
-  CreateCalendarTypeResType,
-  DeleteCalendarTypeRes,
-  DeleteCalendarTypeResType,
-  GetCalendarTypeRes,
-  GetCalendarTypeResType,
-  GetCalendarTypesQueryParams,
-  GetCalendarTypesQueryParamsType,
-  GetCalendarTypesRes,
-  GetCalendarTypesResType,
-  ToggleVisibilityRes,
-  ToggleVisibilityResType,
-  UpdateCalendarTypeBody,
-  UpdateCalendarTypeBodyType,
-  UpdateCalendarTypeRes,
-  UpdateCalendarTypeResType
+    CalendarTypeIdParam,
+    CalendarTypeIdParamType,
+    CreateCalendarTypeBody,
+    CreateCalendarTypeBodyType,
+    CreateCalendarTypeRes,
+    CreateCalendarTypeResType,
+    DeleteCalendarTypeRes,
+    DeleteCalendarTypeResType,
+    GetCalendarTypeRes,
+    GetCalendarTypeResType,
+    GetCalendarTypesQueryParams,
+    GetCalendarTypesQueryParamsType,
+    GetCalendarTypesRes,
+    GetCalendarTypesResType,
+    ToggleVisibilityRes,
+    ToggleVisibilityResType,
+    UpdateCalendarTypeBody,
+    UpdateCalendarTypeBodyType,
+    UpdateCalendarTypeRes,
+    UpdateCalendarTypeResType
 } from '@/schemaValidations/calendar-type.schema'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 
@@ -75,7 +75,8 @@ export default async function calendarTypeRoutes(fastify: FastifyInstance, optio
   )
 
   // Create, update, delete - only for Owner
-  fastify.addHook('preValidation', requireOwnerHook)
+  // Note: Don't use addHook here as it applies to all routes above
+  // Instead, use preValidation in each route's options
 
   // Create calendar type
   fastify.post<{ Reply: CreateCalendarTypeResType; Body: CreateCalendarTypeBodyType }>(
@@ -86,7 +87,8 @@ export default async function calendarTypeRoutes(fastify: FastifyInstance, optio
           200: CreateCalendarTypeRes
         },
         body: CreateCalendarTypeBody
-      }
+      },
+      preValidation: fastify.auth([requireOwnerHook])
     },
     async (request, reply) => {
       const result = await createCalendarTypeController(request.decodedAccessToken?.userId as number, request.body)
@@ -111,7 +113,8 @@ export default async function calendarTypeRoutes(fastify: FastifyInstance, optio
         },
         params: CalendarTypeIdParam,
         body: UpdateCalendarTypeBody
-      }
+      },
+      preValidation: fastify.auth([requireOwnerHook])
     },
     async (request, reply) => {
       const result = await updateCalendarTypeController(request.params.id, request.body)
@@ -131,7 +134,8 @@ export default async function calendarTypeRoutes(fastify: FastifyInstance, optio
           200: DeleteCalendarTypeRes
         },
         params: CalendarTypeIdParam
-      }
+      },
+      preValidation: fastify.auth([requireOwnerHook])
     },
     async (request, reply) => {
       const result = await deleteCalendarTypeController(request.params.id)
@@ -151,7 +155,8 @@ export default async function calendarTypeRoutes(fastify: FastifyInstance, optio
           200: ToggleVisibilityRes
         },
         params: CalendarTypeIdParam
-      }
+      },
+      preValidation: fastify.auth([requireOwnerHook])
     },
     async (request, reply) => {
       const result = await toggleVisibilityController(request.params.id)

@@ -1,25 +1,44 @@
-import { employeeSpinService } from '@/services/employee-spin.service'
 import {
-  GetEmployeeSpinsQueryParamsType,
+  EmployeeSpinIdParamType,
   ExecuteSpinBodyType,
-  EmployeeSpinIdParamType
+  GetActiveRewardsQueryParamsType,
+  GetEmployeeSpinsQueryParamsType,
+  GetPendingRewardsQueryParamsType
 } from '@/schemaValidations/employee-spin.schema'
+import { employeeSpinService } from '@/services/employee-spin.service'
+import { spinRewardService } from '@/services/spin-reward.service'
 import { FastifyInstance } from 'fastify'
 
 // Note: getMySpinsController does client-side pagination
 // This is acceptable since employees typically won't have thousands of spins
 // For better performance with large datasets, consider adding pagination to repository
 
-export const getActiveRewardsController = async () => {
-  return await employeeSpinService.getActiveRewards()
+export const getActiveRewardsController = async (query?: GetActiveRewardsQueryParamsType) => {
+  return await spinRewardService.getActiveRewards(query?.eventId)
 }
 
 export const getMySpinsController = async (employeeId: number, query: GetEmployeeSpinsQueryParamsType) => {
-  const spins = await employeeSpinService.getEmployeeSpins(employeeId, {
-    status: query.status,
-    fromDate: query.fromDate,
-    toDate: query.toDate
+  const filters: { status?: string; eventId?: number } = {}
+
+  if (query.status) {
+    filters.status = query.status
+  }
+
+  if (query.eventId !== undefined) {
+    filters.eventId = query.eventId
+  }
+
+  // Debug: Log filters and employeeId
+  console.log('[getMySpinsController] Debug:', {
+    employeeId,
+    filters,
+    query
   })
+
+  const spins = await employeeSpinService.getEmployeeSpins(employeeId, filters)
+
+  // Debug: Log result count
+  console.log('[getMySpinsController] Result count:', spins.length)
 
   // Calculate pagination
   const page = query.page ?? 1
@@ -40,8 +59,8 @@ export const getMySpinsController = async (employeeId: number, query: GetEmploye
   }
 }
 
-export const getPendingRewardsController = async (employeeId: number) => {
-  return await employeeSpinService.getPendingRewards(employeeId)
+export const getPendingRewardsController = async (employeeId: number, query?: GetPendingRewardsQueryParamsType) => {
+  return await employeeSpinService.getPendingRewards(employeeId, query?.eventId)
 }
 
 export const executeSpinController = async (

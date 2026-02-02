@@ -353,7 +353,7 @@ Table SpinReward {
 Table EmployeeSpin {
   id Int [pk, increment]
   employeeId Int [not null]
-  rewardId Int [not null]
+  rewardId Int
   eventId Int
   status String [not null, default: 'PENDING']
   claimedAt DateTime
@@ -362,7 +362,7 @@ Table EmployeeSpin {
   notes String
   createdById Int
   employee Account [not null]
-  reward SpinReward [not null]
+  reward SpinReward
   event SpinEvent
   createdBy Account
 }

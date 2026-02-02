@@ -1,7 +1,7 @@
 import accountApiRequest from '@/apiRequests/account'
 import {
-  GetGuestListQueryParamsType,
-  UpdateEmployeeAccountBodyType,
+    GetGuestListQueryParamsType,
+    UpdateEmployeeAccountBodyType,
 } from '@/schemaValidations/account.schema'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
@@ -28,6 +28,13 @@ export const useGetAccountList = () => {
   return useQuery({
     queryKey: ['accounts'],
     queryFn: accountApiRequest.list,
+  })
+}
+
+export const useGetEmployeesQuery = () => {
+  return useQuery({
+    queryKey: ['employees'],
+    queryFn: accountApiRequest.getEmployees,
   })
 }
 

@@ -5,11 +5,13 @@ export interface EmployeeSpinFilters {
   status?: string
   fromDate?: Date
   toDate?: Date
+  eventId?: number
 }
 
 export interface CreateEmployeeSpinData {
   employeeId: number
-  rewardId: number
+  rewardId?: number | null // Optional: null until spin is executed
+  eventId?: number | null
   status?: string
   expiredAt?: Date | null
   notes?: string | null
@@ -33,7 +35,8 @@ export const employeeSpinRepository = {
     return await prisma.employeeSpin.create({
       data: {
         employeeId: data.employeeId,
-        rewardId: data.rewardId,
+        rewardId: data.rewardId ?? null,
+        eventId: data.eventId ?? null,
         status: data.status ?? 'PENDING',
         expiredAt: data.expiredAt ?? null,
         notes: data.notes ?? null,
@@ -56,6 +59,16 @@ export const employeeSpinRepository = {
             value: true,
             color: true,
             icon: true
+          }
+        },
+        event: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            startDate: true,
+            endDate: true,
+            isActive: true
           }
         },
         createdBy: {
@@ -90,6 +103,16 @@ export const employeeSpinRepository = {
             value: true,
             color: true,
             icon: true
+          }
+        },
+        event: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            startDate: true,
+            endDate: true,
+            isActive: true
           }
         },
         createdBy: {
@@ -127,19 +150,35 @@ export const employeeSpinRepository = {
             color: true,
             icon: true
           }
+        },
+        event: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            startDate: true,
+            endDate: true,
+            isActive: true
+          }
         }
       }
     })
   },
 
-  // Find spins by employee ID with filters
+  // Find spins by employee ID with filters (only spins that have been executed - have rewardId)
   async findByEmployeeId(employeeId: number, filters?: EmployeeSpinFilters) {
     const where: Prisma.EmployeeSpinWhereInput = {
-      employeeId
+      employeeId,
+      rewardId: { not: null } // Only show spins that have been executed (have reward)
     }
 
     if (filters?.status) {
       where.status = filters.status
+    }
+
+    if (filters?.eventId !== undefined) {
+      // If eventId is provided, filter by it (including null if needed)
+      where.eventId = filters.eventId
     }
 
     if (filters?.fromDate || filters?.toDate) {
@@ -152,9 +191,18 @@ export const employeeSpinRepository = {
       }
     }
 
-    return await prisma.employeeSpin.findMany({
+
+    const result = await prisma.employeeSpin.findMany({
       where,
       include: {
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true
+          }
+        },
         reward: {
           select: {
             id: true,
@@ -163,6 +211,16 @@ export const employeeSpinRepository = {
             value: true,
             color: true,
             icon: true
+          }
+        },
+        event: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            startDate: true,
+            endDate: true,
+            isActive: true
           }
         },
         createdBy: {
@@ -175,18 +233,30 @@ export const employeeSpinRepository = {
       },
       orderBy: { spinDate: 'desc' }
     })
+
+    return result
   },
 
-  // Find pending spins by employee ID (not expired)
-  async findPendingByEmployeeId(employeeId: number) {
+  // Find pending spins by employee ID (not expired, must have reward - already spun)
+  async findPendingByEmployeeId(employeeId: number, eventId?: number) {
     const now = new Date()
     return await prisma.employeeSpin.findMany({
       where: {
         employeeId,
         status: 'PENDING',
+        rewardId: { not: null }, // Must have reward (already spun)
+        ...(eventId && { eventId }),
         OR: [{ expiredAt: null }, { expiredAt: { gt: now } }]
       },
       include: {
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true
+          }
+        },
         reward: {
           select: {
             id: true,
@@ -195,6 +265,16 @@ export const employeeSpinRepository = {
             value: true,
             color: true,
             icon: true
+          }
+        },
+        event: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            startDate: true,
+            endDate: true,
+            isActive: true
           }
         },
         createdBy: {
@@ -311,6 +391,16 @@ export const employeeSpinRepository = {
             value: true,
             color: true,
             icon: true
+          }
+        },
+        event: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            startDate: true,
+            endDate: true,
+            isActive: true
           }
         },
         createdBy: {

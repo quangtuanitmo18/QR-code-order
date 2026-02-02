@@ -1,5 +1,4 @@
 import prisma from '@/database'
-import { Prisma } from '@prisma/client'
 
 export interface SpinRewardFilters {
   isActive?: boolean
@@ -44,15 +43,19 @@ export const spinRewardRepository = {
       where: {
         ...(filters?.isActive !== undefined && { isActive: filters.isActive })
       },
-      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }]
+      orderBy: [{ order: 'asc' }, { createdAt: 'desc' }],
+      include: {
+        event: true
+      }
     })
   },
 
   // Find active rewards (for display on wheel)
-  async findActive() {
+  async findActive(eventId?: number) {
     return await prisma.spinReward.findMany({
       where: {
-        isActive: true
+        isActive: true,
+        ...(eventId && { eventId })
       },
       orderBy: { order: 'asc' }
     })

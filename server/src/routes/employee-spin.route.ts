@@ -16,12 +16,16 @@ import {
   ExecuteSpinBodyType,
   ExecuteSpinRes,
   ExecuteSpinResType,
+  GetActiveRewardsQueryParams,
+  GetActiveRewardsQueryParamsType,
   GetActiveRewardsRes,
   GetActiveRewardsResType,
   GetEmployeeSpinsQueryParams,
   GetEmployeeSpinsQueryParamsType,
   GetEmployeeSpinsRes,
   GetEmployeeSpinsResType,
+  GetPendingRewardsQueryParams,
+  GetPendingRewardsQueryParamsType,
   GetPendingRewardsRes,
   GetPendingRewardsResType
 } from '@/schemaValidations/employee-spin.schema'
@@ -52,17 +56,18 @@ export default async function employeeSpinRoutes(fastify: FastifyInstance, optio
   )
 
   // Get active rewards (for spin wheel display)
-  fastify.get<{ Reply: GetActiveRewardsResType }>(
+  fastify.get<{ Reply: GetActiveRewardsResType; Querystring: GetActiveRewardsQueryParamsType }>(
     '/rewards',
     {
       schema: {
         response: {
           200: GetActiveRewardsRes
-        }
+        },
+        querystring: GetActiveRewardsQueryParams
       }
     },
     async (request, reply) => {
-      const result = await getActiveRewardsController()
+      const result = await getActiveRewardsController(request.query)
       reply.send({
         message: 'Get active rewards successfully',
         data: result as GetActiveRewardsResType['data']
@@ -92,18 +97,19 @@ export default async function employeeSpinRoutes(fastify: FastifyInstance, optio
   )
 
   // Get pending rewards (unclaimed)
-  fastify.get<{ Reply: GetPendingRewardsResType }>(
+  fastify.get<{ Reply: GetPendingRewardsResType; Querystring: GetPendingRewardsQueryParamsType }>(
     '/pending',
     {
       schema: {
         response: {
           200: GetPendingRewardsRes
-        }
+        },
+        querystring: GetPendingRewardsQueryParams
       }
     },
     async (request, reply) => {
       const employeeId = request.decodedAccessToken?.userId as number
-      const result = await getPendingRewardsController(employeeId)
+      const result = await getPendingRewardsController(employeeId, request.query)
       reply.send({
         message: 'Get pending rewards successfully',
         data: result as GetPendingRewardsResType['data']

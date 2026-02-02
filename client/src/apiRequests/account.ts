@@ -1,17 +1,17 @@
 import http from '@/lib/http'
 import {
-  AccountListResType,
-  AccountResType,
-  ChangePasswordBodyType,
-  ChangePasswordV2BodyType,
-  ChangePasswordV2ResType,
-  CreateEmployeeAccountBodyType,
-  CreateGuestBodyType,
-  CreateGuestResType,
-  GetGuestListQueryParamsType,
-  GetListGuestsResType,
-  UpdateEmployeeAccountBodyType,
-  UpdateMeBodyType,
+    AccountListResType,
+    AccountResType,
+    ChangePasswordBodyType,
+    ChangePasswordV2BodyType,
+    ChangePasswordV2ResType,
+    CreateEmployeeAccountBodyType,
+    CreateGuestBodyType,
+    CreateGuestResType,
+    GetGuestListQueryParamsType,
+    GetListGuestsResType,
+    UpdateEmployeeAccountBodyType,
+    UpdateMeBodyType,
 } from '@/schemaValidations/account.schema'
 import queryString from 'query-string'
 
@@ -38,6 +38,7 @@ const accountApiRequest = {
       baseUrl: '',
     }),
   list: () => http.get<AccountListResType>(`${prefix}`),
+  getEmployees: () => http.get<AccountListResType>(`${prefix}/employees`),
   addEmployee: (body: CreateEmployeeAccountBodyType) => http.post<AccountResType>(prefix, body),
   updateEmployee: (id: number, body: UpdateEmployeeAccountBodyType) =>
     http.put<AccountResType>(`${prefix}/detail/${id}`, body),

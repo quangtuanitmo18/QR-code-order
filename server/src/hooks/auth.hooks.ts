@@ -1,5 +1,5 @@
 import { Role } from '@/constants/type'
-import { AuthError, ForbiddenError } from '@/utils/errors'
+import { AuthError } from '@/utils/errors'
 import { verifyAccessToken } from '@/utils/jwt'
 import { FastifyRequest } from 'fastify'
 

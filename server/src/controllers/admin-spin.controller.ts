@@ -1,15 +1,16 @@
-import { adminSpinService } from '@/services/admin-spin.service'
 import {
-  GrantSpinBodyType,
-  GetAllSpinsQueryParamsType,
-  UpdateSpinBodyType,
-  EmployeeSpinIdParamType
+    EmployeeSpinIdParamType,
+    GetAllSpinsQueryParamsType,
+    GrantSpinBodyType,
+    UpdateSpinBodyType
 } from '@/schemaValidations/employee-spin.schema'
+import { adminSpinService } from '@/services/admin-spin.service'
 
 export const grantSpinController = async (adminId: number, body: GrantSpinBodyType) => {
   return await adminSpinService.grantSpin({
     employeeId: body.employeeId,
     adminId,
+    eventId: body.eventId,
     notes: body.notes,
     expiredAt: body.expiredAt
   })

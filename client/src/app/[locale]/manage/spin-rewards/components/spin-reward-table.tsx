@@ -1,31 +1,40 @@
 'use client'
 
-import { SpinRewardType } from '@/schemaValidations/spin-reward.schema'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Edit, Trash2 } from 'lucide-react'
-import { useDeleteSpinRewardMutation } from '@/queries/useSpinReward'
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/components/ui/table'
 import { toast } from '@/components/ui/use-toast'
 import { handleErrorApi } from '@/lib/utils'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
+import { useDeleteSpinRewardMutation } from '@/queries/useSpinReward'
+import { SpinRewardType } from '@/schemaValidations/spin-reward.schema'
+import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import { Edit, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 interface SpinRewardTableProps {
@@ -49,7 +58,7 @@ export function SpinRewardTable({ rewards, isLoading = false, onEdit }: SpinRewa
       })
       setDeletingReward(null)
     } catch (error) {
-      handleErrorApi(error)
+      handleErrorApi({ error: error as any })
     }
   }
 
@@ -78,6 +87,7 @@ export function SpinRewardTable({ rewards, isLoading = false, onEdit }: SpinRewa
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
+              <TableHead>Event</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Probability</TableHead>
               <TableHead>Quantity</TableHead>
@@ -99,6 +109,13 @@ export function SpinRewardTable({ rewards, isLoading = false, onEdit }: SpinRewa
                   </div>
                 </TableCell>
                 <TableCell>
+                  {reward.event ? (
+                    <Badge variant="outline">{reward.event.name}</Badge>
+                  ) : (
+                    <span className="text-muted-foreground">-</span>
+                  )}
+                </TableCell>
+                <TableCell>
                   <Badge variant="outline">{reward.type}</Badge>
                 </TableCell>
                 <TableCell>{(reward.probability * 100).toFixed(1)}%</TableCell>
@@ -114,14 +131,33 @@ export function SpinRewardTable({ rewards, isLoading = false, onEdit }: SpinRewa
                 </TableCell>
                 <TableCell>{reward.order}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(reward)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeletingReward(reward)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <DotsHorizontalIcon className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => onEdit(reward)}>
+                        <span className="flex items-center gap-2">
+                          <Edit className="h-4 w-4" />
+                          Edit
+                        </span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => setDeletingReward(reward)}
+                      >
+                        <span className="flex items-center gap-2">
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { SpinEventSchema } from './spin-event.schema'
 
 // SpinReward Type Enum
 export const SpinRewardTypeValues = ['BONUS', 'FREE_MEAL', 'EXTRA_BREAK', 'RECOGNITION', 'NOTHING'] as const
@@ -14,6 +15,8 @@ export const SpinRewardSchema = z.object({
   color: z.string(),
   icon: z.string().nullable(),
   isActive: z.boolean(),
+  eventId: z.number().nullable().optional(),
+  event: SpinEventSchema.nullable().optional(),
   order: z.number(),
   maxQuantity: z.number().nullable(),
   currentQuantity: z.number(),
@@ -86,7 +89,8 @@ export const UpdateSpinRewardBody = z
     icon: z.string().max(50).optional().nullable(), // Icon name from lucide-react
     isActive: z.boolean().optional(),
     order: z.number().int().min(0).optional(),
-    maxQuantity: z.number().int().positive().optional().nullable() // NULL = unlimited, number > 0 = limited
+    maxQuantity: z.number().int().positive().optional().nullable(), // NULL = unlimited, number > 0 = limited
+    eventId: z.number().int().positive().optional() // Required: must belong to an event
   })
   .strict()
 

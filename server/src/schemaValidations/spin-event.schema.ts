@@ -73,6 +73,21 @@ export const GetSpinEventRes = z.object({
           currentQuantity: z.number()
         })
       )
+      .optional(),
+    spins: z
+      .array(
+        z.object({
+          id: z.number(),
+          employeeId: z.number(),
+          employee: z
+            .object({
+              id: z.number(),
+              name: z.string(),
+              email: z.string()
+            })
+            .optional()
+        })
+      )
       .optional()
   }),
   message: z.string()
@@ -87,7 +102,8 @@ export const CreateSpinEventBody = z
     description: z.string().max(500).optional(),
     startDate: z.coerce.date(),
     endDate: z.coerce.date().optional(),
-    isActive: z.boolean().optional().default(true)
+    isActive: z.boolean().optional().default(true),
+    employeeIds: z.array(z.number()).optional().default([])
   })
   .strict()
   .refine(
@@ -120,7 +136,8 @@ export const UpdateSpinEventBody = z
     description: z.string().max(500).optional().nullable(),
     startDate: z.coerce.date().optional(),
     endDate: z.coerce.date().optional().nullable(),
-    isActive: z.boolean().optional()
+    isActive: z.boolean().optional(),
+    employeeIds: z.array(z.number()).optional()
   })
   .strict()
   .refine(

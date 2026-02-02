@@ -1,9 +1,8 @@
 import { ManagerRoom } from '@/constants/type'
+import prisma from '@/database'
 import { employeeSpinRepository } from '@/repositories/employee-spin.repository'
-import { spinRewardRepository } from '@/repositories/spin-reward.repository'
 import { EntityError } from '@/utils/errors'
 import { FastifyInstance } from 'fastify'
-import prisma from '@/database'
 
 /**
  * Calculate reward using weighted probability
@@ -181,6 +180,16 @@ export const employeeSpinService = {
                   avatar: true
                 }
               },
+              event: {
+                select: {
+                  id: true,
+                  name: true,
+                  description: true,
+                  startDate: true,
+                  endDate: true,
+                  isActive: true
+                }
+              },
               createdBy: {
                 select: {
                   id: true,
@@ -262,14 +271,14 @@ export const employeeSpinService = {
   /**
    * Get employee spins with filters
    */
-  async getEmployeeSpins(employeeId: number, filters?: { status?: string; fromDate?: Date; toDate?: Date }) {
+  async getEmployeeSpins(employeeId: number, filters?: { status?: string; fromDate?: Date; toDate?: Date; eventId?: number }) {
     return await employeeSpinRepository.findByEmployeeId(employeeId, filters)
   },
 
   /**
    * Get pending rewards (unclaimed, not expired)
    */
-  async getPendingRewards(employeeId: number) {
-    return await employeeSpinRepository.findPendingByEmployeeId(employeeId)
+  async getPendingRewards(employeeId: number, eventId?: number) {
+    return await employeeSpinRepository.findPendingByEmployeeId(employeeId, eventId)
   }
 }

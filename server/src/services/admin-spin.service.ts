@@ -1,14 +1,13 @@
-import { employeeSpinRepository } from '@/repositories/employee-spin.repository'
-import { spinRewardRepository } from '@/repositories/spin-reward.repository'
-import { EntityError } from '@/utils/errors'
-import prisma from '@/database'
+import prisma from '@/database';
+import { employeeSpinRepository } from '@/repositories/employee-spin.repository';
+import { EntityError } from '@/utils/errors';
 
 export const adminSpinService = {
   /**
    * Grant spin to employee
-   * @throws {EntityError} if employee not found
+   * @throws {EntityError} if employee not found or event not found (if eventId provided)
    */
-  async grantSpin(data: { employeeId: number; adminId: number; notes?: string | null; expiredAt?: Date | null }) {
+  async grantSpin(data: { employeeId: number; adminId: number; eventId?: number | null; notes?: string | null; expiredAt?: Date | null }) {
     // Verify employee exists
     const employee = await prisma.account.findUnique({
       where: { id: data.employeeId },
@@ -23,23 +22,23 @@ export const adminSpinService = {
       throw new EntityError([{ field: 'employeeId', message: 'Account is not an employee' }])
     }
 
-    // Create spin with status PENDING
-    // NOTE: rewardId is required by schema but will be updated when spin is executed.
-    // We use the first active reward as a placeholder. This is a workaround because:
-    // - Prisma schema requires rewardId to be non-nullable (foreign key constraint)
-    // - Design requires spin to be created without reward (reward assigned on execution)
-    // - The rewardId will be properly updated in executeSpin() method
-    const firstReward = await spinRewardRepository.findActive()
-    if (firstReward.length === 0) {
-      throw new EntityError([
-        { field: 'rewards', message: 'No active rewards available. Please create rewards first.' }
-      ])
+    // Verify event exists if eventId is provided
+    if (data.eventId) {
+      const event = await prisma.spinEvent.findUnique({
+        where: { id: data.eventId },
+        select: { id: true }
+      })
+
+      if (!event) {
+        throw new EntityError([{ field: 'eventId', message: 'Event not found' }])
+      }
     }
 
-    // Create spin with placeholder rewardId (will be updated on spin execution)
+    // Create spin with status PENDING (rewardId will be set when spin is executed)
     const spin = await employeeSpinRepository.create({
       employeeId: data.employeeId,
-      rewardId: firstReward[0].id, // Placeholder - will be updated in executeSpin()
+      rewardId: null, // Will be set when spin is executed
+      eventId: data.eventId ?? null,
       status: 'PENDING',
       expiredAt: data.expiredAt ?? null,
       notes: data.notes ?? null,

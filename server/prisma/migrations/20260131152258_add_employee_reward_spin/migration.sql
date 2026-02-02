@@ -13,15 +13,17 @@ CREATE TABLE "SpinReward" (
     "maxQuantity" INTEGER,
     "currentQuantity" INTEGER NOT NULL DEFAULT 0,
     "version" INTEGER NOT NULL DEFAULT 0,
+    "eventId" INTEGER,
     "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "updatedAt" DATETIME NOT NULL,
+    CONSTRAINT "SpinReward_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "SpinEvent" ("id") ON DELETE CASCADE ON UPDATE NO ACTION
 );
 
 -- CreateTable
 CREATE TABLE "EmployeeSpin" (
     "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
     "employeeId" INTEGER NOT NULL,
-    "rewardId" INTEGER NOT NULL,
+    "rewardId" INTEGER,
     "status" TEXT NOT NULL DEFAULT 'PENDING',
     "claimedAt" DATETIME,
     "expiredAt" DATETIME,
@@ -29,7 +31,7 @@ CREATE TABLE "EmployeeSpin" (
     "notes" TEXT,
     "createdById" INTEGER,
     CONSTRAINT "EmployeeSpin_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Account" ("id") ON DELETE CASCADE ON UPDATE NO ACTION,
-    CONSTRAINT "EmployeeSpin_rewardId_fkey" FOREIGN KEY ("rewardId") REFERENCES "SpinReward" ("id") ON UPDATE NO ACTION,
+    CONSTRAINT "EmployeeSpin_rewardId_fkey" FOREIGN KEY ("rewardId") REFERENCES "SpinReward" ("id") ON DELETE SET NULL ON UPDATE NO ACTION,
     CONSTRAINT "EmployeeSpin_createdById_fkey" FOREIGN KEY ("createdById") REFERENCES "Account" ("id") ON UPDATE NO ACTION
 );
 

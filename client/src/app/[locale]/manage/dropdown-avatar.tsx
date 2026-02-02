@@ -1,4 +1,7 @@
 'use client'
+import { useAppStore } from '@/components/app-provider'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -7,13 +10,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import { Link, useRouter } from '@/i18n/routing'
-import { useLogoutMutation } from '@/queries/useAuth'
+import { Link, usePathname, useRouter } from '@/i18n/routing'
 import { handleErrorApi } from '@/lib/utils'
 import { useAccountMe } from '@/queries/useAccount'
-import { useAppStore } from '@/components/app-provider'
+import { useLogoutMutation } from '@/queries/useAuth'
 
 export default function DropdownAvatar() {
   const logoutMutation = useLogoutMutation()
@@ -22,6 +22,7 @@ export default function DropdownAvatar() {
   const setRole = useAppStore((state) => state.setRole)
   const disconnectSocket = useAppStore((state) => state.disconnectSocket)
   const account = data?.payload.data
+  const pathname = usePathname()
   const logout = async () => {
     if (logoutMutation.isPending) return
     try {
@@ -35,6 +36,12 @@ export default function DropdownAvatar() {
       })
     }
   }
+
+
+  if (pathname.includes('/manage/login')) {
+    return null
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

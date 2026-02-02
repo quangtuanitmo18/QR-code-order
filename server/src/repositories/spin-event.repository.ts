@@ -1,5 +1,5 @@
-import prisma from '@/database'
-import { SpinEvent } from '@prisma/client'
+import prisma from '@/database';
+import { SpinEvent } from '@prisma/client';
 
 export const spinEventRepository = {
   /**
@@ -96,6 +96,19 @@ export const spinEventRepository = {
         rewards: {
           where: { isActive: true },
           orderBy: { order: 'asc' }
+        },
+        spins: {
+          select: {
+            id: true,
+            employeeId: true,
+            employee: {
+              select: {
+                id: true,
+                name: true,
+                email: true
+              }
+            }
+          }
         },
         _count: {
           select: {

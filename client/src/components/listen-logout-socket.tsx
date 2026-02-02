@@ -15,21 +15,34 @@ export default function ListenLogoutSocket() {
   useEffect(() => {
     if (UNAUTHENTICATED_PATH.includes(pathname)) return
     async function onLogout() {
-      if (isPending) return
+      console.log('[ListenLogoutSocket] 🔔 Received logout event from socket', {
+        pathname,
+        isPending,
+        timestamp: new Date().toISOString(),
+      })
+      if (isPending) {
+        console.log('[ListenLogoutSocket] ⏳ Logout already in progress, skipping')
+        return
+      }
       try {
+        console.log('[ListenLogoutSocket] 📤 Calling logout mutation...')
         await mutateAsync()
         setRole()
         disconnectSocket()
+        console.log('[ListenLogoutSocket] ✅ Logout successful, redirecting to home')
         router.push('/')
       } catch (error: any) {
+        console.error('[ListenLogoutSocket] ❌ Logout error:', error)
         handleErrorApi({
           error,
         })
       }
     }
     socket?.on('logout', onLogout)
+    console.log('[ListenLogoutSocket] 👂 Listening for logout events', { pathname })
     return () => {
       socket?.off('logout', onLogout)
+      console.log('[ListenLogoutSocket] 🔇 Stopped listening for logout events')
     }
   }, [socket, pathname, setRole, router, isPending, mutateAsync, disconnectSocket])
   return null

@@ -74,14 +74,26 @@ export const checkAndRefreshToken = async (param?: {
   const accessToken = getAccessTokenFromLocalStorage()
   const refreshToken = getRefreshTokenFromLocalStorage()
   // Chưa đăng nhập thì cũng không cho chạy
-  if (!accessToken || !refreshToken) return
+  if (!accessToken || !refreshToken) {
+    console.log('[checkAndRefreshToken] ⚠️ No tokens found, skipping refresh')
+    return
+  }
   const decodedAccessToken = decodeToken(accessToken)
   const decodedRefreshToken = decodeToken(refreshToken)
   // Thời điểm hết hạn của token là tính theo epoch time (s)
   // Còn khi các bạn dùng cú pháp new Date().getTime() thì nó sẽ trả về epoch time (ms)
   const now = Math.round(new Date().getTime() / 1000)
+  const accessTokenExpiresIn = decodedAccessToken.exp - now
+  const refreshTokenExpiresIn = decodedRefreshToken.exp - now
+  
+  
   // trường hợp refresh token hết hạn thì cho logout
   if (decodedRefreshToken.exp <= now) {
+    console.error('[checkAndRefreshToken] ❌ Refresh token expired!', {
+      refreshTokenExpiresIn: `${refreshTokenExpiresIn}s`,
+      exp: decodedRefreshToken.exp,
+      now,
+    })
     removeTokensFromLocalStorage()
     return param?.onError && param.onError()
   }
@@ -89,10 +101,15 @@ export const checkAndRefreshToken = async (param?: {
   // thì mình sẽ kiểm tra còn 1/3 thời gian (3s) thì mình sẽ cho refresh token lại
   // Thời gian còn lại sẽ tính dựa trên công thức: decodedAccessToken.exp - now
   // Thời gian hết hạn của access token dựa trên công thức: decodedAccessToken.exp - decodedAccessToken.iat
-  if (
+  const shouldRefresh =
     param?.force ||
     decodedAccessToken.exp - now < (decodedAccessToken.exp - decodedAccessToken.iat) / 3
-  ) {
+
+  if (shouldRefresh) {
+    console.log('[checkAndRefreshToken] 🔄 Refreshing token...', {
+      reason: param?.force ? 'forced' : 'access token expiring soon',
+      role: decodedRefreshToken.role,
+    })
     // Gọi API refresh token
     try {
       const role = decodedRefreshToken.role
@@ -102,11 +119,18 @@ export const checkAndRefreshToken = async (param?: {
           : await authApiRequest.refreshToken()
       setAccessTokenToLocalStorage(res.payload.data.accessToken)
       setRefreshTokenToLocalStorage(res.payload.data.refreshToken)
+      console.log('[checkAndRefreshToken] ✅ Token refresh API success')
       param?.onSuccess && param.onSuccess()
-    } catch (error) {
+    } catch (error: any) {
+      console.error('[checkAndRefreshToken] ❌ Token refresh API failed:', {
+        error: error?.message || error,
+        status: error?.status,
+        role: decodedRefreshToken.role,
+        stack: error?.stack,
+      })
       param?.onError && param.onError()
     }
-  }
+  } 
 }
 
 export const formatCurrency = (number: number) => {

@@ -7,7 +7,8 @@ export const EmployeeSpinStatusValues = ['PENDING', 'CLAIMED', 'EXPIRED'] as con
 export const EmployeeSpinSchema = z.object({
   id: z.number(),
   employeeId: z.number(),
-  rewardId: z.number(),
+  rewardId: z.number().nullable(), // Nullable: null until spin is executed
+  eventId: z.number().nullable(), // Nullable: optional event tracking
   status: z.string(),
   claimedAt: z.string().nullable(), // ISO date string
   expiredAt: z.string().nullable(), // ISO date string
@@ -31,6 +32,18 @@ export const EmployeeSpinSchema = z.object({
       color: z.string(),
       icon: z.string().nullable(),
     })
+    .nullable()
+    .optional(),
+  event: z
+    .object({
+      id: z.number(),
+      name: z.string(),
+      description: z.string().nullable(),
+      startDate: z.string(), // ISO date string
+      endDate: z.string().nullable(), // ISO date string
+      isActive: z.boolean(),
+    })
+    .nullable()
     .optional(),
   createdBy: z
     .object({
@@ -49,6 +62,7 @@ export const GetEmployeeSpinsQueryParams = z.object({
   page: z.coerce.number().int().min(1).optional().default(1),
   limit: z.coerce.number().int().min(1).max(100).optional().default(10),
   status: z.enum(EmployeeSpinStatusValues).optional(),
+  eventId: z.coerce.number().int().positive().optional(),
 })
 
 export type GetEmployeeSpinsQueryParamsType = z.TypeOf<typeof GetEmployeeSpinsQueryParams>
@@ -77,6 +91,13 @@ export const GetEmployeeSpinRes = z.object({
 
 export type GetEmployeeSpinResType = z.TypeOf<typeof GetEmployeeSpinRes>
 
+// Get Active Rewards Query Parameters
+export const GetActiveRewardsQueryParams = z.object({
+  eventId: z.coerce.number().int().positive().optional(),
+})
+
+export type GetActiveRewardsQueryParamsType = z.TypeOf<typeof GetActiveRewardsQueryParams>
+
 // Get Active Rewards Response (for spin wheel)
 export const GetActiveRewardsRes = z.object({
   data: z.array(
@@ -96,6 +117,13 @@ export const GetActiveRewardsRes = z.object({
 })
 
 export type GetActiveRewardsResType = z.TypeOf<typeof GetActiveRewardsRes>
+
+// Get Pending Rewards Query Parameters
+export const GetPendingRewardsQueryParams = z.object({
+  eventId: z.coerce.number().int().positive().optional(),
+})
+
+export type GetPendingRewardsQueryParamsType = z.TypeOf<typeof GetPendingRewardsQueryParams>
 
 // Get Pending Rewards Response
 export const GetPendingRewardsRes = z.object({
@@ -131,6 +159,7 @@ export type ClaimRewardResType = z.TypeOf<typeof ClaimRewardRes>
 // Grant Spin Body (Admin)
 export const GrantSpinBody = z.object({
   employeeId: z.number().int().positive(),
+  eventId: z.number().int().positive().optional(),
   notes: z.string().max(500).optional(),
   expiredAt: z.coerce.date().optional(), // Date input, will be converted to ISO string
 })

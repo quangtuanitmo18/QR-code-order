@@ -1,6 +1,6 @@
 import { spinRewardRepository } from '@/repositories/spin-reward.repository'
+import { CreateSpinRewardBodyType, UpdateSpinRewardBodyType } from '@/schemaValidations/spin-reward.schema'
 import { EntityError } from '@/utils/errors'
-import prisma from '@/database'
 
 export const spinRewardService = {
   /**
@@ -49,6 +49,7 @@ export const spinRewardService = {
       maxQuantity: reward.maxQuantity,
       currentQuantity: reward.currentQuantity,
       version: reward.version,
+      event: reward.event ?? null,
       createdAt: reward.createdAt,
       updatedAt: reward.updatedAt
     }))
@@ -69,18 +70,7 @@ export const spinRewardService = {
   /**
    * Create reward
    */
-  async createReward(data: {
-    name: string
-    description?: string | null
-    type: string
-    value?: string | null
-    probability: number
-    color: string
-    icon?: string | null
-    isActive?: boolean
-    order: number
-    maxQuantity?: number | null
-  }) {
+  async createReward(data: CreateSpinRewardBodyType) {
     const reward = await spinRewardRepository.create({
       name: data.name,
       description: data.description,
@@ -103,18 +93,7 @@ export const spinRewardService = {
    */
   async updateReward(
     id: number,
-    data: {
-      name?: string
-      description?: string | null
-      type?: string
-      value?: string | null
-      probability?: number
-      color?: string
-      icon?: string | null
-      isActive?: boolean
-      order?: number
-      maxQuantity?: number | null
-    }
+    data: UpdateSpinRewardBodyType
   ) {
     const existing = await spinRewardRepository.findById(id)
     if (!existing) {

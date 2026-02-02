@@ -1,11 +1,6 @@
 'use client'
 
-import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
-import { useGetSpinEventsQuery } from '@/queries/useSpinEvent'
-import { SpinEventTable } from './components/spin-event-table'
-import { SpinEventForm } from './components/spin-event-form'
 import {
   Dialog,
   DialogContent,
@@ -13,26 +8,39 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useGetSpinEventByIdQuery, useGetSpinEventsQuery } from '@/queries/useSpinEvent'
 import { SpinEventType } from '@/schemaValidations/spin-event.schema'
+import { Plus } from 'lucide-react'
+import { useState } from 'react'
+import { SpinEventForm } from './components/spin-event-form'
+import { SpinEventTable } from './components/spin-event-table'
 
 export default function SpinEventsClient() {
   const [isFormOpen, setIsFormOpen] = useState(false)
-  const [editingEvent, setEditingEvent] = useState<SpinEventType | null>(null)
+  const [editingEventId, setEditingEventId] = useState<number | null>(null)
   const { data, isLoading } = useGetSpinEventsQuery()
+  
+  // Fetch full event data when editing (includes spins array)
+  const { data: eventData } = useGetSpinEventByIdQuery({
+    id: editingEventId || 0,
+    enabled: editingEventId !== null && isFormOpen,
+  })
+  
+  const editingEvent = eventData?.payload.data || null
 
   const handleNewEvent = () => {
-    setEditingEvent(null)
+    setEditingEventId(null)
     setIsFormOpen(true)
   }
 
   const handleEditEvent = (event: SpinEventType) => {
-    setEditingEvent(event)
+    setEditingEventId(event.id)
     setIsFormOpen(true)
   }
 
   const handleCloseForm = () => {
     setIsFormOpen(false)
-    setEditingEvent(null)
+    setEditingEventId(null)
   }
 
   return (

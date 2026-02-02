@@ -1,10 +1,10 @@
-import { spinRewardService } from '@/services/spin-reward.service'
 import {
   CreateSpinRewardBodyType,
-  UpdateSpinRewardBodyType,
   GetSpinRewardsQueryParamsType,
-  ReorderRewardsBodyType
+  ReorderRewardsBodyType,
+  UpdateSpinRewardBodyType
 } from '@/schemaValidations/spin-reward.schema'
+import { spinRewardService } from '@/services/spin-reward.service'
 
 export const getSpinRewardsController = async (query: GetSpinRewardsQueryParamsType) => {
   return await spinRewardService.getRewards({
@@ -28,7 +28,7 @@ export const createSpinRewardController = async (body: CreateSpinRewardBodyType)
     isActive: body.isActive,
     order: body.order,
     maxQuantity: body.maxQuantity,
-    eventId: body.eventId
+    eventId: body.eventId,
   })
 }
 

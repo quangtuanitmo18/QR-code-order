@@ -362,15 +362,15 @@ model CalendarNotification {
 }
 
 model SpinEvent {
-  id          Int      @id @default(autoincrement())
-  name        String   // "Tết 2025", "Tháng 12", "Kỷ niệm công ty"
+  id          Int       @id @default(autoincrement())
+  name        String // "Tết 2025", "Tháng 12", "Kỷ niệm công ty"
   description String?
   startDate   DateTime
   endDate     DateTime?
-  isActive    Boolean  @default(true)
-  createdById Int      // Admin who created the event
+  isActive    Boolean   @default(true)
+  createdById Int // Admin who created the event
 
-  createdBy Account      @relation("CreatedSpinEvents", fields: [createdById], references: [id], onUpdate: NoAction)
+  createdBy Account        @relation("CreatedSpinEvents", fields: [createdById], references: [id], onUpdate: NoAction)
   rewards   SpinReward[]
   spins     EmployeeSpin[]
 
@@ -394,7 +394,7 @@ model SpinReward {
   maxQuantity     Int? // NULL = unlimited, số > 0 = có hạn
   currentQuantity Int      @default(0) // Số lượng đã phát (tăng khi spin trúng)
   version         Int      @default(0) // Optimistic locking version
-  eventId         Int      // Foreign key to SpinEvent
+  eventId         Int // Foreign key to SpinEvent
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -409,8 +409,8 @@ model SpinReward {
 model EmployeeSpin {
   id          Int       @id @default(autoincrement())
   employeeId  Int // Account ID (Employee role)
-  rewardId    Int
-  eventId     Int?      // Optional: track which event this spin belongs to
+  rewardId    Int? // Optional: null until spin is executed
+  eventId     Int? // Optional: track which event this spin belongs to
   status      String    @default("PENDING") // "PENDING" | "CLAIMED" | "EXPIRED"
   claimedAt   DateTime?
   expiredAt   DateTime? // Optional expiration date
@@ -418,10 +418,10 @@ model EmployeeSpin {
   notes       String? // Admin notes when granting spin
   createdById Int? // Admin ID who granted this spin
 
-  employee  Account    @relation("EmployeeSpins", fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  reward    SpinReward @relation(fields: [rewardId], references: [id], onUpdate: NoAction)
-  event     SpinEvent? @relation(fields: [eventId], references: [id], onUpdate: NoAction)
-  createdBy Account?   @relation("AdminCreatedSpins", fields: [createdById], references: [id], onUpdate: NoAction)
+  employee  Account     @relation("EmployeeSpins", fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  reward    SpinReward? @relation(fields: [rewardId], references: [id], onUpdate: NoAction)
+  event     SpinEvent?  @relation(fields: [eventId], references: [id], onUpdate: NoAction)
+  createdBy Account?    @relation("AdminCreatedSpins", fields: [createdById], references: [id], onUpdate: NoAction)
 
   @@index([employeeId, spinDate])
   @@index([status, expiredAt])

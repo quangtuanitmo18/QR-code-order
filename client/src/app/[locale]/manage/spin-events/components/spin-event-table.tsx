@@ -1,25 +1,5 @@
 'use client'
 
-import { SpinEventType } from '@/schemaValidations/spin-event.schema'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
-import { format } from 'date-fns'
-import { Edit, Trash2, ToggleLeft, ToggleRight } from 'lucide-react'
-import {
-  useDeleteSpinEventMutation,
-  useToggleSpinEventActiveMutation,
-} from '@/queries/useSpinEvent'
-import { toast } from '@/components/ui/use-toast'
-import { handleErrorApi } from '@/lib/utils'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,6 +10,35 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import { toast } from '@/components/ui/use-toast'
+import { handleErrorApi } from '@/lib/utils'
+import {
+  useDeleteSpinEventMutation,
+  useToggleSpinEventActiveMutation,
+} from '@/queries/useSpinEvent'
+import { SpinEventType } from '@/schemaValidations/spin-event.schema'
+import { DotsHorizontalIcon } from '@radix-ui/react-icons'
+import { format } from 'date-fns'
+import { Edit, ToggleLeft, ToggleRight, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
 interface SpinEventTableProps {
@@ -54,7 +63,9 @@ export function SpinEventTable({ events, isLoading = false, onEdit }: SpinEventT
       })
       setDeletingEvent(null)
     } catch (error) {
-      handleErrorApi(error)
+      handleErrorApi({
+        error,
+      })
     }
   }
 
@@ -66,7 +77,9 @@ export function SpinEventTable({ events, isLoading = false, onEdit }: SpinEventT
         description: `Event ${event.isActive ? 'deactivated' : 'activated'} successfully`,
       })
     } catch (error) {
-      handleErrorApi(error)
+      handleErrorApi({
+        error,
+      })
     }
   }
 
@@ -121,26 +134,49 @@ export function SpinEventTable({ events, isLoading = false, onEdit }: SpinEventT
                 <TableCell>{event._count?.rewards || 0}</TableCell>
                 <TableCell>{event._count?.spins || 0}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleToggleActive(event)}
-                      disabled={toggleMutation.isPending}
-                    >
-                      {event.isActive ? (
-                        <ToggleRight className="h-4 w-4" />
-                      ) : (
-                        <ToggleLeft className="h-4 w-4" />
-                      )}
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => onEdit(event)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => setDeletingEvent(event)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
-                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <DotsHorizontalIcon className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={() => handleToggleActive(event)}
+                        disabled={toggleMutation.isPending}
+                      >
+                        {event.isActive ? (
+                          <span className="flex items-center gap-2">
+                            <ToggleLeft className="h-4 w-4" />
+                            Deactivate
+                          </span>
+                        ) : (
+                          <span className="flex items-center gap-2">
+                            <ToggleRight className="h-4 w-4" />
+                            Activate
+                          </span>
+                        )}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onEdit(event)}>
+                        <span className="flex items-center gap-2">
+                          <Edit className="h-4 w-4" />
+                          Edit
+                        </span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => setDeletingEvent(event)}
+                      >
+                        <span className="flex items-center gap-2">
+                          <Trash2 className="h-4 w-4" />
+                          Delete
+                        </span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))}
