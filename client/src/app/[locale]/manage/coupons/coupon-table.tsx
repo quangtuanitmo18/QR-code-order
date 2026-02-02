@@ -4,32 +4,32 @@ import AddCoupon from '@/app/[locale]/manage/coupons/add-coupon'
 import EditCoupon from '@/app/[locale]/manage/coupons/edit-coupon'
 import AutoPagination from '@/components/auto-pagination'
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table'
 import { toast } from '@/components/ui/use-toast'
 import { formatCurrency, handleErrorApi } from '@/lib/utils'
@@ -37,16 +37,16 @@ import { useCouponListQuery, useDeleteCouponMutation } from '@/queries/useCoupon
 import { CouponListResType } from '@/schemaValidations/coupon.schema'
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import {
-    ColumnDef,
-    ColumnFiltersState,
-    SortingState,
-    VisibilityState,
-    flexRender,
-    getCoreRowModel,
-    getFilteredRowModel,
-    getPaginationRowModel,
-    getSortedRowModel,
-    useReactTable,
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
 } from '@tanstack/react-table'
 import { format } from 'date-fns'
 import { useSearchParams } from 'next/navigation'
@@ -87,11 +87,7 @@ export const columns: ColumnDef<CouponItem>[] = [
     cell: ({ row }) => {
       const type = row.original.discountType
       const value = row.getValue('discountValue') as number
-      return (
-        <div>
-          {type === 'PERCENTAGE' ? `${value}%` : formatCurrency(value)}
-        </div>
-      )
+      return <div>{type === 'PERCENTAGE' ? `${value}%` : formatCurrency(value)}</div>
     },
   },
   {
@@ -329,10 +325,23 @@ export default function CouponTable() {
             </TableBody>
           </Table>
         </div>
-        <AutoPagination table={table} />
+
+        {/* Pagination */}
+        <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2 sm:py-4">
+          <div className="text-center text-xs text-muted-foreground sm:flex-1 sm:text-left">
+            Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
+            <strong>{data.length}</strong> results
+          </div>
+
+          <div className="flex justify-center">
+            <AutoPagination
+              page={table.getState().pagination.pageIndex + 1}
+              pageSize={table.getPageCount()}
+              pathname="/manage/coupons"
+            />
+          </div>
+        </div>
       </div>
     </CouponTableContext.Provider>
   )
 }
-
-

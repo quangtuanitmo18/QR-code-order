@@ -7,18 +7,22 @@ import { errorHandlerPlugin } from '@/plugins/errorHandler.plugins'
 import { socketPlugin } from '@/plugins/socket.plugins'
 import validatorCompilerPlugin from '@/plugins/validatorCompiler.plugins'
 import accountRoutes from '@/routes/account.route'
+import adminSpinRoutes from '@/routes/admin-spin.route'
 import authRoutes from '@/routes/auth.route'
 import blogRoutes from '@/routes/blog.route'
 import calendarTypeRoutes from '@/routes/calendar-type.route'
 import calendarRoutes from '@/routes/calendar.route'
 import couponRoutes from '@/routes/coupon.route'
 import dishRoutes from '@/routes/dish.route'
+import employeeSpinRoutes from '@/routes/employee-spin.route'
 import guestRoutes from '@/routes/guest.route'
 import indicatorRoutes from '@/routes/indicator.route'
 import mediaRoutes from '@/routes/media.route'
 import orderRoutes from '@/routes/order.route'
 import paymentRoutes from '@/routes/payment.route'
 import reviewRoutes from '@/routes/review.route'
+import spinEventRoutes from '@/routes/spin-event.route'
+import spinRewardRoutes from '@/routes/spin-reward.route'
 import staticRoutes from '@/routes/static.route'
 import tablesRoutes from '@/routes/table.route'
 import testRoutes from '@/routes/test.route'
@@ -139,6 +143,10 @@ const start = async () => {
     fastify.register(couponRoutes, { prefix: '/coupons' })
     fastify.register(calendarRoutes, { prefix: '/calendar' })
     fastify.register(calendarTypeRoutes, { prefix: '/calendar-types' })
+    fastify.register(spinEventRoutes, { prefix: '/admin/spin-events' })
+    fastify.register(spinRewardRoutes, { prefix: '/admin/spin-rewards' })
+    fastify.register(employeeSpinRoutes, { prefix: '/employee-spin' })
+    fastify.register(adminSpinRoutes, { prefix: '/admin/employee-spins' })
 
     await initOwnerAccount()
     await fastify.listen({

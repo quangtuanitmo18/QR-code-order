@@ -26,6 +26,9 @@ Table Account {
   notifications CalendarNotification [not null]
   createdCalendarTypes CalendarType [not null]
   coupons Coupon [not null]
+  employeeSpins EmployeeSpin [not null]
+  adminCreatedSpins EmployeeSpin [not null]
+  createdSpinEvents SpinEvent [not null]
 }
 
 Table Dish {
@@ -311,6 +314,59 @@ Table CalendarNotification {
   user Account [not null]
 }
 
+Table SpinEvent {
+  id Int [pk, increment]
+  name String [not null]
+  description String
+  startDate DateTime [not null]
+  endDate DateTime
+  isActive Boolean [not null, default: true]
+  createdById Int [not null]
+  createdBy Account [not null]
+  rewards SpinReward [not null]
+  spins EmployeeSpin [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+}
+
+Table SpinReward {
+  id Int [pk, increment]
+  name String [not null]
+  description String
+  type String [not null]
+  value String
+  probability Float [not null]
+  color String [not null, default: 'bg-blue-500']
+  icon String
+  isActive Boolean [not null, default: true]
+  order Int [not null, default: 0]
+  maxQuantity Int
+  currentQuantity Int [not null, default: 0]
+  version Int [not null, default: 0]
+  eventId Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  event SpinEvent [not null]
+  spins EmployeeSpin [not null]
+}
+
+Table EmployeeSpin {
+  id Int [pk, increment]
+  employeeId Int [not null]
+  rewardId Int [not null]
+  eventId Int
+  status String [not null, default: 'PENDING']
+  claimedAt DateTime
+  expiredAt DateTime
+  spinDate DateTime [default: `now()`, not null]
+  notes String
+  createdById Int
+  employee Account [not null]
+  reward SpinReward [not null]
+  event SpinEvent
+  createdBy Account
+}
+
 Ref: Account.ownerId - Account.id
 
 Ref: DishSnapshot.dishId > Dish.id
@@ -374,3 +430,15 @@ Ref: CalendarEventAssignment.employeeId > Account.id [delete: Cascade]
 Ref: CalendarNotification.eventId > CalendarEvent.id [delete: Cascade]
 
 Ref: CalendarNotification.userId > Account.id [delete: Cascade]
+
+Ref: SpinEvent.createdById > Account.id
+
+Ref: SpinReward.eventId > SpinEvent.id [delete: Cascade]
+
+Ref: EmployeeSpin.employeeId > Account.id [delete: Cascade]
+
+Ref: EmployeeSpin.rewardId > SpinReward.id
+
+Ref: EmployeeSpin.eventId > SpinEvent.id
+
+Ref: EmployeeSpin.createdById > Account.id [delete: Cascade]

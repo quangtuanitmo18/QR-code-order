@@ -35,6 +35,9 @@ model Account {
   notifications        CalendarNotification[]    @relation("UserNotifications")
   createdCalendarTypes CalendarType[]            @relation("CalendarTypeCreator")
   coupons              Coupon[]                  @relation("CouponCreator")
+  employeeSpins        EmployeeSpin[]            @relation("EmployeeSpins")
+  adminCreatedSpins    EmployeeSpin[]            @relation("AdminCreatedSpins")
+  createdSpinEvents    SpinEvent[]               @relation("CreatedSpinEvents")
 }
 
 model Dish {
@@ -356,4 +359,72 @@ model CalendarNotification {
   @@index([userId, isRead, scheduledFor])
   @@index([eventId])
   @@index([scheduledFor])
+}
+
+model SpinEvent {
+  id          Int      @id @default(autoincrement())
+  name        String   // "Tết 2025", "Tháng 12", "Kỷ niệm công ty"
+  description String?
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean  @default(true)
+  createdById Int      // Admin who created the event
+
+  createdBy Account      @relation("CreatedSpinEvents", fields: [createdById], references: [id], onUpdate: NoAction)
+  rewards   SpinReward[]
+  spins     EmployeeSpin[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, startDate, endDate])
+}
+
+model SpinReward {
+  id              Int      @id @default(autoincrement())
+  name            String // "Bonus 100k", "Free Meal", "Extra Break", etc.
+  description     String? // Mô tả phần thưởng
+  type            String // "BONUS" | "FREE_MEAL" | "EXTRA_BREAK" | "RECOGNITION" | "NOTHING"
+  value           String? // JSON: {amount: 100000} hoặc {mealType: "lunch"} hoặc null
+  probability     Float // 0.0 - 1.0 (weight, tổng tất cả = 1.0)
+  color           String   @default("bg-blue-500") // Tailwind color class
+  icon            String? // Icon name from lucide-react
+  isActive        Boolean  @default(true)
+  order           Int      @default(0) // Thứ tự hiển thị trên vòng quay
+  maxQuantity     Int? // NULL = unlimited, số > 0 = có hạn
+  currentQuantity Int      @default(0) // Số lượng đã phát (tăng khi spin trúng)
+  version         Int      @default(0) // Optimistic locking version
+  eventId         Int      // Foreign key to SpinEvent
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  event SpinEvent      @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  spins EmployeeSpin[]
+
+  @@index([isActive, order])
+  @@index([isActive, currentQuantity, maxQuantity]) // For availability check
+  @@index([eventId, isActive])
+}
+
+model EmployeeSpin {
+  id          Int       @id @default(autoincrement())
+  employeeId  Int // Account ID (Employee role)
+  rewardId    Int
+  eventId     Int?      // Optional: track which event this spin belongs to
+  status      String    @default("PENDING") // "PENDING" | "CLAIMED" | "EXPIRED"
+  claimedAt   DateTime?
+  expiredAt   DateTime? // Optional expiration date
+  spinDate    DateTime  @default(now())
+  notes       String? // Admin notes when granting spin
+  createdById Int? // Admin ID who granted this spin
+
+  employee  Account    @relation("EmployeeSpins", fields: [employeeId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  reward    SpinReward @relation(fields: [rewardId], references: [id], onUpdate: NoAction)
+  event     SpinEvent? @relation(fields: [eventId], references: [id], onUpdate: NoAction)
+  createdBy Account?   @relation("AdminCreatedSpins", fields: [createdById], references: [id], onUpdate: NoAction)
+
+  @@index([employeeId, spinDate])
+  @@index([status, expiredAt])
+  @@index([createdById])
+  @@index([eventId])
 }

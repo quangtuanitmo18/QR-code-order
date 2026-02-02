@@ -142,5 +142,13 @@
   "Coupons": {
     "title": "Coupons",
     "description": "Manage discount coupons"
+  },
+  "SpinEvents": {
+    "title": "Spin Events",
+    "description": "Manage spin events and their rewards"
+  },
+  "SpinRewards": {
+    "title": "Spin Rewards",
+    "description": "Manage rewards for spin events"
   }
 }

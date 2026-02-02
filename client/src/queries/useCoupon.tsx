@@ -16,8 +16,13 @@ export const useCouponListQuery = (params?: {
 export const useGetCouponQuery = ({ id, enabled }: { id: number; enabled: boolean }) => {
   return useQuery({
     queryKey: ['coupons', id],
-    queryFn: () => couponApiRequest.getCoupon(id),
-    enabled,
+    queryFn: () => {
+      if (!id || isNaN(id)) {
+        throw new Error('Invalid coupon ID')
+      }
+      return couponApiRequest.getCoupon(id)
+    },
+    enabled: enabled && Boolean(id) && !isNaN(id),
   })
 }
 
@@ -66,5 +71,3 @@ export const useValidateCouponMutation = () => {
     mutationFn: (body: ValidateCouponBodyType) => couponApiRequest.validate(body),
   })
 }
-
-

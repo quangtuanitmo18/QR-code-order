@@ -142,5 +142,13 @@
   "Coupons": {
     "title": "Mã giảm giá",
     "description": "Quản lý mã giảm giá"
+  },
+  "SpinEvents": {
+    "title": "Sự kiện quay thưởng",
+    "description": "Quản lý sự kiện quay thưởng và phần thưởng"
+  },
+  "SpinRewards": {
+    "title": "Phần thưởng quay thưởng",
+    "description": "Quản lý phần thưởng cho sự kiện quay thưởng"
   }
 }

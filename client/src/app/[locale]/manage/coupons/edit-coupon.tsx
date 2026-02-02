@@ -3,30 +3,26 @@ import revalidateApiRequest from '@/apiRequests/revalidate'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select'
 import { toast } from '@/components/ui/use-toast'
-import {
-    CouponDiscountType,
-    CouponStatus,
-    CouponStatusValues
-} from '@/constants/type'
+import { CouponDiscountType, CouponStatus, CouponStatusValues } from '@/constants/type'
 import { cn, handleErrorApi } from '@/lib/utils'
 import { useGetCouponQuery, useUpdateCouponMutation } from '@/queries/useCoupon'
 import { UpdateCouponBody, UpdateCouponBodyType } from '@/schemaValidations/coupon.schema'
@@ -46,7 +42,11 @@ export default function EditCoupon({
   onSubmitSuccess?: () => void
 }) {
   const updateCouponMutation = useUpdateCouponMutation()
-  const { data } = useGetCouponQuery({ enabled: Boolean(id), id: id as number })
+  const isValidId = id !== undefined && typeof id === 'number' && !isNaN(id)
+  const { data } = useGetCouponQuery({
+    enabled: isValidId,
+    id: isValidId ? id : 0,
+  })
   const form = useForm<UpdateCouponBodyType>({
     resolver: zodResolver(UpdateCouponBody),
     defaultValues: {
@@ -158,7 +158,9 @@ export default function EditCoupon({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value={CouponDiscountType.Percentage}>Percentage</SelectItem>
+                            <SelectItem value={CouponDiscountType.Percentage}>
+                              Percentage
+                            </SelectItem>
                             <SelectItem value={CouponDiscountType.FixedAmount}>
                               Fixed Amount
                             </SelectItem>
@@ -228,14 +230,12 @@ export default function EditCoupon({
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="applicableDishIds">
-                        Applicable Dish IDs (JSON array)
-                      </Label>
+                      <Label htmlFor="applicableDishIds">Applicable Dish IDs (JSON array)</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Input
                           id="applicableDishIds"
                           className="w-full"
-                          placeholder='[1, 2, 3] or leave empty for all dishes'
+                          placeholder="[1, 2, 3] or leave empty for all dishes"
                           {...field}
                           value={field.value ?? ''}
                           onChange={(e) => field.onChange(e.target.value || null)}
@@ -415,5 +415,3 @@ export default function EditCoupon({
     </Dialog>
   )
 }
-
-
