@@ -10,15 +10,23 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { format } from 'date-fns'
 
 interface RewardHistoryProps {
   spins: EmployeeSpinType[]
   isLoading?: boolean
+  onClaim?: (spinId: number) => void
+  isClaiming?: boolean
 }
 
-export function RewardHistory({ spins, isLoading = false }: RewardHistoryProps) {
+export function RewardHistory({
+  spins,
+  isLoading = false,
+  onClaim,
+  isClaiming = false,
+}: RewardHistoryProps) {
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -60,6 +68,7 @@ export function RewardHistory({ spins, isLoading = false }: RewardHistoryProps) 
             <TableHead>Type</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Claimed At</TableHead>
+            {onClaim && <TableHead className="text-right">Actions</TableHead>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -86,6 +95,15 @@ export function RewardHistory({ spins, isLoading = false }: RewardHistoryProps) 
               <TableCell>
                 {spin.claimedAt ? format(new Date(spin.claimedAt), 'MMM dd, yyyy HH:mm') : '-'}
               </TableCell>
+              {onClaim && (
+                <TableCell className="text-right">
+                  {spin.status !== 'CLAIMED' && (
+                    <Button size="sm" onClick={() => onClaim(spin.id)} disabled={isClaiming}>
+                      Claim
+                    </Button>
+                  )}
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

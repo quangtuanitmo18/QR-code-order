@@ -1,6 +1,6 @@
-import prisma from '@/database';
-import { spinEventRepository } from '@/repositories/spin-event.repository';
-import { EntityError } from '@/utils/errors';
+import prisma from '@/database'
+import { spinEventRepository } from '@/repositories/spin-event.repository'
+import { EntityError } from '@/utils/errors'
 
 export const spinEventService = {
   /**
@@ -15,6 +15,13 @@ export const spinEventService = {
    */
   async getActiveEvents() {
     return await spinEventRepository.findActive()
+  },
+
+  /**
+   * Get active spin events for a specific employee
+   */
+  async getActiveEventsForEmployee(employeeId: number) {
+    return await spinEventRepository.findActiveForEmployee(employeeId)
   },
 
   /**
@@ -52,7 +59,7 @@ export const spinEventService = {
       startDate: data.startDate,
       endDate: data.endDate,
       isActive: data.isActive,
-      createdById: data.createdById,
+      createdById: data.createdById
     })
 
     // Create spins for assigned employees if any
@@ -63,12 +70,12 @@ export const spinEventService = {
           await tx.employeeSpin.create({
             data: {
               employeeId,
-              rewardId: null, // Will be set when spin is executed
+              // rewardId is optional - will be set when spin is executed
               eventId: event.id,
               status: 'PENDING',
-              expiredAt: data.endDate || null,
-              createdById: data.createdById,
-            },
+              expiredAt: data.endDate || undefined,
+              createdById: data.createdById
+            }
           })
         }
       })
@@ -111,7 +118,7 @@ export const spinEventService = {
       description: data.description,
       startDate: data.startDate,
       endDate: data.endDate,
-      isActive: data.isActive,
+      isActive: data.isActive
     })
 
     // Update employee assignments if employeeIds provided
@@ -119,7 +126,7 @@ export const spinEventService = {
       // Get existing spins for this event
       const existingSpins = await prisma.employeeSpin.findMany({
         where: { eventId: id },
-        select: { id: true, employeeId: true },
+        select: { id: true, employeeId: true }
       })
 
       const existingEmployeeIds = existingSpins.map((s) => s.employeeId)
@@ -136,12 +143,12 @@ export const spinEventService = {
             await tx.employeeSpin.create({
               data: {
                 employeeId,
-                rewardId: null, // Will be set when spin is executed
+                // rewardId is optional - will be set when spin is executed
                 eventId: id,
                 status: 'PENDING',
-                expiredAt: endDate || null,
-                createdById: existingEvent.createdById,
-              },
+                expiredAt: endDate || undefined,
+                createdById: existingEvent.createdById
+              }
             })
           }
         })
@@ -153,8 +160,8 @@ export const spinEventService = {
           where: {
             eventId: id,
             employeeId: { in: toRemove },
-            status: 'PENDING', // Only delete pending spins
-          },
+            status: 'PENDING' // Only delete pending spins
+          }
         })
       }
     }

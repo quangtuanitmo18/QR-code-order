@@ -28,12 +28,9 @@ export const getMySpinsController = async (employeeId: number, query: GetEmploye
     filters.eventId = query.eventId
   }
 
-  // Debug: Log filters and employeeId
-  console.log('[getMySpinsController] Debug:', {
-    employeeId,
-    filters,
-    query
-  })
+  console.log('query', query)
+  console.log('filters', filters)
+  console.log('employeeId', employeeId)
 
   const spins = await employeeSpinService.getEmployeeSpins(employeeId, filters)
 

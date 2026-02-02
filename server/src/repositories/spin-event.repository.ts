@@ -1,5 +1,5 @@
-import prisma from '@/database';
-import { SpinEvent } from '@prisma/client';
+import prisma from '@/database'
+import { SpinEvent } from '@prisma/client'
 
 export const spinEventRepository = {
   /**
@@ -57,6 +57,43 @@ export const spinEventRepository = {
         isActive: true,
         startDate: { lte: now },
         OR: [{ endDate: null }, { endDate: { gte: now } }]
+      },
+      include: {
+        createdBy: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        },
+        _count: {
+          select: {
+            rewards: true,
+            spins: true
+          }
+        }
+      },
+      orderBy: {
+        startDate: 'desc'
+      }
+    })
+  },
+
+  /**
+   * Find active spin events for a specific employee (events where employee is assigned)
+   */
+  async findActiveForEmployee(employeeId: number) {
+    const now = new Date()
+    return await prisma.spinEvent.findMany({
+      where: {
+        isActive: true,
+        startDate: { lte: now },
+        OR: [{ endDate: null }, { endDate: { gte: now } }],
+        spins: {
+          some: {
+            employeeId: employeeId
+          }
+        }
       },
       include: {
         createdBy: {

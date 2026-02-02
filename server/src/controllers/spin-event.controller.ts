@@ -1,7 +1,7 @@
 import {
-    CreateSpinEventBodyType,
-    GetSpinEventsQueryParamsType,
-    UpdateSpinEventBodyType
+  CreateSpinEventBodyType,
+  GetSpinEventsQueryParamsType,
+  UpdateSpinEventBodyType
 } from '@/schemaValidations/spin-event.schema'
 import { spinEventService } from '@/services/spin-event.service'
 
@@ -11,6 +11,10 @@ export const getAllSpinEventsController = async (query: GetSpinEventsQueryParams
 
 export const getActiveSpinEventsController = async () => {
   return await spinEventService.getActiveEvents()
+}
+
+export const getActiveSpinEventsForEmployeeController = async (employeeId: number) => {
+  return await spinEventService.getActiveEventsForEmployee(employeeId)
 }
 
 export const getSpinEventByIdController = async (id: number) => {
@@ -25,7 +29,7 @@ export const createSpinEventController = async (userId: number, body: CreateSpin
     endDate: body.endDate,
     isActive: body.isActive,
     createdById: userId,
-    employeeIds: body.employeeIds,
+    employeeIds: body.employeeIds
   })
 }
 
@@ -36,7 +40,7 @@ export const updateSpinEventController = async (id: number, body: UpdateSpinEven
     startDate: body.startDate,
     endDate: body.endDate,
     isActive: body.isActive,
-    employeeIds: body.employeeIds,
+    employeeIds: body.employeeIds
   })
 }
 

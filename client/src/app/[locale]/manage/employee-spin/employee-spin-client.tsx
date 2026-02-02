@@ -7,17 +7,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from '@/components/ui/use-toast'
 import { handleErrorApi } from '@/lib/utils'
 import {
-    useClaimRewardMutation,
-    useExecuteSpinMutation,
-    useGetActiveRewardsQuery,
-    useGetMySpinsQuery,
-    useGetPendingRewardsQuery,
+  useClaimRewardMutation,
+  useExecuteSpinMutation,
+  useGetActiveRewardsQuery,
+  useGetMySpinsQuery,
 } from '@/queries/useEmployeeSpin'
 import { useGetActiveSpinEventsQuery } from '@/queries/useSpinEvent'
 import { EmployeeSpinType, GetActiveRewardsResType } from '@/schemaValidations/employee-spin.schema'
 import { format } from 'date-fns'
 import { useState } from 'react'
-import { PendingRewards } from './components/pending-rewards'
 import { RewardHistory } from './components/reward-history'
 import { SpinResultModal } from './components/spin-result-modal'
 import { SpinWheel } from './components/spin-wheel'
@@ -32,26 +30,22 @@ export default function EmployeeSpinClient() {
   const [selectedSpin, setSelectedSpin] = useState<EmployeeSpinType | null>(null)
   const [wonRewardId, setWonRewardId] = useState<number | null>(null)
 
-  // Queries
+  // Queries - only load rewards when event is selected
   const { data: rewardsData, isLoading: rewardsLoading } = useGetActiveRewardsQuery(
     selectedEventId ? { eventId: selectedEventId } : undefined
   )
-  const { data: pendingRewardsData, isLoading: pendingLoading } = useGetPendingRewardsQuery(
-    selectedEventId ? { eventId: selectedEventId } : undefined
+  const { data: mySpinsData, isLoading: spinsLoading } = useGetMySpinsQuery(
+    selectedEventId
+      ? {
+          eventId: selectedEventId,
+        }
+      : undefined
   )
-  const { data: mySpinsData, isLoading: spinsLoading } = useGetMySpinsQuery({
-    page: 1,
-    limit: 50,
-    ...(selectedEventId && { eventId: selectedEventId }),
-  })
   const { data: activeEventsData, isLoading: eventsLoading } = useGetActiveSpinEventsQuery()
 
   // Mutations
   const executeSpinMutation = useExecuteSpinMutation()
   const claimRewardMutation = useClaimRewardMutation()
-
-  // Get available spins count (will be filtered by event later)
-  const allPendingSpins = pendingRewardsData?.payload?.data || []
 
   // Handle spin execution
   const handleSpin = async (spinId: number) => {
@@ -64,7 +58,9 @@ export default function EmployeeSpinClient() {
       }
 
       // Find the reward that was won
-      const wonReward = rewardsData?.payload?.data?.find((r) => r.id === result.payload.data.reward?.id)
+      const wonReward = rewardsData?.payload?.data?.find(
+        (r) => r.id === result.payload.data.reward?.id
+      )
       if (wonReward) {
         setSelectedReward({ ...wonReward, id: wonReward.id })
         setSelectedSpin(result.payload.data)
@@ -104,13 +100,17 @@ export default function EmployeeSpinClient() {
   }
 
   const rewards = rewardsData?.payload?.data || []
-  const spins = mySpinsData?.payload?.data?.spins || [] // Already filtered by API if eventId provided
-  const pendingRewards = pendingRewardsData?.payload?.data || [] // Already filtered by API if eventId provided
+  const allSpins = mySpinsData?.payload?.data?.spins || [] // Already filtered by API if eventId provided
   const activeEvents = activeEventsData?.payload?.data || []
 
-  // Get available spins count for selected event
-  const availableSpins = pendingRewards.length
-  const firstPendingSpin = pendingRewards[0]
+  // Filter spins for spin wheel: rewardId = null and status = PENDING
+  const availableSpinsForWheel = allSpins.filter(
+    (spin) => spin.rewardId === null && spin.status === 'PENDING'
+  )
+  const firstAvailableSpin = availableSpinsForWheel[0]
+
+  // Filter spins for history: rewardId != null and status != PENDING
+  const historySpins = allSpins.filter((spin) => spin.rewardId !== null)
 
   // Get selected event
   const selectedEvent = activeEvents.find((e) => e.id === selectedEventId)
@@ -213,35 +213,31 @@ export default function EmployeeSpinClient() {
           </Card>
 
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="spin">Spin Wheel</TabsTrigger>
-          <TabsTrigger value="pending">Pending Rewards</TabsTrigger>
-          <TabsTrigger value="history">History</TabsTrigger>
-        </TabsList>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="spin">Spin Wheel</TabsTrigger>
+              <TabsTrigger value="history">History</TabsTrigger>
+            </TabsList>
 
-        <TabsContent value="spin" className="space-y-6">
-          <SpinWheel
-            rewards={rewards}
-            onSpin={handleSpin}
-            availableSpins={availableSpins}
-            pendingSpinId={firstPendingSpin?.id}
-            isLoading={rewardsLoading || executeSpinMutation.isPending}
-            wonRewardId={wonRewardId}
-          />
-        </TabsContent>
+            <TabsContent value="spin" className="space-y-6">
+              <SpinWheel
+                rewards={rewards}
+                onSpin={handleSpin}
+                availableSpins={availableSpinsForWheel.length}
+                pendingSpinId={firstAvailableSpin?.id}
+                isLoading={rewardsLoading || executeSpinMutation.isPending}
+                wonRewardId={wonRewardId}
+              />
+            </TabsContent>
 
-        <TabsContent value="pending" className="space-y-6">
-          <PendingRewards
-            spins={pendingRewards}
-            onClaim={handleClaim}
-            isLoading={claimRewardMutation.isPending}
-          />
-        </TabsContent>
-
-        <TabsContent value="history" className="space-y-6">
-          <RewardHistory spins={spins} isLoading={spinsLoading} />
-        </TabsContent>
-      </Tabs>
+            <TabsContent value="history" className="space-y-6">
+              <RewardHistory
+                spins={historySpins}
+                isLoading={spinsLoading}
+                onClaim={handleClaim}
+                isClaiming={claimRewardMutation.isPending}
+              />
+            </TabsContent>
+          </Tabs>
         </>
       )}
 

@@ -59,8 +59,8 @@ export type EmployeeSpinType = z.TypeOf<typeof EmployeeSpinSchema>
 
 // Get Employee Spins Query Parameters
 export const GetEmployeeSpinsQueryParams = z.object({
-  page: z.coerce.number().int().min(1).optional().default(1),
-  limit: z.coerce.number().int().min(1).max(100).optional().default(10),
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
   status: z.enum(EmployeeSpinStatusValues).optional(),
   eventId: z.coerce.number().int().positive().optional(),
 })

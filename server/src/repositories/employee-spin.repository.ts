@@ -168,8 +168,7 @@ export const employeeSpinRepository = {
   // Find spins by employee ID with filters (only spins that have been executed - have rewardId)
   async findByEmployeeId(employeeId: number, filters?: EmployeeSpinFilters) {
     const where: Prisma.EmployeeSpinWhereInput = {
-      employeeId,
-      rewardId: { not: null } // Only show spins that have been executed (have reward)
+      employeeId
     }
 
     if (filters?.status) {
@@ -190,7 +189,6 @@ export const employeeSpinRepository = {
         where.spinDate.lte = filters.toDate
       }
     }
-
 
     const result = await prisma.employeeSpin.findMany({
       where,

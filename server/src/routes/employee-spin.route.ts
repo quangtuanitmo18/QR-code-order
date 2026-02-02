@@ -5,7 +5,7 @@ import {
   getMySpinsController,
   getPendingRewardsController
 } from '@/controllers/employee-spin.controller'
-import { getActiveSpinEventsController } from '@/controllers/spin-event.controller'
+import { getActiveSpinEventsForEmployeeController } from '@/controllers/spin-event.controller'
 import { requireEmployeeHook, requireLoginedHook } from '@/hooks/auth.hooks'
 import {
   ClaimRewardRes,
@@ -36,7 +36,7 @@ export default async function employeeSpinRoutes(fastify: FastifyInstance, optio
   // All routes require Employee role
   fastify.addHook('preValidation', fastify.auth([requireLoginedHook, requireEmployeeHook]))
 
-  // Get active events (for display)
+  // Get active events for current employee (only events where employee is assigned)
   fastify.get<{ Reply: GetActiveSpinEventsResType }>(
     '/events',
     {
@@ -47,7 +47,8 @@ export default async function employeeSpinRoutes(fastify: FastifyInstance, optio
       }
     },
     async (request, reply) => {
-      const result = await getActiveSpinEventsController()
+      const employeeId = request.decodedAccessToken?.userId as number
+      const result = await getActiveSpinEventsForEmployeeController(employeeId)
       reply.send({
         message: 'Get active spin events successfully',
         data: result as GetActiveSpinEventsResType['data']

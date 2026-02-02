@@ -1,9 +1,9 @@
 import employeeSpinApiRequest from '@/apiRequests/employee-spin'
 import {
-    ExecuteSpinBodyType,
-    GetActiveRewardsQueryParamsType,
-    GetEmployeeSpinsQueryParamsType,
-    GetPendingRewardsQueryParamsType,
+  ExecuteSpinBodyType,
+  GetActiveRewardsQueryParamsType,
+  GetEmployeeSpinsQueryParamsType,
+  GetPendingRewardsQueryParamsType,
 } from '@/schemaValidations/employee-spin.schema'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
@@ -11,6 +11,7 @@ export const useGetActiveRewardsQuery = (queryParams?: GetActiveRewardsQueryPara
   return useQuery({
     queryFn: () => employeeSpinApiRequest.getActiveRewards(queryParams),
     queryKey: ['employee-spin', 'rewards', queryParams],
+    enabled: queryParams !== undefined && queryParams !== null && queryParams.eventId !== undefined,
   })
 }
 
@@ -18,6 +19,7 @@ export const useGetMySpinsQuery = (queryParams?: GetEmployeeSpinsQueryParamsType
   return useQuery({
     queryFn: () => employeeSpinApiRequest.getMySpins(queryParams),
     queryKey: ['employee-spin', 'my-spins', queryParams],
+    enabled: queryParams !== undefined && queryParams !== null && queryParams.eventId !== undefined,
   })
 }
 
