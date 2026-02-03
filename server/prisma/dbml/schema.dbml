@@ -29,6 +29,10 @@ Table Account {
   employeeSpins EmployeeSpin [not null]
   adminCreatedSpins EmployeeSpin [not null]
   createdSpinEvents SpinEvent [not null]
+  assignedTasks Task [not null]
+  createdTasks Task [not null]
+  taskComments TaskComment [not null]
+  taskAttachments TaskAttachment [not null]
 }
 
 Table Dish {
@@ -367,6 +371,48 @@ Table EmployeeSpin {
   createdBy Account
 }
 
+Table Task {
+  id Int [pk, increment]
+  title String [not null]
+  description String
+  status String [not null, default: 'todo']
+  category String [not null]
+  priority String [not null, default: 'normal']
+  dueDate DateTime
+  assignedToId Int
+  createdById Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  assignedTo Account
+  createdBy Account [not null]
+  comments TaskComment [not null]
+  attachments TaskAttachment [not null]
+}
+
+Table TaskComment {
+  id Int [pk, increment]
+  taskId Int [not null]
+  content String [not null]
+  createdById Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  task Task [not null]
+  createdBy Account [not null]
+}
+
+Table TaskAttachment {
+  id Int [pk, increment]
+  taskId Int [not null]
+  fileName String [not null]
+  filePath String [not null]
+  fileSize Int [not null]
+  mimeType String [not null]
+  uploadedById Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  task Task [not null]
+  uploadedBy Account [not null]
+}
+
 Ref: Account.ownerId - Account.id
 
 Ref: DishSnapshot.dishId > Dish.id
@@ -442,3 +488,15 @@ Ref: EmployeeSpin.rewardId > SpinReward.id
 Ref: EmployeeSpin.eventId > SpinEvent.id
 
 Ref: EmployeeSpin.createdById > Account.id [delete: Cascade]
+
+Ref: Task.assignedToId > Account.id [delete: Set Null]
+
+Ref: Task.createdById > Account.id [delete: Set Null]
+
+Ref: TaskComment.taskId > Task.id [delete: Cascade]
+
+Ref: TaskComment.createdById > Account.id [delete: Cascade]
+
+Ref: TaskAttachment.taskId > Task.id [delete: Cascade]
+
+Ref: TaskAttachment.uploadedById > Account.id [delete: Cascade]

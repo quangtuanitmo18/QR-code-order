@@ -1,16 +1,17 @@
 import { Role } from '@/constants/type'
 import {
-    Calendar,
-    CircleDot,
-    FileText,
-    Home,
-    MessageSquareText,
-    Salad,
-    ShoppingCart,
-    Sparkles,
-    Table,
-    Ticket,
-    Users2
+  Calendar,
+  CircleDot,
+  FileText,
+  Home,
+  MessageSquareText,
+  Salad,
+  ShoppingCart,
+  Sparkles,
+  Table,
+  Ticket,
+  Users2,
+  CheckSquare,
 } from 'lucide-react'
 
 const menuItems = [
@@ -48,6 +49,12 @@ const menuItems = [
     title: 'Calendar',
     Icon: Calendar,
     href: '/manage/calendar',
+    roles: [Role.Owner, Role.Employee],
+  },
+  {
+    title: 'Tasks',
+    Icon: CheckSquare,
+    href: '/manage/tasks',
     roles: [Role.Owner, Role.Employee],
   },
   {

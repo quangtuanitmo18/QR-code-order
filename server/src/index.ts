@@ -25,6 +25,8 @@ import spinEventRoutes from '@/routes/spin-event.route'
 import spinRewardRoutes from '@/routes/spin-reward.route'
 import staticRoutes from '@/routes/static.route'
 import tablesRoutes from '@/routes/table.route'
+import taskCommentRoutes from '@/routes/task-comment.route'
+import taskRoutes from '@/routes/task.route'
 import testRoutes from '@/routes/test.route'
 import { calendarTypeService } from '@/services/calendar-type.service'
 import { createFolder } from '@/utils/helpers'
@@ -36,6 +38,7 @@ import Fastify from 'fastify'
 import rawBody from 'fastify-raw-body'
 import fastifySocketIO from 'fastify-socket.io'
 import path from 'path'
+import taskAttachmentRoutes from './routes/task-attachment.route'
 
 const fastify = Fastify({
   logger: true,
@@ -148,6 +151,9 @@ const start = async () => {
     fastify.register(spinRewardRoutes, { prefix: '/admin/spin-rewards' })
     fastify.register(employeeSpinRoutes, { prefix: '/employee-spin' })
     fastify.register(adminSpinRoutes, { prefix: '/admin/employee-spins' })
+    fastify.register(taskRoutes, { prefix: '/tasks' })
+    fastify.register(taskCommentRoutes, { prefix: '/tasks' })
+    fastify.register(taskAttachmentRoutes, { prefix: '/tasks' })
 
     // Initialize system data
     await initOwnerAccount()

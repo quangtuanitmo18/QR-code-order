@@ -14,4 +14,12 @@ export default async function staticRoutes(fastify: FastifyInstance, options: Fa
   }>('/static/:id', async (request, reply) => {
     return reply.sendFile(request.params.id)
   })
+  // Serve task attachments from subdirectory
+  fastify.get<{
+    Params: {
+      id: string
+    }
+  }>('/static/tasks/:id', async (request, reply) => {
+    return reply.sendFile(path.join('tasks', request.params.id))
+  })
 }

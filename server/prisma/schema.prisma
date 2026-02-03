@@ -38,6 +38,10 @@ model Account {
   employeeSpins        EmployeeSpin[]            @relation("EmployeeSpins")
   adminCreatedSpins    EmployeeSpin[]            @relation("AdminCreatedSpins")
   createdSpinEvents    SpinEvent[]               @relation("CreatedSpinEvents")
+  assignedTasks        Task[]                    @relation("AssignedTasks")
+  createdTasks         Task[]                    @relation("CreatedTasks")
+  taskComments         TaskComment[]
+  taskAttachments      TaskAttachment[]
 }
 
 model Dish {
@@ -382,19 +386,19 @@ model SpinEvent {
 
 model SpinReward {
   id              Int      @id @default(autoincrement())
-  name            String 
-  description     String? 
-  type            String 
-  value           String? 
-  probability     Float 
+  name            String
+  description     String?
+  type            String
+  value           String?
+  probability     Float
   color           String   @default("blue")
-  icon            String? 
+  icon            String?
   isActive        Boolean  @default(true)
-  order           Int      @default(0) 
-  maxQuantity     Int? 
-  currentQuantity Int      @default(0) 
-  version         Int      @default(0) 
-  eventId         Int 
+  order           Int      @default(0)
+  maxQuantity     Int?
+  currentQuantity Int      @default(0)
+  version         Int      @default(0)
+  eventId         Int
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -427,4 +431,64 @@ model EmployeeSpin {
   @@index([status, expiredAt])
   @@index([createdById])
   @@index([eventId])
+}
+
+model Task {
+  id           Int       @id @default(autoincrement())
+  title        String
+  description  String?
+  status       String    @default("todo") // todo, in_progress, completed, pending
+  category     String // Feature, Bug, Docs, Improvement, Refactor
+  priority     String    @default("normal") // Critical, Important, Normal, Minor
+  dueDate      DateTime?
+  assignedToId Int? // Foreign key to Account (employee)
+  createdById  Int // Foreign key to Account (admin/creator)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  assignedTo  Account?         @relation("AssignedTasks", fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdBy   Account          @relation("CreatedTasks", fields: [createdById], references: [id], onDelete: Cascade)
+  comments    TaskComment[]
+  attachments TaskAttachment[]
+
+  @@index([assignedToId])
+  @@index([createdById])
+  @@index([status])
+  @@index([category])
+  @@index([priority])
+  @@index([title]) // For search performance (LIKE queries)
+  @@index([createdAt]) // For default sorting
+  @@map("Task")
+}
+
+model TaskComment {
+  id          Int      @id @default(autoincrement())
+  taskId      Int
+  content     String
+  createdById Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  task      Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  createdBy Account @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@map("TaskComment")
+}
+
+model TaskAttachment {
+  id           Int      @id @default(autoincrement())
+  taskId       Int
+  fileName     String
+  filePath     String // Path to file in storage
+  fileSize     Int // Size in bytes
+  mimeType     String
+  uploadedById Int
+  createdAt    DateTime @default(now())
+
+  task       Task    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploadedBy Account @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@map("TaskAttachment")
 }
