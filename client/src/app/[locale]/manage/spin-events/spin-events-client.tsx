@@ -19,13 +19,13 @@ export default function SpinEventsClient() {
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingEventId, setEditingEventId] = useState<number | null>(null)
   const { data, isLoading } = useGetSpinEventsQuery()
-  
+
   // Fetch full event data when editing (includes spins array)
   const { data: eventData } = useGetSpinEventByIdQuery({
     id: editingEventId || 0,
     enabled: editingEventId !== null && isFormOpen,
   })
-  
+
   const editingEvent = eventData?.payload.data || null
 
   const handleNewEvent = () => {
@@ -45,17 +45,11 @@ export default function SpinEventsClient() {
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-end">
-        <Button onClick={handleNewEvent}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Event
-        </Button>
-      </div>
-
       <SpinEventTable
         events={data?.payload.data || []}
         isLoading={isLoading}
         onEdit={handleEditEvent}
+        onNewEvent={handleNewEvent}
       />
 
       <Dialog open={isFormOpen} onOpenChange={handleCloseForm}>

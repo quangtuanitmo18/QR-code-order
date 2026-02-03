@@ -1,12 +1,12 @@
 'use client'
 
-import * as Sentry from '@sentry/nextjs'
+// import * as Sentry from '@sentry/nextjs'
 import { useEffect } from 'react'
 
 export default function GlobalError({ error, reset }: { error: Error; reset: () => void }) {
   useEffect(() => {
     // Report the error to Sentry
-    const eventId = Sentry.captureException(error)
+    // const eventId = Sentry.captureException(error)
     console.error('Unhandled application error:', error)
   }, [error])
 

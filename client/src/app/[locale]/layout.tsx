@@ -66,7 +66,7 @@ export default async function RootLayout(
   const messages = await getMessages()
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={cn('min-h-screen bg-background font-sans antialiased', fontSans.variable)}>
+      <body className={cn('bg-background font-sans antialiased', fontSans.variable)}>
         <NextTopLoader showSpinner={false} color="hsl(var(--foreground))" />
         <NextIntlClientProvider messages={messages}>
           <AppProvider>

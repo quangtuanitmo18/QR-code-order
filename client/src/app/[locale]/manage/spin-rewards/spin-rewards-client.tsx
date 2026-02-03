@@ -37,17 +37,11 @@ export default function SpinRewardsClient() {
 
   return (
     <>
-      <div className="mb-4 flex items-center justify-end">
-        <Button onClick={handleNewReward}>
-          <Plus className="mr-2 h-4 w-4" />
-          New Reward
-        </Button>
-      </div>
-
       <SpinRewardTable
         rewards={data?.payload.data || []}
         isLoading={isLoading}
         onEdit={handleEditReward}
+        onNewReward={handleNewReward}
       />
 
       <Dialog open={isFormOpen} onOpenChange={handleCloseForm}>

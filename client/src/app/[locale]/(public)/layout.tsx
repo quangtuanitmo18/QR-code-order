@@ -26,7 +26,7 @@ export default async function Layout(
   const { children, modal } = props
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col">
+    <div className="relative flex w-full flex-col">
       <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b bg-background px-3 sm:h-16 sm:gap-4 sm:px-4 md:px-6">
         <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
           <Link href="/" className="flex items-center gap-2 text-lg font-semibold md:text-base">
