@@ -336,7 +336,7 @@ Table SpinReward {
   type String [not null]
   value String
   probability Float [not null]
-  color String [not null, default: 'bg-blue-500']
+  color String [not null, default: 'blue']
   icon String
   isActive Boolean [not null, default: true]
   order Int [not null, default: 0]

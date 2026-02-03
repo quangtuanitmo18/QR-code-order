@@ -28,7 +28,9 @@ export default function EmployeeSpinClient() {
     (GetActiveRewardsResType['data'][0] & { id: number }) | null
   >(null)
   const [selectedSpin, setSelectedSpin] = useState<EmployeeSpinType | null>(null)
-  const [wonRewardId, setWonRewardId] = useState<number | null>(null)
+  const [isSpinning, setIsSpinning] = useState(false)
+  const [mustSpin, setMustSpin] = useState(false)
+  const [prizeNumber, setPrizeNumber] = useState<number | null>(null)
 
   // Queries - only load rewards when event is selected
   const { data: rewardsData, isLoading: rewardsLoading } = useGetActiveRewardsQuery(
@@ -50,38 +52,81 @@ export default function EmployeeSpinClient() {
   // Handle spin execution
   const handleSpin = async (spinId: number) => {
     try {
+      if (isSpinning || mustSpin) return
+
+      setIsSpinning(true)
+      // Reset states before starting new spin
+      setMustSpin(false)
+      setPrizeNumber(null)
+      setSelectedReward(null)
+      setSelectedSpin(null)
+
       const result = await executeSpinMutation.mutateAsync({ spinId })
 
-      // Set won reward ID for wheel animation
-      if (result.payload.data.reward?.id) {
-        setWonRewardId(result.payload.data.reward.id)
+      // Debug log
+      console.log('[EmployeeSpinClient] executeSpin result:', result)
+
+      // Get reward ID from backend response
+      const backendRewardId = result.payload.data.reward?.id
+      console.log('[EmployeeSpinClient] Backend rewardId:', backendRewardId)
+      console.log(
+        '[EmployeeSpinClient] Available rewards:',
+        rewards.map((r) => ({ id: r.id, name: r.name }))
+      )
+
+      if (!backendRewardId) {
+        console.error('[EmployeeSpinClient] No rewardId in backend response')
+        setIsSpinning(false)
+        setMustSpin(false)
+        setPrizeNumber(null)
+        return
       }
 
-      // Find the reward that was won
-      const wonReward = rewardsData?.payload?.data?.find(
-        (r) => r.id === result.payload.data.reward?.id
+      // Find the index of the won reward in the rewards array
+      // This index will be used as prizeNumber for the wheel
+      const prizeIndex = rewards.findIndex((r) => r.id === backendRewardId)
+
+      if (prizeIndex === -1) {
+        console.error(
+          `[EmployeeSpinClient] Reward ID ${backendRewardId} not found in rewards list`,
+          rewards.map((r) => r.id)
+        )
+        setIsSpinning(false)
+        setMustSpin(false)
+        setPrizeNumber(null)
+        return
+      }
+
+      console.log(
+        '[EmployeeSpinClient] Prize index:',
+        prizeIndex,
+        'for reward:',
+        rewards[prizeIndex]?.name
       )
+
+      // Find and set the reward that was won (for modal display)
+      const wonReward = rewards.find((r) => r.id === backendRewardId)
       if (wonReward) {
         setSelectedReward({ ...wonReward, id: wonReward.id })
         setSelectedSpin(result.payload.data)
-
-        // Show modal after animation completes
-        setTimeout(() => {
-          setResultModalOpen(true)
-          // Reset wonRewardId after modal is shown to allow next spin
-          setTimeout(() => {
-            setWonRewardId(null)
-          }, 1000)
-        }, 3000)
       }
 
-      // toast({
-      //   title: 'Spin completed!',
-      //   description: `You won: ${result.payload.data.reward?.name || 'Unknown reward'}`,
-      // })
+      // Set prize number first, then trigger spin
+      // The library needs prizeNumber to be set before mustStartSpinning becomes true
+      setPrizeNumber(prizeIndex)
+
+      // Use setTimeout to ensure state updates are processed before triggering spin
+      setTimeout(() => {
+        console.log('[EmployeeSpinClient] Triggering spin with prizeNumber:', prizeIndex)
+        setMustSpin(true)
+      }, 100)
     } catch (error) {
       handleErrorApi({ error: error as any })
-      throw error
+      setIsSpinning(false)
+      setMustSpin(false)
+      setPrizeNumber(null)
+      setSelectedReward(null)
+      setSelectedSpin(null)
     }
   }
 
@@ -221,11 +266,28 @@ export default function EmployeeSpinClient() {
             <TabsContent value="spin" className="space-y-6">
               <SpinWheel
                 rewards={rewards}
-                onSpin={handleSpin}
                 availableSpins={availableSpinsForWheel.length}
-                pendingSpinId={firstAvailableSpin?.id}
+                isSpinning={isSpinning}
                 isLoading={rewardsLoading || executeSpinMutation.isPending}
-                wonRewardId={wonRewardId}
+                mustSpin={mustSpin}
+                prizeNumber={prizeNumber}
+                onSpinClick={() => {
+                  if (!firstAvailableSpin) return
+                  void handleSpin(firstAvailableSpin.id)
+                }}
+                onStopSpinning={() => {
+                  console.log('[EmployeeSpinClient] Wheel stopped spinning')
+                  setMustSpin(false)
+                  setIsSpinning(false)
+                  // Open modal after wheel stops
+                  if (selectedReward && selectedSpin) {
+                    setResultModalOpen(true)
+                  } else {
+                    console.warn(
+                      '[EmployeeSpinClient] No selectedReward or selectedSpin when wheel stopped'
+                    )
+                  }
+                }}
               />
             </TabsContent>
 

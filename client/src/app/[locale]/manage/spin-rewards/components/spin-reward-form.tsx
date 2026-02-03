@@ -27,7 +27,6 @@ import {
   CreateSpinRewardBody,
   CreateSpinRewardBodyType,
   SpinRewardType,
-  SpinRewardTypeValues,
   UpdateSpinRewardBodyType,
 } from '@/schemaValidations/spin-reward.schema'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -41,14 +40,14 @@ interface SpinRewardFormProps {
 }
 
 const colorOptions = [
-  { value: 'bg-blue-500', label: 'Blue' },
-  { value: 'bg-green-500', label: 'Green' },
-  { value: 'bg-red-500', label: 'Red' },
-  { value: 'bg-yellow-500', label: 'Yellow' },
-  { value: 'bg-purple-500', label: 'Purple' },
-  { value: 'bg-pink-500', label: 'Pink' },
-  { value: 'bg-orange-500', label: 'Orange' },
-  { value: 'bg-indigo-500', label: 'Indigo' },
+  { value: 'blue', label: 'Blue' },
+  { value: 'green', label: 'Green' },
+  { value: 'red', label: 'Red' },
+  { value: 'yellow', label: 'Yellow' },
+  { value: 'purple', label: 'Purple' },
+  { value: 'pink', label: 'Pink' },
+  { value: 'orange', label: 'Orange' },
+  { value: 'indigo', label: 'Indigo' },
 ]
 
 export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormProps) {
@@ -66,7 +65,7 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
       ? {
           name: reward.name,
           description: reward.description || undefined,
-          type: reward.type as (typeof SpinRewardTypeValues)[number],
+          type: reward.type,
           value: reward.value || undefined,
           probability: reward.probability,
           color: reward.color,
@@ -79,10 +78,10 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
       : {
           name: '',
           description: undefined,
-          type: 'BONUS',
+          type: '',
           value: undefined,
           probability: 0.1,
-          color: 'bg-blue-500',
+          color: 'blue',
           icon: undefined,
           isActive: true,
           order: 0,
@@ -217,20 +216,9 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Type *</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {SpinRewardTypeValues.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type.replace('_', ' ')}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <Input placeholder="e.g., BONUS, FREE_MEAL, DISCOUNT, ..." {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

@@ -6,7 +6,7 @@ CREATE TABLE "SpinReward" (
     "type" TEXT NOT NULL,
     "value" TEXT,
     "probability" REAL NOT NULL,
-    "color" TEXT NOT NULL DEFAULT 'bg-blue-500',
+    "color" TEXT NOT NULL DEFAULT 'blue',
     "icon" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "order" INTEGER NOT NULL DEFAULT 0,

@@ -97,8 +97,8 @@ export const employeeSpinService = {
             throw new EntityError([{ field: 'spinId', message: 'Spin already executed' }])
           }
 
-          // 2. Get available rewards (active and not exhausted)
-          // Use raw query within transaction to get available rewards
+          // 2. Get available rewards (active and not exhausted) for this event only
+          // Use raw query within transaction to get available rewards filtered by eventId
           const rewards = await tx.$queryRaw<
             Array<{
               id: number
@@ -113,6 +113,7 @@ export const employeeSpinService = {
             FROM SpinReward
             WHERE isActive = 1
               AND (maxQuantity IS NULL OR currentQuantity < maxQuantity)
+              AND eventId = ${spin.eventId}
             ORDER BY "order" ASC
           `
 
@@ -271,7 +272,10 @@ export const employeeSpinService = {
   /**
    * Get employee spins with filters
    */
-  async getEmployeeSpins(employeeId: number, filters?: { status?: string; fromDate?: Date; toDate?: Date; eventId?: number }) {
+  async getEmployeeSpins(
+    employeeId: number,
+    filters?: { status?: string; fromDate?: Date; toDate?: Date; eventId?: number }
+  ) {
     return await employeeSpinRepository.findByEmployeeId(employeeId, filters)
   },
 

@@ -1,15 +1,6 @@
 import { z } from 'zod'
 import { SpinEventSchema } from './spin-event.schema'
 
-// SpinReward Type Enum
-export const SpinRewardTypeValues = [
-  'BONUS',
-  'FREE_MEAL',
-  'EXTRA_BREAK',
-  'RECOGNITION',
-  'NOTHING',
-] as const
-
 // SpinReward Schema (for responses - dates as ISO strings)
 export const SpinRewardSchema = z.object({
   id: z.number(),
@@ -61,7 +52,7 @@ export const CreateSpinRewardBody = z
   .object({
     name: z.string().min(1).max(100),
     description: z.string().max(500).optional(),
-    type: z.enum(SpinRewardTypeValues),
+    type: z.string().min(1).max(100),
     value: z.string().max(1000).optional(), // JSON string
     probability: z.number().min(0).max(1),
     color: z.string().min(1).max(50), // Tailwind color class
@@ -88,7 +79,7 @@ export const UpdateSpinRewardBody = z
   .object({
     name: z.string().min(1).max(100).optional(),
     description: z.string().max(500).optional().nullable(),
-    type: z.enum(SpinRewardTypeValues).optional(),
+    type: z.string().min(1).max(100).optional(),
     value: z.string().max(1000).optional().nullable(), // JSON string
     probability: z.number().min(0).max(1).optional(),
     color: z.string().min(1).max(50).optional(), // Tailwind color class

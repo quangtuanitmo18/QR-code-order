@@ -382,19 +382,19 @@ model SpinEvent {
 
 model SpinReward {
   id              Int      @id @default(autoincrement())
-  name            String // "Bonus 100k", "Free Meal", "Extra Break", etc.
-  description     String? // Mô tả phần thưởng
-  type            String // "BONUS" | "FREE_MEAL" | "EXTRA_BREAK" | "RECOGNITION" | "NOTHING"
-  value           String? // JSON: {amount: 100000} hoặc {mealType: "lunch"} hoặc null
-  probability     Float // 0.0 - 1.0 (weight, tổng tất cả = 1.0)
-  color           String   @default("bg-blue-500") // Tailwind color class
-  icon            String? // Icon name from lucide-react
+  name            String 
+  description     String? 
+  type            String 
+  value           String? 
+  probability     Float 
+  color           String   @default("blue")
+  icon            String? 
   isActive        Boolean  @default(true)
-  order           Int      @default(0) // Thứ tự hiển thị trên vòng quay
-  maxQuantity     Int? // NULL = unlimited, số > 0 = có hạn
-  currentQuantity Int      @default(0) // Số lượng đã phát (tăng khi spin trúng)
-  version         Int      @default(0) // Optimistic locking version
-  eventId         Int // Foreign key to SpinEvent
+  order           Int      @default(0) 
+  maxQuantity     Int? 
+  currentQuantity Int      @default(0) 
+  version         Int      @default(0) 
+  eventId         Int 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
