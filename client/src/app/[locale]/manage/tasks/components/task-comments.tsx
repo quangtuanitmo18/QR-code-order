@@ -1,19 +1,5 @@
 'use client'
 
-import { useState } from 'react'
-import {
-  useGetCommentsQuery,
-  useCreateCommentMutation,
-  useUpdateCommentMutation,
-  useDeleteCommentMutation,
-} from '@/queries/useTaskComment'
-import { TaskCommentType } from '@/schemaValidations/task-comment.schema'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { toast } from '@/components/ui/use-toast'
-import { handleErrorApi } from '@/lib/utils'
-import { format } from 'date-fns'
-import { MessageSquare, Edit, Trash2, Send, X } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,7 +10,21 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { toast } from '@/components/ui/use-toast'
+import { handleErrorApi } from '@/lib/utils'
 import { useAccountMe } from '@/queries/useAccount'
+import {
+  useCreateCommentMutation,
+  useDeleteCommentMutation,
+  useGetCommentsQuery,
+  useUpdateCommentMutation,
+} from '@/queries/useTaskComment'
+import { TaskCommentType } from '@/schemaValidations/task-comment.schema'
+import { format } from 'date-fns'
+import { Edit, MessageSquare, Send, Trash2, X } from 'lucide-react'
+import { useState } from 'react'
 
 interface TaskCommentsProps {
   taskId: number
@@ -201,7 +201,8 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
                         <span className="text-xs text-muted-foreground">
                           {format(new Date(comment.createdAt), 'MMM dd, yyyy HH:mm')}
                         </span>
-                        {comment.updatedAt.getTime() !== comment.createdAt.getTime() && (
+                        {new Date(comment.updatedAt).getTime() !==
+                          new Date(comment.createdAt).getTime() && (
                           <span className="text-xs text-muted-foreground">(edited)</span>
                         )}
                       </div>

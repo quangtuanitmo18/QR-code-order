@@ -13,7 +13,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,17 +45,7 @@ import { GetTasksQueryParamsType, TaskType } from '@/schemaValidations/task.sche
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { format } from 'date-fns'
 import { debounce } from 'lodash'
-import {
-  ArrowUp,
-  BarChart3,
-  CheckCircle2,
-  Clock,
-  Edit,
-  ListTodo,
-  MessageSquare,
-  Plus,
-  Trash2,
-} from 'lucide-react'
+import { Edit, MessageSquare, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { categories, priorities, statuses } from '../data/constants'
 
@@ -108,12 +97,6 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
     limit: 10,
     total: 0,
     totalPages: 0,
-  }
-  const statistics = data?.payload.data.statistics || {
-    total: 0,
-    completed: 0,
-    inProgress: 0,
-    pending: 0,
   }
 
   // Handler functions
@@ -174,101 +157,6 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
   return (
     <>
       <div className="space-y-6">
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Total Tasks</p>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold">{statistics.total}</span>
-                    <span className="flex items-center gap-0.5 text-sm text-green-500">
-                      <ArrowUp className="size-3.5" />
-                      {statistics.total > 0
-                        ? Math.round((statistics.completed / statistics.total) * 100)
-                        : 0}
-                      %
-                    </span>
-                  </div>
-                </div>
-                <div className="rounded-lg bg-secondary p-3">
-                  <ListTodo className="size-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Completed</p>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold">{statistics.completed}</span>
-                    <span className="flex items-center gap-0.5 text-sm text-green-500">
-                      <ArrowUp className="size-3.5" />
-                      {statistics.total > 0
-                        ? Math.round((statistics.completed / statistics.total) * 100)
-                        : 0}
-                      %
-                    </span>
-                  </div>
-                </div>
-                <div className="rounded-lg bg-secondary p-3">
-                  <CheckCircle2 className="size-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">In Progress</p>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold">{statistics.inProgress}</span>
-                    <span className="flex items-center gap-0.5 text-sm text-green-500">
-                      <ArrowUp className="size-3.5" />
-                      {statistics.total > 0
-                        ? Math.round((statistics.inProgress / statistics.total) * 100)
-                        : 0}
-                      %
-                    </span>
-                  </div>
-                </div>
-                <div className="rounded-lg bg-secondary p-3">
-                  <Clock className="size-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Pending</p>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl font-bold">{statistics.pending}</span>
-                    <span className="flex items-center gap-0.5 text-sm text-orange-500">
-                      <ArrowUp className="size-3.5" />
-                      {statistics.total > 0
-                        ? Math.round((statistics.pending / statistics.total) * 100)
-                        : 0}
-                      %
-                    </span>
-                  </div>
-                </div>
-                <div className="rounded-lg bg-secondary p-3">
-                  <BarChart3 className="size-6" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Filters and Search */}
         <div className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

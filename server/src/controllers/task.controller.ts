@@ -5,6 +5,10 @@ export const getTasksController = async (query: GetTasksQueryParamsType) => {
   return await taskService.getTasks(query)
 }
 
+export const getStatisticsController = async () => {
+  return await taskService.getTaskStatistics()
+}
+
 export const getTaskByIdController = async (id: number) => {
   return await taskService.getTaskById(id)
 }

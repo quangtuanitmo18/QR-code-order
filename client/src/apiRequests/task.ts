@@ -3,6 +3,8 @@ import {
   CreateTaskBodyType,
   CreateTaskResType,
   DeleteTaskResType,
+  GetStatisticsQueryParamsType,
+  GetStatisticsResType,
   GetTaskResType,
   GetTasksQueryParamsType,
   GetTasksResType,
@@ -11,6 +13,11 @@ import {
 } from '@/schemaValidations/task.schema'
 
 export const taskApiRequest = {
+  getStatistics: (queryParams?: GetStatisticsQueryParamsType) =>
+    http.get<GetStatisticsResType>('/tasks/statistics', {
+      params: queryParams,
+    }),
+
   getTasks: (queryParams?: GetTasksQueryParamsType) =>
     http.get<GetTasksResType>('/tasks', {
       params: queryParams,

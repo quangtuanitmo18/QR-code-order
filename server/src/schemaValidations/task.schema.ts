@@ -45,6 +45,30 @@ export const GetTasksQueryParams = z.object({
 
 export type GetTasksQueryParamsType = z.TypeOf<typeof GetTasksQueryParams>
 
+// Get Statistics Query Parameters (no pagination/sorting)
+export const GetStatisticsQueryParams = z.object({
+  status: z.string().optional(),
+  category: z.string().optional(),
+  priority: z.string().optional(),
+  assignedToId: z.coerce.number().optional(),
+  search: z.string().optional()
+})
+
+export type GetStatisticsQueryParamsType = z.TypeOf<typeof GetStatisticsQueryParams>
+
+// Get Statistics Response
+export const GetStatisticsRes = z.object({
+  data: z.object({
+    total: z.number(),
+    completed: z.number(),
+    inProgress: z.number(),
+    pending: z.number()
+  }),
+  message: z.string()
+})
+
+export type GetStatisticsResType = z.TypeOf<typeof GetStatisticsRes>
+
 // Get Tasks Response
 export const GetTasksRes = z.object({
   data: z.object({

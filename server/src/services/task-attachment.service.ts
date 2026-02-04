@@ -1,4 +1,4 @@
-import envConfig from '@/config'
+import envConfig, { API_URL } from '@/config'
 import prisma from '@/database'
 import { taskAttachmentRepository } from '@/repositories/task-attachment.repository'
 import { EntityError } from '@/utils/errors'
@@ -134,7 +134,7 @@ export const taskAttachmentService = {
     // Add fileUrl to each attachment
     return attachments.map((attachment) => ({
       ...attachment,
-      fileUrl: `/static/tasks/${attachment.filePath}`
+      fileUrl: API_URL + `/static/tasks/${attachment.filePath}`
     }))
   },
 
@@ -261,7 +261,7 @@ export const taskAttachmentService = {
 
     return {
       ...attachment,
-      fileUrl: `/static/tasks/${attachment.filePath}`
+      fileUrl: API_URL + `/static/tasks/${attachment.filePath}`
     }
   },
 

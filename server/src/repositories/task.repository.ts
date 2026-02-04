@@ -224,34 +224,16 @@ export const taskRepository = {
    * Count tasks by status (for statistics)
    * Uses the same WHERE clause as findAll for consistency
    */
-  async countByStatus(filters?: Omit<FindAllFilters, 'page' | 'limit' | 'sortBy' | 'sortOrder'>) {
+  async countByStatus() {
     const where: any = {}
 
     // Build same WHERE clause as findAll
-    if (filters?.category) {
-      where.category = filters.category
-    }
-
-    if (filters?.priority) {
-      where.priority = filters.priority
-    }
-
-    if (filters?.assignedToId !== undefined) {
-      where.assignedToId = filters.assignedToId
-    }
-
-    if (filters?.search) {
-      where.title = {
-        contains: filters.search
-      }
-    }
-
     // Get counts for each status
     const [total, completed, inProgress, pending] = await Promise.all([
-      prisma.task.count({ where }),
-      prisma.task.count({ where: { ...where, status: 'completed' } }),
-      prisma.task.count({ where: { ...where, status: 'in_progress' } }),
-      prisma.task.count({ where: { ...where, status: 'pending' } })
+      prisma.task.count(),
+      prisma.task.count({ where: { status: 'completed' } }),
+      prisma.task.count({ where: { status: 'in_progress' } }),
+      prisma.task.count({ where: { status: 'pending' } })
     ])
 
     return {

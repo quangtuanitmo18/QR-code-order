@@ -31,13 +31,7 @@ export const taskService = {
     const totalPages = Math.ceil(total / limit)
 
     // Get statistics based on current filters
-    const statistics = await taskRepository.countByStatus({
-      status: params?.status,
-      category: params?.category,
-      priority: params?.priority,
-      assignedToId: params?.assignedToId,
-      search: params?.search
-    })
+    const statistics = await taskRepository.countByStatus()
 
     return {
       tasks,
@@ -234,7 +228,7 @@ export const taskService = {
   /**
    * Get task statistics based on current filters
    */
-  async getTaskStatistics(params?: Omit<GetTasksParams, 'page' | 'limit' | 'sortBy' | 'sortOrder'>) {
-    return await taskRepository.countByStatus(params)
+  async getTaskStatistics() {
+    return await taskRepository.countByStatus()
   }
 }

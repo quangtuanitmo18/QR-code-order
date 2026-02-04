@@ -15,6 +15,7 @@ import { useState } from 'react'
 import { TaskAttachments } from './components/task-attachments'
 import { TaskComments } from './components/task-comments'
 import { TaskForm } from './components/task-form'
+import { TaskStatistics } from './components/task-statistics'
 import { TaskTable } from './components/task-table'
 
 export default function TasksClient() {
@@ -65,11 +66,17 @@ export default function TasksClient() {
 
   return (
     <>
-      <TaskTable
-        onNewTask={handleNewTask}
-        onEditTask={handleEditTask}
-        onViewTask={handleViewTask}
-      />
+      <div className="space-y-6">
+        {/* Statistics Cards - Show total counts without filters */}
+        <TaskStatistics />
+
+        {/* Task Table with Filters */}
+        <TaskTable
+          onNewTask={handleNewTask}
+          onEditTask={handleEditTask}
+          onViewTask={handleViewTask}
+        />
+      </div>
 
       {/* Edit/Create Task Dialog */}
       <Dialog open={isFormOpen} onOpenChange={handleCloseForm}>

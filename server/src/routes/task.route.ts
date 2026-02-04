@@ -1,6 +1,7 @@
 import {
   createTaskController,
   deleteTaskController,
+  getStatisticsController,
   getTaskByIdController,
   getTasksController,
   updateTaskController
@@ -13,6 +14,8 @@ import {
   CreateTaskResType,
   DeleteTaskRes,
   DeleteTaskResType,
+  GetStatisticsRes,
+  GetStatisticsResType,
   GetTaskRes,
   GetTaskResType,
   GetTasksQueryParams,
@@ -31,6 +34,26 @@ import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 export default async function taskRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
   // All routes require authentication
   fastify.addHook('preValidation', fastify.auth([requireLoginedHook]))
+
+  // Get statistics (any authenticated user can view)
+
+  fastify.get<{ Reply: GetStatisticsResType }>(
+    '/statistics',
+    {
+      schema: {
+        response: {
+          200: GetStatisticsRes
+        }
+      }
+    },
+    async (request, reply) => {
+      const result = await getStatisticsController()
+      reply.send({
+        message: 'Get statistics successfully',
+        data: result as GetStatisticsResType['data']
+      })
+    }
+  )
 
   // Get all tasks (any authenticated user can view)
   fastify.get<{ Reply: GetTasksResType; Querystring: GetTasksQueryParamsType }>(
@@ -53,6 +76,7 @@ export default async function taskRoutes(fastify: FastifyInstance, options: Fast
   )
 
   // Get task by ID (any authenticated user can view)
+  // Use constraint to ensure this only matches numeric IDs, not "statistics"
   fastify.get<{ Reply: GetTaskResType; Params: TaskIdParamType }>(
     '/:id',
     {
