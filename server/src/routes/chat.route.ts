@@ -101,8 +101,14 @@ import rateLimit from '@fastify/rate-limit'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 
 export default async function chatRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
-  // Register multipart plugin for file uploads
-  fastify.register(fastifyMultipart)
+  // Register multipart plugin for file uploads with file size limit
+  fastify.register(fastifyMultipart, {
+    limits: {
+      fileSize: 10 * 1024 * 1024, // 10MB - matches MAX_FILE_SIZE in message-attachment.service.ts
+      files: 10, // Allow up to 10 files per request
+      fields: 10 // Allow up to 10 fields per request
+    }
+  })
 
   // All routes require authentication
   fastify.addHook('preValidation', fastify.auth([requireLoginedHook]))
@@ -409,30 +415,38 @@ export default async function chatRoutes(fastify: FastifyInstance, options: Fast
         async (request, reply) => {
           const accountId = request.decodedAccessToken?.userId as number
 
-          // Parse multipart form data
-          const parts = request.parts()
+          // Parse multipart form data with error handling
           let content: string | undefined
           let replyToId: number | undefined
           const files: any[] = []
 
-          for await (const part of parts) {
-            if (part.type === 'field') {
-              if (part.fieldname === 'content') {
-                content = part.value as string
-              } else if (part.fieldname === 'replyToId') {
-                const value = part.value as string
-                if (value) {
-                  const parsed = parseInt(value, 10)
-                  // Validate: must be a valid positive number
-                  if (!isNaN(parsed) && parsed > 0) {
-                    replyToId = parsed
+          try {
+            const parts = request.parts()
+            for await (const part of parts) {
+              if (part.type === 'field') {
+                if (part.fieldname === 'content') {
+                  content = part.value as string
+                } else if (part.fieldname === 'replyToId') {
+                  const value = part.value as string
+                  if (value) {
+                    const parsed = parseInt(value, 10)
+                    // Validate: must be a valid positive number
+                    if (!isNaN(parsed) && parsed > 0) {
+                      replyToId = parsed
+                    }
+                    // Silently ignore invalid values (treat as no reply)
                   }
-                  // Silently ignore invalid values (treat as no reply)
                 }
+              } else if (part.type === 'file') {
+                files.push(part)
               }
-            } else if (part.type === 'file') {
-              files.push(part)
             }
+          } catch (error: any) {
+            // Handle multipart parsing errors (e.g., file too large, timeout)
+            if (error.code === 'FST_ERR_REQ_FILE_TOO_LARGE' || error.message?.includes('file size')) {
+              throw new EntityError([{ field: 'file', message: 'File size must be less than 10MB' }])
+            }
+            throw error
           }
 
           // Validate content: either content or files (or both) must be provided

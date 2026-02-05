@@ -1,7 +1,7 @@
-import { messageRepository } from '@/repositories/message.repository'
-import { chatRepository } from '@/repositories/chat.repository'
-import { messageAttachmentService } from '@/services/message-attachment.service'
 import { API_URL } from '@/config'
+import { chatRepository } from '@/repositories/chat.repository'
+import { messageRepository } from '@/repositories/message.repository'
+import { messageAttachmentService } from '@/services/message-attachment.service'
 import { EntityError } from '@/utils/errors'
 
 interface GetMessagesParams {
@@ -39,12 +39,31 @@ export const messageService = {
       throw new EntityError([{ field: 'conversationId', message: 'Conversation not found or access denied' }])
     }
 
-    return await messageRepository.findAll({
+    const result = await messageRepository.findAll({
       conversationId: params.conversationId,
       accountId: params.accountId,
       before: params.before,
       limit: params.limit
     })
+
+    // Add fileUrl to attachments for all messages
+    const messagesWithFileUrls = result.messages.map((message: any) => {
+      if (message.attachments && message.attachments.length > 0) {
+        return {
+          ...message,
+          attachments: message.attachments.map((attachment: any) => ({
+            ...attachment,
+            fileUrl: `${API_URL}/static/chat/${attachment.filePath}`
+          }))
+        }
+      }
+      return message
+    })
+
+    return {
+      ...result,
+      messages: messagesWithFileUrls
+    }
   },
 
   /**
@@ -61,6 +80,17 @@ export const messageService = {
     const conversation = await chatRepository.findById(message.conversationId, accountId)
     if (!conversation) {
       throw new EntityError([{ field: 'id', message: 'Conversation not found or access denied' }])
+    }
+
+    // Add fileUrl to attachments if they exist
+    if (message.attachments && message.attachments.length > 0) {
+      return {
+        ...message,
+        attachments: message.attachments.map((attachment: any) => ({
+          ...attachment,
+          fileUrl: `${API_URL}/static/chat/${attachment.filePath}`
+        }))
+      }
     }
 
     return message
@@ -165,7 +195,20 @@ export const messageService = {
     }
 
     // Update message
-    return await messageRepository.update(id, { content })
+    const updatedMessage = await messageRepository.update(id, { content })
+
+    // Add fileUrl to attachments if they exist
+    if (updatedMessage.attachments && updatedMessage.attachments.length > 0) {
+      return {
+        ...updatedMessage,
+        attachments: updatedMessage.attachments.map((attachment: any) => ({
+          ...attachment,
+          fileUrl: `${API_URL}/static/chat/${attachment.filePath}`
+        }))
+      }
+    }
+
+    return updatedMessage
   },
 
   /**
@@ -268,13 +311,27 @@ export const messageService = {
       limit: params.limit
     })
 
+    // Add fileUrl to attachments for all messages
+    const messagesWithFileUrls = messages.map((message: any) => {
+      if (message.attachments && message.attachments.length > 0) {
+        return {
+          ...message,
+          attachments: message.attachments.map((attachment: any) => ({
+            ...attachment,
+            fileUrl: `${API_URL}/static/chat/${attachment.filePath}`
+          }))
+        }
+      }
+      return message
+    })
+
     // Calculate pagination metadata
     const page = params?.page ?? 1
     const limit = params?.limit ?? 20
     const totalPages = Math.ceil(total / limit)
 
     return {
-      messages,
+      messages: messagesWithFileUrls,
       pagination: {
         page,
         limit,

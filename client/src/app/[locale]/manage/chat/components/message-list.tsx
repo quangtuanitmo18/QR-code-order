@@ -1,29 +1,5 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
-import { format, isToday, isYesterday } from 'date-fns'
-import { CheckCheck, MoreHorizontal, Reply, Copy, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { MessageType } from '@/schemaValidations/message.schema'
-import { ConversationParticipantType } from '@/schemaValidations/chat.schema'
-import {
-  useEditMessageMutation,
-  useDeleteMessageMutation,
-  useAddReactionMutation,
-  useRemoveReactionMutation,
-} from '@/queries/useMessage'
-import { handleErrorApi } from '@/lib/utils'
-import { toast } from '@/components/ui/use-toast'
-import { EditMessageDialog } from './edit-message-dialog'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,8 +10,29 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Smile } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { toast } from '@/components/ui/use-toast'
+import { cn, handleErrorApi } from '@/lib/utils'
+import {
+  useAddReactionMutation,
+  useDeleteMessageMutation,
+  useEditMessageMutation,
+  useRemoveReactionMutation,
+} from '@/queries/useMessage'
+import { MessageType } from '@/schemaValidations/message.schema'
+import { format, isToday, isYesterday } from 'date-fns'
+import { CheckCheck, Copy, MoreHorizontal, Smile, Trash2 } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { EditMessageDialog } from './edit-message-dialog'
 
 interface MessageListProps {
   messages: MessageType[]
@@ -97,26 +94,30 @@ export function MessageList({ messages, currentUserId, typingUsers = [] }: Messa
     }
   }
 
-  const shouldShowAvatar = (message: MessageType, index: number) => {
+  const shouldShowAvatar = (message: MessageType, groupMessages: MessageType[], index: number) => {
     if (message.senderId === currentUserId) return false
     if (index === 0) return true
 
-    const prevMessage = messages[index - 1]
+    const prevMessage = groupMessages[index - 1]
     return prevMessage.senderId !== message.senderId
   }
 
-  const shouldShowName = (message: MessageType, index: number) => {
+  const shouldShowName = (message: MessageType, groupMessages: MessageType[], index: number) => {
     if (message.senderId === currentUserId) return false
     if (index === 0) return true
 
-    const prevMessage = messages[index - 1]
+    const prevMessage = groupMessages[index - 1]
     return prevMessage.senderId !== message.senderId
   }
 
-  const isConsecutiveMessage = (message: MessageType, index: number) => {
+  const isConsecutiveMessage = (
+    message: MessageType,
+    groupMessages: MessageType[],
+    index: number
+  ) => {
     if (index === 0) return false
 
-    const prevMessage = messages[index - 1]
+    const prevMessage = groupMessages[index - 1]
     const timeDiff =
       new Date(message.createdAt).getTime() - new Date(prevMessage.createdAt).getTime()
 
@@ -172,9 +173,9 @@ export function MessageList({ messages, currentUserId, typingUsers = [] }: Messa
             <div className="space-y-1">
               {group.messages.map((message, messageIndex) => {
                 const isOwnMessage = message.senderId === currentUserId
-                const showAvatar = shouldShowAvatar(message, messageIndex)
-                const showName = shouldShowName(message, messageIndex)
-                const isConsecutive = isConsecutiveMessage(message, messageIndex)
+                const showAvatar = shouldShowAvatar(message, group.messages, messageIndex)
+                const showName = shouldShowName(message, group.messages, messageIndex)
+                const isConsecutive = isConsecutiveMessage(message, group.messages, messageIndex)
 
                 // Handle deleted messages
                 if (message.isDeleted && !isOwnMessage) {
@@ -197,8 +198,8 @@ export function MessageList({ messages, currentUserId, typingUsers = [] }: Messa
                     key={message.id}
                     className={cn(
                       'group flex gap-3',
-                      isOwnMessage && 'flex-row-reverse',
-                      isConsecutive && !isOwnMessage && 'ml-12'
+                      isOwnMessage && 'flex-row-reverse'
+                      // isConsecutive && !isOwnMessage && 'ml-0'
                     )}
                   >
                     {/* Avatar */}
@@ -225,8 +226,8 @@ export function MessageList({ messages, currentUserId, typingUsers = [] }: Messa
                     {/* Message content */}
                     <div
                       className={cn(
-                        'max-w-[70%] flex-1',
-                        isOwnMessage && 'flex flex-col items-end'
+                        'w-fit max-w-[70%]',
+                        isOwnMessage && 'ml-auto flex flex-col items-end'
                       )}
                     >
                       {/* Sender name for group messages */}
@@ -278,10 +279,14 @@ export function MessageList({ messages, currentUserId, typingUsers = [] }: Messa
                                     <a
                                       href={attachment.fileUrl}
                                       download={attachment.fileName}
-                                      className="flex items-center gap-2 rounded bg-background/50 p-2 text-sm"
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex cursor-pointer items-center gap-2 rounded bg-background/50 p-2 text-sm transition-colors hover:bg-background/70"
                                     >
-                                      <span>{attachment.fileName}</span>
-                                      <span className="text-xs text-muted-foreground">
+                                      <span className="truncate font-medium">
+                                        {attachment.fileName}
+                                      </span>
+                                      <span className="whitespace-nowrap text-xs text-muted-foreground">
                                         ({(attachment.fileSize / 1024).toFixed(1)} KB)
                                       </span>
                                     </a>

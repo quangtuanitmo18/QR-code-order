@@ -43,7 +43,7 @@ import path from 'path'
 
 const fastify = Fastify({
   logger: true,
-  bodyLimit: 1048576 //10MB
+  bodyLimit: 10 * 1024 * 1024 // 10MB - allows file uploads up to 10MB
 
   // https - reverse proxy nginx config
   // https: {
