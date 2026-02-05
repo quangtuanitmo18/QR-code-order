@@ -204,6 +204,19 @@ export default function ChatClient() {
               <ChatHeader
                 conversation={currentConversation || null}
                 currentUserId={currentUserId}
+                onConversationDeleted={(conversationId) => {
+                  // Clear selected conversation if it was deleted
+                  if (selectedConversationId === conversationId) {
+                    setSelectedConversationId(null)
+                    // Auto-select first conversation if available
+                    const remainingConversations = conversations.filter(
+                      (c) => c.id !== conversationId
+                    )
+                    if (remainingConversations.length > 0) {
+                      setSelectedConversationId(remainingConversations[0].id)
+                    }
+                  }
+                }}
               />
             </div>
           </div>

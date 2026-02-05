@@ -40,13 +40,13 @@ export const chatApiRequest = {
     http.delete<RemoveParticipantResType>(`/chat/conversations/${id}/participants/${accountId}`),
 
   pinConversation: (id: number) =>
-    http.post<PinConversationResType>(`/chat/conversations/${id}/pin`),
+    http.post<PinConversationResType>(`/chat/conversations/${id}/pin`, {}),
 
   unpinConversation: (id: number) =>
     http.delete<PinConversationResType>(`/chat/conversations/${id}/pin`),
 
   muteConversation: (id: number) =>
-    http.post<MuteConversationResType>(`/chat/conversations/${id}/mute`),
+    http.post<MuteConversationResType>(`/chat/conversations/${id}/mute`, {}),
 
   unmuteConversation: (id: number) =>
     http.delete<MuteConversationResType>(`/chat/conversations/${id}/mute`),

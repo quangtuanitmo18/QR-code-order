@@ -80,9 +80,11 @@ const request = async <Response>(
   } =
     body instanceof FormData
       ? {}
-      : {
-          'Content-Type': 'application/json',
-        }
+      : body !== undefined
+        ? {
+            'Content-Type': 'application/json',
+          }
+        : {}
   if (isClient) {
     const accessToken = getAccessTokenFromLocalStorage()
     if (accessToken) {
@@ -144,15 +146,16 @@ const request = async <Response>(
         // Try to get locale from URL first, then cookie, then fallback to default
         const pathLocale = window.location.pathname.split('/')[1]
         const cookieLocale = Cookies.get('NEXT_LOCALE')
-        const locale = (['en', 'vi', 'ru'].includes(pathLocale) ? pathLocale : cookieLocale) || defaultLocale
-        
+        const locale =
+          (['en', 'vi', 'ru'].includes(pathLocale) ? pathLocale : cookieLocale) || defaultLocale
+
         console.log('[HTTP] 🔄 Processing 401 - redirecting to login', {
           pathLocale,
           cookieLocale,
           finalLocale: locale,
           currentPath: window.location.pathname,
         })
-        
+
         if (!clientLogoutRequest) {
           console.log('[HTTP] 📤 Calling logout API...')
           clientLogoutRequest = fetch('/api/auth/logout', {
@@ -177,11 +180,10 @@ const request = async <Response>(
             // Check if already at login page to prevent loop
             const currentPath = window.location.pathname
             if (!currentPath.includes('/manage/login')) {
-            
               location.href = `/${locale}/manage/login`
-            } 
+            }
           }
-        } 
+        }
       } else {
         // Đây là trường hợp khi mà chúng ta vẫn còn access token (còn hạn)
         // Và chúng ta gọi API ở Next.js Server (Route Handler , Server Component) đến Server Backend

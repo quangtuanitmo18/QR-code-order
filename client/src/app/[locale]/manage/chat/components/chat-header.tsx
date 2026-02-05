@@ -1,5 +1,15 @@
 'use client'
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,6 +24,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { toast } from '@/components/ui/use-toast'
 import { handleErrorApi } from '@/lib/utils'
 import {
+  useDeleteConversationMutation,
   useMuteConversationMutation,
   usePinConversationMutation,
   useUnmuteConversationMutation,
@@ -28,14 +39,22 @@ interface ChatHeaderProps {
   conversation: ConversationType | null
   currentUserId?: number | null
   onSelectMessage?: (messageId: { id: number; conversationId: number }) => void
+  onConversationDeleted?: (conversationId: number) => void
 }
 
-export function ChatHeader({ conversation, currentUserId, onSelectMessage }: ChatHeaderProps) {
+export function ChatHeader({
+  conversation,
+  currentUserId,
+  onSelectMessage,
+  onConversationDeleted,
+}: ChatHeaderProps) {
   const pinMutation = usePinConversationMutation()
   const unpinMutation = useUnpinConversationMutation()
   const muteMutation = useMuteConversationMutation()
   const unmuteMutation = useUnmuteConversationMutation()
+  const deleteMutation = useDeleteConversationMutation()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
   if (!conversation) {
     return (
@@ -87,6 +106,18 @@ export function ChatHeader({ conversation, currentUserId, onSelectMessage }: Cha
         await muteMutation.mutateAsync(conversation.id)
         toast({ description: 'Conversation muted' })
       }
+    } catch (error) {
+      handleErrorApi({ error })
+    }
+  }
+
+  const handleDeleteConversation = async () => {
+    if (!conversation) return
+    try {
+      await deleteMutation.mutateAsync(conversation.id)
+      toast({ description: 'Conversation deleted successfully' })
+      setIsDeleteDialogOpen(false)
+      onConversationDeleted?.(conversation.id)
     } catch (error) {
       handleErrorApi({ error })
     }
@@ -189,7 +220,10 @@ export function ChatHeader({ conversation, currentUserId, onSelectMessage }: Cha
               {isPinned ? 'Unpin conversation' : 'Pin conversation'}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer text-destructive">
+            <DropdownMenuItem
+              onClick={() => setIsDeleteDialogOpen(true)}
+              className="cursor-pointer text-destructive"
+            >
               Delete conversation
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -205,6 +239,34 @@ export function ChatHeader({ conversation, currentUserId, onSelectMessage }: Cha
           onSelectMessage?.({ id: message.id, conversationId: message.conversationId })
         }}
       />
+
+      {/* Delete Conversation Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Conversation</AlertDialogTitle>
+            <AlertDialogDescription>
+              {conversation?.type === 'group'
+                ? 'Are you sure you want to leave this group conversation? You will no longer receive messages from this group.'
+                : 'Are you sure you want to delete this conversation? This action cannot be undone.'}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConversation}
+              disabled={deleteMutation.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending
+                ? 'Deleting...'
+                : conversation?.type === 'group'
+                  ? 'Leave'
+                  : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
