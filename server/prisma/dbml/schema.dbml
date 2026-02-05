@@ -33,6 +33,12 @@ Table Account {
   createdTasks Task [not null]
   taskComments TaskComment [not null]
   taskAttachments TaskAttachment [not null]
+  createdConversations Conversation [not null]
+  conversationParticipants ConversationParticipant [not null]
+  pinnedConversations ConversationPin [not null]
+  sentMessages Message [not null]
+  messageReactions MessageReaction [not null]
+  messageReadReceipts MessageReadReceipt [not null]
 }
 
 Table Dish {
@@ -413,6 +419,106 @@ Table TaskAttachment {
   uploadedBy Account [not null]
 }
 
+Table Conversation {
+  id Int [pk, increment]
+  type String [not null, default: 'direct']
+  name String
+  avatar String
+  createdById Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  createdBy Account [not null]
+  participants ConversationParticipant [not null]
+  messages Message [not null]
+  pinnedBy ConversationPin [not null]
+}
+
+Table ConversationParticipant {
+  id Int [pk, increment]
+  conversationId Int [not null]
+  accountId Int [not null]
+  isMuted Boolean [not null, default: false]
+  lastReadAt DateTime
+  joinedAt DateTime [default: `now()`, not null]
+  conversation Conversation [not null]
+  account Account [not null]
+
+  indexes {
+    (conversationId, accountId) [unique]
+  }
+}
+
+Table ConversationPin {
+  id Int [pk, increment]
+  conversationId Int [not null]
+  accountId Int [not null]
+  pinnedAt DateTime [default: `now()`, not null]
+  conversation Conversation [not null]
+  account Account [not null]
+
+  indexes {
+    (conversationId, accountId) [unique]
+  }
+}
+
+Table Message {
+  id Int [pk, increment]
+  conversationId Int [not null]
+  senderId Int [not null]
+  content String [not null]
+  type String [not null, default: 'text']
+  replyToId Int
+  isEdited Boolean [not null, default: false]
+  isDeleted Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  conversation Conversation [not null]
+  sender Account [not null]
+  replyTo Message
+  replies Message [not null]
+  attachments MessageAttachment [not null]
+  reactions MessageReaction [not null]
+  readReceipts MessageReadReceipt [not null]
+}
+
+Table MessageAttachment {
+  id Int [pk, increment]
+  messageId Int [not null]
+  fileName String [not null]
+  filePath String [not null]
+  fileSize Int [not null]
+  mimeType String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  message Message [not null]
+}
+
+Table MessageReaction {
+  id Int [pk, increment]
+  messageId Int [not null]
+  accountId Int [not null]
+  emoji String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  message Message [not null]
+  account Account [not null]
+
+  indexes {
+    (messageId, accountId, emoji) [unique]
+  }
+}
+
+Table MessageReadReceipt {
+  id Int [pk, increment]
+  messageId Int [not null]
+  accountId Int [not null]
+  readAt DateTime [default: `now()`, not null]
+  message Message [not null]
+  account Account [not null]
+
+  indexes {
+    (messageId, accountId) [unique]
+  }
+}
+
 Ref: Account.ownerId - Account.id
 
 Ref: DishSnapshot.dishId > Dish.id
@@ -500,3 +606,29 @@ Ref: TaskComment.createdById > Account.id [delete: Cascade]
 Ref: TaskAttachment.taskId > Task.id [delete: Cascade]
 
 Ref: TaskAttachment.uploadedById > Account.id [delete: Cascade]
+
+Ref: Conversation.createdById > Account.id [delete: Cascade]
+
+Ref: ConversationParticipant.conversationId > Conversation.id [delete: Cascade]
+
+Ref: ConversationParticipant.accountId > Account.id [delete: Cascade]
+
+Ref: ConversationPin.conversationId > Conversation.id [delete: Cascade]
+
+Ref: ConversationPin.accountId > Account.id [delete: Cascade]
+
+Ref: Message.conversationId > Conversation.id [delete: Cascade]
+
+Ref: Message.senderId > Account.id [delete: Cascade]
+
+Ref: Message.replyToId - Message.id [delete: Set Null]
+
+Ref: MessageAttachment.messageId > Message.id [delete: Cascade]
+
+Ref: MessageReaction.messageId > Message.id [delete: Cascade]
+
+Ref: MessageReaction.accountId > Account.id [delete: Cascade]
+
+Ref: MessageReadReceipt.messageId > Message.id [delete: Cascade]
+
+Ref: MessageReadReceipt.accountId > Account.id [delete: Cascade]

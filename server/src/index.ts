@@ -12,6 +12,7 @@ import authRoutes from '@/routes/auth.route'
 import blogRoutes from '@/routes/blog.route'
 import calendarTypeRoutes from '@/routes/calendar-type.route'
 import calendarRoutes from '@/routes/calendar.route'
+import chatRoutes from '@/routes/chat.route'
 import couponRoutes from '@/routes/coupon.route'
 import dishRoutes from '@/routes/dish.route'
 import employeeSpinRoutes from '@/routes/employee-spin.route'
@@ -25,6 +26,7 @@ import spinEventRoutes from '@/routes/spin-event.route'
 import spinRewardRoutes from '@/routes/spin-reward.route'
 import staticRoutes from '@/routes/static.route'
 import tablesRoutes from '@/routes/table.route'
+import taskAttachmentRoutes from '@/routes/task-attachment.route'
 import taskCommentRoutes from '@/routes/task-comment.route'
 import taskRoutes from '@/routes/task.route'
 import testRoutes from '@/routes/test.route'
@@ -38,7 +40,6 @@ import Fastify from 'fastify'
 import rawBody from 'fastify-raw-body'
 import fastifySocketIO from 'fastify-socket.io'
 import path from 'path'
-import taskAttachmentRoutes from './routes/task-attachment.route'
 
 const fastify = Fastify({
   logger: true,
@@ -154,6 +155,7 @@ const start = async () => {
     fastify.register(taskRoutes, { prefix: '/tasks' })
     fastify.register(taskCommentRoutes, { prefix: '/tasks' })
     fastify.register(taskAttachmentRoutes, { prefix: '/tasks' })
+    fastify.register(chatRoutes, { prefix: '/chat' })
 
     // Initialize system data
     await initOwnerAccount()
@@ -209,6 +211,7 @@ process.on('unhandledRejection', (reason) => {
   //   Sentry.captureException(reason)
   // }
   fastify.log.error({ reason }, 'Unhandled Rejection')
+  console.error('UNHANDLED REJECTION >>>', reason)
   process.exit(1)
 })
 

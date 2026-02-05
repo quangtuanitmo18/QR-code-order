@@ -58,6 +58,12 @@ const menuItems = [
     roles: [Role.Owner, Role.Employee],
   },
   {
+    title: 'Chat',
+    Icon: MessageSquareText,
+    href: '/manage/chat',
+    roles: [Role.Owner, Role.Employee],
+  },
+  {
     title: 'Blogs',
     Icon: FileText,
     href: '/manage/blogs',

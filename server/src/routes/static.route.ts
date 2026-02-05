@@ -22,4 +22,12 @@ export default async function staticRoutes(fastify: FastifyInstance, options: Fa
   }>('/static/tasks/:id', async (request, reply) => {
     return reply.sendFile(path.join('tasks', request.params.id))
   })
+  // Serve chat attachments from subdirectory
+  fastify.get<{
+    Params: {
+      id: string
+    }
+  }>('/static/chat/:id', async (request, reply) => {
+    return reply.sendFile(path.join('chat', request.params.id))
+  })
 }

@@ -3,6 +3,7 @@ import prisma from '@/database'
 import { AuthError } from '@/utils/errors'
 import { getChalk } from '@/utils/helpers'
 import { verifyAccessToken } from '@/utils/jwt'
+import { registerChatSocketHandlers } from './chat.socket'
 import fastifyPlugin from 'fastify-plugin'
 
 export const socketPlugin = fastifyPlugin(async (fastify) => {
@@ -53,6 +54,10 @@ export const socketPlugin = fastifyPlugin(async (fastify) => {
   })
   fastify.io.on('connection', async (socket) => {
     console.log(chalk.cyanBright('🔌 Socket connected:', socket.id))
+
+    // Register chat socket handlers
+    registerChatSocketHandlers(fastify, socket)
+
     socket.on('disconnect', async (reason) => {
       console.log(chalk.redBright('🔌 Socket disconnected:', socket.id))
     })

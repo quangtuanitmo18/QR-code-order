@@ -12,36 +12,42 @@ datasource db {
 }
 
 model Account {
-  id                   Int                       @id @default(autoincrement())
-  name                 String
-  email                String                    @unique
-  password             String
-  avatar               String?
-  role                 String                    @default("Employee")
-  ownerId              Int?
-  createdAt            DateTime                  @default(now())
-  updatedAt            DateTime                  @updatedAt
-  owner                Account?                  @relation("OwnerEmployee", fields: [ownerId], references: [id], onUpdate: NoAction)
-  employees            Account[]                 @relation("OwnerEmployee")
-  orders               Order[]
-  payments             Payment[]
-  refreshToken         RefreshToken[]
-  sockets              Socket?
-  approvedReviews      Review[]                  @relation("ReviewApprover")
-  repliedReviews       Review[]                  @relation("ReviewReplier")
-  blogPosts            BlogPost[]
-  createdEvents        CalendarEvent[]           @relation("EventCreator")
-  eventAssignments     CalendarEventAssignment[] @relation("EventAssignment")
-  notifications        CalendarNotification[]    @relation("UserNotifications")
-  createdCalendarTypes CalendarType[]            @relation("CalendarTypeCreator")
-  coupons              Coupon[]                  @relation("CouponCreator")
-  employeeSpins        EmployeeSpin[]            @relation("EmployeeSpins")
-  adminCreatedSpins    EmployeeSpin[]            @relation("AdminCreatedSpins")
-  createdSpinEvents    SpinEvent[]               @relation("CreatedSpinEvents")
-  assignedTasks        Task[]                    @relation("AssignedTasks")
-  createdTasks         Task[]                    @relation("CreatedTasks")
-  taskComments         TaskComment[]
-  taskAttachments      TaskAttachment[]
+  id                       Int                       @id @default(autoincrement())
+  name                     String
+  email                    String                    @unique
+  password                 String
+  avatar                   String?
+  role                     String                    @default("Employee")
+  ownerId                  Int?
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  owner                    Account?                  @relation("OwnerEmployee", fields: [ownerId], references: [id], onUpdate: NoAction)
+  employees                Account[]                 @relation("OwnerEmployee")
+  orders                   Order[]
+  payments                 Payment[]
+  refreshToken             RefreshToken[]
+  sockets                  Socket?
+  approvedReviews          Review[]                  @relation("ReviewApprover")
+  repliedReviews           Review[]                  @relation("ReviewReplier")
+  blogPosts                BlogPost[]
+  createdEvents            CalendarEvent[]           @relation("EventCreator")
+  eventAssignments         CalendarEventAssignment[] @relation("EventAssignment")
+  notifications            CalendarNotification[]    @relation("UserNotifications")
+  createdCalendarTypes     CalendarType[]            @relation("CalendarTypeCreator")
+  coupons                  Coupon[]                  @relation("CouponCreator")
+  employeeSpins            EmployeeSpin[]            @relation("EmployeeSpins")
+  adminCreatedSpins        EmployeeSpin[]            @relation("AdminCreatedSpins")
+  createdSpinEvents        SpinEvent[]               @relation("CreatedSpinEvents")
+  assignedTasks            Task[]                    @relation("AssignedTasks")
+  createdTasks             Task[]                    @relation("CreatedTasks")
+  taskComments             TaskComment[]
+  taskAttachments          TaskAttachment[]
+  createdConversations     Conversation[]            @relation("CreatedConversations")
+  conversationParticipants ConversationParticipant[] @relation("ConversationParticipants")
+  pinnedConversations      ConversationPin[]         @relation("PinnedConversations")
+  sentMessages             Message[]                 @relation("SentMessages")
+  messageReactions         MessageReaction[]         @relation("MessageReactions")
+  messageReadReceipts      MessageReadReceipt[]      @relation("MessageReadReceipts")
 }
 
 model Dish {
@@ -491,4 +497,129 @@ model TaskAttachment {
 
   @@index([taskId])
   @@map("TaskAttachment")
+}
+
+model Conversation {
+  id          Int      @id @default(autoincrement())
+  type        String   @default("direct") // "direct" | "group"
+  name        String? // For group chats
+  avatar      String? // For group chats
+  createdById Int // Creator of conversation
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy    Account                   @relation("CreatedConversations", fields: [createdById], references: [id], onDelete: Cascade)
+  participants ConversationParticipant[]
+  messages     Message[]
+  pinnedBy     ConversationPin[]
+
+  @@index([createdById])
+  @@index([type])
+  @@index([updatedAt]) // For sorting conversations
+  @@map("Conversation")
+}
+
+model ConversationParticipant {
+  id             Int       @id @default(autoincrement())
+  conversationId Int
+  accountId      Int
+  isMuted        Boolean   @default(false)
+  lastReadAt     DateTime? // For read receipts
+  joinedAt       DateTime  @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  account      Account      @relation("ConversationParticipants", fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, accountId])
+  @@index([conversationId])
+  @@index([accountId])
+  @@map("ConversationParticipant")
+}
+
+model ConversationPin {
+  id             Int      @id @default(autoincrement())
+  conversationId Int
+  accountId      Int
+  pinnedAt       DateTime @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  account      Account      @relation("PinnedConversations", fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, accountId])
+  @@index([conversationId])
+  @@index([accountId])
+  @@map("ConversationPin")
+}
+
+model Message {
+  id             Int      @id @default(autoincrement())
+  conversationId Int
+  senderId       Int
+  content        String
+  type           String   @default("text") // "text" | "image" | "file"
+  replyToId      Int? // For message replies
+  isEdited       Boolean  @default(false)
+  isDeleted      Boolean  @default(false) // Soft delete
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  conversation Conversation         @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       Account              @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo      Message?             @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies      Message[]            @relation("MessageReplies")
+  attachments  MessageAttachment[]
+  reactions    MessageReaction[]
+  readReceipts MessageReadReceipt[]
+
+  @@index([conversationId, createdAt]) // For pagination and sorting
+  @@index([senderId])
+  @@index([replyToId])
+  @@index([isDeleted])
+  @@map("Message")
+}
+
+model MessageAttachment {
+  id        Int      @id @default(autoincrement())
+  messageId Int
+  fileName  String
+  filePath  String // Path to file in storage
+  fileSize  Int // Size in bytes
+  mimeType  String
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId])
+  @@map("MessageAttachment")
+}
+
+model MessageReaction {
+  id        Int      @id @default(autoincrement())
+  messageId Int
+  accountId Int
+  emoji     String // Single emoji character or shortcode
+  createdAt DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  account Account @relation("MessageReactions", fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, accountId, emoji]) // One user can only react once per emoji per message
+  @@index([messageId])
+  @@index([accountId])
+  @@map("MessageReaction")
+}
+
+model MessageReadReceipt {
+  id        Int      @id @default(autoincrement())
+  messageId Int
+  accountId Int
+  readAt    DateTime @default(now())
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  account Account @relation("MessageReadReceipts", fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, accountId]) // One read receipt per user per message
+  @@index([messageId])
+  @@index([accountId])
+  @@map("MessageReadReceipt")
 }
