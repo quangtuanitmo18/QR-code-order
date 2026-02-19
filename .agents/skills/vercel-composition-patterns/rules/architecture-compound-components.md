@@ -47,11 +47,7 @@ function Composer({
 const ComposerContext = createContext<ComposerContextValue | null>(null)
 
 function ComposerProvider({ children, state, actions, meta }: ProviderProps) {
-  return (
-    <ComposerContext value={{ state, actions, meta }}>
-      {children}
-    </ComposerContext>
-  )
+  return <ComposerContext value={{ state, actions, meta }}>{children}</ComposerContext>
 }
 
 function ComposerFrame({ children }: { children: React.ReactNode }) {
