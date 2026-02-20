@@ -1,20 +1,21 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { Send, Paperclip, Image as ImageIcon, FileText } from 'lucide-react'
-import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Textarea } from '@/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
+import { useChatStore } from '@/store/useChatStore'
+import { FileText, Image as ImageIcon, Paperclip, Send, X } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 
 interface MessageInputProps {
-  onSendMessage: (content: string, files?: File[]) => void
+  onSendMessage: (content: string, files?: File[], replyToId?: number) => void
   onTyping?: (isTyping: boolean) => void
   disabled?: boolean
   placeholder?: string
@@ -30,6 +31,9 @@ export function MessageInput({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  
+  const replyingTo = useChatStore((state) => state.replyingTo)
+  const setReplyingTo = useChatStore((state) => state.setReplyingTo)
 
   // Debounce typing indicator
   useEffect(() => {
@@ -52,9 +56,10 @@ export function MessageInput({
   const handleSendMessage = () => {
     const trimmedMessage = message.trim()
     if ((trimmedMessage || selectedFiles.length > 0) && !disabled) {
-      onSendMessage(trimmedMessage, selectedFiles.length > 0 ? selectedFiles : undefined)
+      onSendMessage(trimmedMessage, selectedFiles.length > 0 ? selectedFiles : undefined, replyingTo?.id)
       setMessage('')
       setSelectedFiles([])
+      setReplyingTo(null)
 
       // Reset textarea height
       if (textareaRef.current) {
@@ -98,6 +103,24 @@ export function MessageInput({
 
   return (
     <div className="border-t p-4">
+      {/* Replying to banner */}
+      {replyingTo && (
+        <div className="mb-2 flex items-center justify-between rounded-lg bg-muted/50 p-2 text-sm border-l-2 border-primary">
+          <div className="flex flex-col truncate">
+            <span className="font-semibold text-xs text-primary">{replyingTo.sender.name}</span>
+            <span className="truncate text-muted-foreground">{replyingTo.content}</span>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 rounded-full ml-2 cursor-pointer"
+            onClick={() => setReplyingTo(null)}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
       {/* Selected files preview */}
       {selectedFiles.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-2">

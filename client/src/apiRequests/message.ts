@@ -1,19 +1,19 @@
 import http from '@/lib/http'
 import {
-  CreateMessageBodyType,
-  CreateMessageResType,
-  UpdateMessageBodyType,
-  UpdateMessageResType,
-  DeleteMessageResType,
-  GetMessagesQueryParamsType,
-  GetMessagesResType,
-  GetMessageResType,
-  MarkMessageAsReadResType,
-  AddReactionBodyType,
-  AddReactionResType,
-  RemoveReactionResType,
-  SearchMessagesQueryParamsType,
-  SearchMessagesResType,
+    AddReactionBodyType,
+    AddReactionResType,
+    CreateMessageBodyType,
+    CreateMessageResType,
+    DeleteMessageResType,
+    GetMessageResType,
+    GetMessagesQueryParamsType,
+    GetMessagesResType,
+    MarkMessageAsReadResType,
+    RemoveReactionResType,
+    SearchMessagesQueryParamsType,
+    SearchMessagesResType,
+    UpdateMessageBodyType,
+    UpdateMessageResType,
 } from '@/schemaValidations/message.schema'
 
 export const messageApiRequest = {
@@ -49,7 +49,7 @@ export const messageApiRequest = {
   deleteMessage: (id: number) => http.delete<DeleteMessageResType>(`/chat/messages/${id}`),
 
   markMessageAsRead: (id: number) =>
-    http.post<MarkMessageAsReadResType>(`/chat/messages/${id}/read`),
+    http.post<MarkMessageAsReadResType>(`/chat/messages/${id}/read`, {}),
 
   addReaction: (id: number, body: AddReactionBodyType) =>
     http.post<AddReactionResType>(`/chat/messages/${id}/reactions`, body),

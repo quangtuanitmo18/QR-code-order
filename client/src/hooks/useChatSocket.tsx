@@ -1,8 +1,8 @@
 'use client'
 
-import { useAppStore } from '@/components/app-provider'
 import { ConversationType } from '@/schemaValidations/chat.schema'
 import { MessageType } from '@/schemaValidations/message.schema'
+import { useAppStore } from '@/store/useAppStore'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef } from 'react'
 
@@ -149,23 +149,25 @@ export function useChatSocket(options: UseChatSocketOptions = {}) {
     function handleNewMessage(data: { message: MessageType; conversationId: number }) {
       const { message, conversationId: convId } = data
 
-      // Update message list for this conversation (current query uses queryParams = undefined)
-      queryClient.setQueryData(['chat', 'messages', convId, undefined], (oldData: any) => {
-        if (!oldData?.payload?.data) return oldData
+      // Update message list for this conversation
+      queryClient.setQueriesData({ queryKey: ['chat', 'messages', convId] }, (oldData: any) => {
+        if (!oldData?.pages) return oldData
 
-        const existingMessages = oldData.payload.data.messages || []
-        const alreadyExists = existingMessages.some((m: MessageType) => m.id === message.id)
-        if (alreadyExists) return oldData // tránh trùng tin nhắn (optimistic + ws)
+        const newPages = [...oldData.pages]
+        if (newPages.length > 0) {
+          const existingMessages = newPages[0].messages || []
+          const alreadyExists = existingMessages.some((m: MessageType) => m.id === message.id)
+          if (alreadyExists) return oldData
+
+          newPages[0] = {
+            ...newPages[0],
+            messages: [...existingMessages, message]
+          }
+        }
 
         return {
           ...oldData,
-          payload: {
-            ...oldData.payload,
-            data: {
-              ...oldData.payload.data,
-              messages: [message, ...existingMessages],
-            },
-          },
+          pages: newPages
         }
       })
 

@@ -1,28 +1,28 @@
 'use client'
 
 import {
-  addMonths,
-  eachDayOfInterval,
-  endOfMonth,
-  format,
-  isSameDay,
-  isSameMonth,
-  isToday,
-  startOfMonth,
-  subMonths,
+    addMonths,
+    eachDayOfInterval,
+    endOfMonth,
+    format,
+    isSameDay,
+    isSameMonth,
+    isToday,
+    startOfMonth,
+    subMonths,
 } from 'date-fns'
 import {
-  Calendar as CalendarIcon,
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Clock,
-  Grid3X3,
-  List,
-  MapPin,
-  Menu,
-  Search,
-  Users,
+    Calendar as CalendarIcon,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    Clock,
+    Grid3X3,
+    List,
+    MapPin,
+    Menu,
+    Search,
+    Users,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -31,17 +31,17 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -262,7 +262,7 @@ export function CalendarMain({
                         </div>
                       )}
                       <Badge variant="secondary" className={cn('text-white', event.color)}>
-                        {event.type}
+                        {event.type.label}
                       </Badge>
                     </div>
                   </div>
@@ -397,7 +397,7 @@ export function CalendarMain({
               )}
               <div className="flex items-center gap-2">
                 <Badge variant="secondary" className={cn('text-white', selectedEvent.color)}>
-                  {selectedEvent.type}
+                  {selectedEvent.type.label}
                 </Badge>
               </div>
               {selectedEvent.description && (

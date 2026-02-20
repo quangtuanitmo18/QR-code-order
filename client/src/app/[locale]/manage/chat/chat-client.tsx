@@ -7,7 +7,8 @@ import { decodeToken, getAccessTokenFromLocalStorage, handleErrorApi } from '@/l
 import { useGetConversationsQuery } from '@/queries/useChat'
 import { useGetMessagesQuery, useSendMessageMutation } from '@/queries/useMessage'
 import { Menu, X } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ChatHeader } from './components/chat-header'
 import { ConversationList } from './components/conversation-list'
 import { CreateConversationDialog } from './components/create-conversation-dialog'
@@ -15,7 +16,11 @@ import { MessageInput } from './components/message-input'
 import { MessageList } from './components/message-list'
 
 export default function ChatClient() {
-  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null)
+  const searchParams = useSearchParams()
+  const queryConversationIdStr = searchParams.get('conversationId')
+  const queryConversationId = queryConversationIdStr ? parseInt(queryConversationIdStr, 10) : null
+
+  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(queryConversationId)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [typingUsers, setTypingUsers] = useState<Set<number>>(new Set())
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -32,10 +37,17 @@ export default function ChatClient() {
   // Fetch messages for selected conversation
   const messagesQuery = useGetMessagesQuery(
     selectedConversationId || 0,
-    undefined,
+    { limit: 20 },
     !!selectedConversationId
   )
-  const messages = messagesQuery.data?.payload.data.messages || []
+  
+  const messages = useMemo(() => {
+    if (!messagesQuery.data) return []
+    // Infinite Query pages are ordered: [newest_page, older_page_1, older_page_2]
+    // Each page's messages are chronological (oldest to newest).
+    // So to get a fully chronological array, we reverse the pages array before flat-mapping.
+    return [...messagesQuery.data.pages].reverse().flatMap((page) => page.messages)
+  }, [messagesQuery.data])
 
   // Send message mutation
   const sendMessageMutation = useSendMessageMutation()
@@ -65,10 +77,17 @@ export default function ChatClient() {
 
   // Auto-select first conversation if none selected
   useEffect(() => {
-    if (!selectedConversationId && conversations.length > 0) {
+    if (!selectedConversationId && conversations.length > 0 && !queryConversationId) {
       setSelectedConversationId(conversations[0].id)
     }
-  }, [selectedConversationId, conversations])
+  }, [selectedConversationId, conversations, queryConversationId])
+
+  // Listen for query params changes (e.g., from global notifications)
+  useEffect(() => {
+    if (queryConversationId && queryConversationId !== selectedConversationId) {
+      setSelectedConversationId(queryConversationId)
+    }
+  }, [queryConversationId, selectedConversationId])
 
   // Close sidebar when clicking outside on mobile
   useEffect(() => {
@@ -92,7 +111,7 @@ export default function ChatClient() {
   const currentConversation = conversations.find((conv) => conv.id === selectedConversationId)
 
   const handleSendMessage = useCallback(
-    async (content: string, files?: File[]) => {
+    async (content: string, files?: File[], replyToId?: number) => {
       if (!selectedConversationId || (!content.trim() && (!files || files.length === 0))) return
 
       try {
@@ -100,7 +119,7 @@ export default function ChatClient() {
           conversationId: selectedConversationId,
           body: {
             content: content.trim() || '',
-            replyToId: null,
+            replyToId: replyToId || null,
           },
           files: files || undefined,
         })
@@ -226,10 +245,17 @@ export default function ChatClient() {
             {selectedConversationId ? (
               <>
                 <MessageList
-                  messages={messages}
-                  currentUserId={currentUserId}
-                  typingUsers={Array.from(typingUsers)}
-                />
+            messages={messages}
+            currentUserId={currentUserId}
+            typingUsers={Array.from(typingUsers)}
+            onLoadMore={() => {
+              if (messagesQuery.hasNextPage && !messagesQuery.isFetchingNextPage) {
+                messagesQuery.fetchNextPage()
+              }
+            }}
+            hasMore={messagesQuery.hasNextPage}
+            isLoadingMore={messagesQuery.isFetchingNextPage}
+          />
 
                 {/* Message Input */}
                 <MessageInput

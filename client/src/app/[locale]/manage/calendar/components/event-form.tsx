@@ -1,49 +1,47 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { CalendarIcon, Clock, MapPin, Users, Type, Tag } from 'lucide-react'
 import { format } from 'date-fns'
+import { CalendarIcon, Clock, MapPin, Tag, Type, Users } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
-import { Badge } from '@/components/ui/badge'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Checkbox } from '@/components/ui/checkbox'
-import { cn } from '@/lib/utils'
-import {
-  CalendarEventType,
-  CreateEventBodyType,
-  UpdateEventBodyType,
-} from '@/schemaValidations/calendar.schema'
-import {
-  useCreateEventMutation,
-  useUpdateEventMutation,
-  useDeleteEventMutation,
-} from '@/queries/useCalendar'
-import { useGetAccountList } from '@/queries/useAccount'
-import { useGetCalendarTypesQuery } from '@/queries/useCalendarType'
+import { Textarea } from '@/components/ui/textarea'
 import { toast } from '@/components/ui/use-toast'
-import { handleErrorApi } from '@/lib/utils'
 import { Role } from '@/constants/type'
+import { cn, handleErrorApi } from '@/lib/utils'
+import { useGetAccountList } from '@/queries/useAccount'
+import {
+    useCreateEventMutation,
+    useDeleteEventMutation,
+    useUpdateEventMutation,
+} from '@/queries/useCalendar'
+import { useGetCalendarTypesQuery } from '@/queries/useCalendarType'
+import {
+    CalendarEventType,
+    CreateEventBodyType,
+    UpdateEventBodyType,
+} from '@/schemaValidations/calendar.schema'
 
 interface EventFormProps {
   event?: CalendarEventType | null
@@ -184,15 +182,15 @@ export function EventForm({ event, open, onOpenChange, onSave, onDelete }: Event
       const eventData: CreateEventBodyType | UpdateEventBodyType = {
         title: formData.title,
         description: formData.description || undefined,
-        type: formData.type,
+        typeId: formData.typeId,
         startDate: startDateTime.toISOString(),
         endDate: endDateTime.toISOString(),
         allDay: formData.allDay,
         location: formData.location || undefined,
-        color: formData.color,
+        color: formData.color || undefined,
         isRecurring: formData.isRecurring,
         recurringRule: recurringRule || undefined,
-        employeeIds: formData.type === EventType.WORK_SHIFT ? formData.employeeIds : undefined,
+        employeeIds: formData.employeeIds.length > 0 ? formData.employeeIds : undefined,
       }
 
       if (event) {

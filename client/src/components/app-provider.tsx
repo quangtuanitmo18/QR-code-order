@@ -1,19 +1,17 @@
 'use client'
+import { CallModal } from '@/components/call/CallModal'
+import { GlobalChatNotification } from '@/components/chat/global-chat-notification'
 import ListenLogoutSocket from '@/components/listen-logout-socket'
 import RefreshToken from '@/components/refresh-token'
 import { ViewportProvider } from '@/hooks/useViewport'
 import {
   decodeToken,
   generateSocketInstace,
-  getAccessTokenFromLocalStorage,
-  removeTokensFromLocalStorage,
+  getAccessTokenFromLocalStorage
 } from '@/lib/utils'
-import { RoleType } from '@/types/jwt.types'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { useEffect, useRef } from 'react'
-import type { Socket } from 'socket.io-client'
-import { create } from 'zustand'
 
 // Default
 // staleTime: 0
@@ -35,32 +33,7 @@ const queryClient = new QueryClient({
 //   disconnectSocket: () => {}
 // })
 
-type AppStoreType = {
-  isAuth: boolean
-  role: RoleType | undefined
-  setRole: (role?: RoleType | undefined) => void
-  socket: Socket | undefined
-  setSocket: (socket?: Socket | undefined) => void
-  disconnectSocket: () => void
-}
-
-export const useAppStore = create<AppStoreType>((set) => ({
-  isAuth: false,
-  role: undefined as RoleType | undefined,
-  setRole: (role?: RoleType | undefined) => {
-    set({ role, isAuth: Boolean(role) })
-    if (!role) {
-      removeTokensFromLocalStorage()
-    }
-  },
-  socket: undefined as Socket | undefined,
-  setSocket: (socket?: Socket | undefined) => set({ socket }),
-  disconnectSocket: () =>
-    set((state) => {
-      state.socket?.disconnect()
-      return { socket: undefined }
-    }),
-}))
+import { useAppStore } from '@/store/useAppStore'
 
 // export const useAppContext = () => {
 //   return useContext(AppContext)
@@ -104,6 +77,8 @@ export default function AppProvider({ children }: { children: React.ReactNode })
     <QueryClientProvider client={queryClient}>
       <ViewportProvider>
         {children}
+        <CallModal />
+        <GlobalChatNotification />
         <RefreshToken />
         <ListenLogoutSocket />
         <ReactQueryDevtools initialIsOpen={false} />

@@ -1,3 +1,4 @@
+import prisma from '@/database'
 import { chatRepository } from '@/repositories/chat.repository'
 import { getChalk } from '@/utils/helpers'
 import type { FastifyInstance } from 'fastify'
@@ -239,12 +240,27 @@ export async function registerChatSocketHandlers(fastify: FastifyInstance, socke
 /**
  * Emit new message event to conversation participants
  */
-export function emitNewMessage(fastify: FastifyInstance, conversationId: number, message: any) {
-  const room = getConversationRoom(conversationId)
-  fastify.io.to(room).emit('new-message', {
-    conversationId,
-    message
-  })
+export async function emitNewMessage(fastify: FastifyInstance, conversationId: number, message: any) {
+  try {
+    // Find all participants of the conversation
+    const participants = await prisma.conversationParticipant.findMany({
+      where: { conversationId },
+      select: { accountId: true }
+    })
+    
+    // Broadcast 'new-message' to everyone's personal room
+    participants.forEach((p) => {
+      // We can emit to everyone including sender (frontend deduplicates by ID)
+      // or we can exclude sender. 
+      // For standard implementation, we just emit to all participants' personal rooms
+      fastify.io.to(`user-${p.accountId}`).emit('new-message', {
+        conversationId,
+        message
+      })
+    })
+  } catch (error) {
+    console.error('Failed to emit new-message globally', error)
+  }
 }
 
 /**

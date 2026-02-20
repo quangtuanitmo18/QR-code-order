@@ -4,6 +4,7 @@ import { initOwnerAccount } from '@/controllers/account.controller'
 import autoRemoveRefreshTokenJob from '@/jobs/autoRemoveRefreshToken.job'
 import calendarNotificationJob from '@/jobs/calendarNotification.job'
 import { errorHandlerPlugin } from '@/plugins/errorHandler.plugins'
+import { mediasoupPlugin } from '@/plugins/mediasoup.plugin'
 import { socketPlugin } from '@/plugins/socket.plugins'
 import validatorCompilerPlugin from '@/plugins/validatorCompiler.plugins'
 import accountRoutes from '@/routes/account.route'
@@ -59,6 +60,9 @@ fastify.get('/test-glitchtip', () => {
 })
 
 // Run the server!
+// Error handler
+fastify.register(errorHandlerPlugin)
+
 const start = async () => {
   try {
     // Initialize Sentry first
@@ -100,6 +104,9 @@ const start = async () => {
         origin: envConfig.CLIENT_URL
       }
     })
+    
+    // Register mediasoup first so workers are available
+    await fastify.register(mediasoupPlugin)
     fastify.register(socketPlugin)
 
     // Add Sentry request handler (captures request data)

@@ -1,9 +1,9 @@
 'use client'
 
-import { EmployeeSpinType } from '@/schemaValidations/employee-spin.schema'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { EmployeeSpinType } from '@/schemaValidations/employee-spin.schema'
 import { format } from 'date-fns'
 import { CheckCircle2 } from 'lucide-react'
 
@@ -39,7 +39,7 @@ export function PendingRewards({ spins, onClaim, isLoading = false }: PendingRew
       <CardContent>
         <div className="space-y-4">
           {spins.map((spin) => {
-            const isExpired = spin.expiredAt && new Date(spin.expiredAt) < new Date()
+            const isExpired = spin.expiredAt ? new Date(spin.expiredAt) < new Date() : false
 
             return (
               <div
@@ -61,8 +61,8 @@ export function PendingRewards({ spins, onClaim, isLoading = false }: PendingRew
                       </div>
                       <div className="flex-1">
                         <h4 className="font-semibold">{spin.reward.name}</h4>
-                        {spin.reward.description && (
-                          <p className="text-sm text-muted-foreground">{spin.reward.description}</p>
+                        {spin.reward.value && (
+                          <p className="text-sm text-muted-foreground">{spin.reward.value}</p>
                         )}
                         <div className="mt-1 flex items-center gap-2">
                           <Badge variant="outline">{spin.reward.type}</Badge>
@@ -78,7 +78,7 @@ export function PendingRewards({ spins, onClaim, isLoading = false }: PendingRew
                 </div>
                 <Button
                   onClick={() => onClaim(spin.id)}
-                  disabled={isLoading || isExpired}
+                  disabled={isLoading === true || isExpired}
                   variant={isExpired ? 'outline' : 'default'}
                 >
                   {isExpired ? 'Expired' : 'Claim'}

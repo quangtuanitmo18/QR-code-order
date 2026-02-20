@@ -145,7 +145,7 @@ export const CreateTaskBody = z
     description: z.string().max(5000).optional().nullable(),
     status: z.enum(['todo', 'in_progress', 'completed', 'pending']).optional().default('todo'),
     category: z.enum(['Feature', 'Bug', 'Docs', 'Improvement', 'Refactor']),
-    priority: z.enum(['Critical', 'Important', 'Normal', 'Minor']).optional().default('normal'),
+    priority: z.enum(['Critical', 'Important', 'Normal', 'Minor']).optional().default('Normal'),
     dueDate: z.coerce.date().optional().nullable(),
     assignedToId: z.coerce.number().optional().nullable(),
   })

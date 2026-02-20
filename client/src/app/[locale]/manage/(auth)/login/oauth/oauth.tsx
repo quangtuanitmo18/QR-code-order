@@ -1,6 +1,6 @@
 'use client'
 
-import { useAppStore } from '@/components/app-provider'
+import { useAppStore } from '@/store/useAppStore'
 import { toast } from '@/components/ui/use-toast'
 import { decodeToken, generateSocketInstace } from '@/lib/utils'
 import { useRouter } from '@/i18n/routing'

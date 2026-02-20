@@ -1,4 +1,4 @@
-import { useAppStore } from '@/components/app-provider'
+import { useAppStore } from '@/store/useAppStore'
 import { usePathname, useRouter } from '@/i18n/routing'
 import { handleErrorApi } from '@/lib/utils'
 import { useLogoutMutation } from '@/queries/useAuth'

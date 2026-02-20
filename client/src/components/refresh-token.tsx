@@ -1,6 +1,6 @@
 'use client'
 
-import { useAppStore } from '@/components/app-provider'
+import { useAppStore } from '@/store/useAppStore'
 import { usePathname, useRouter } from '@/i18n/routing'
 import { checkAndRefreshToken } from '@/lib/utils'
 import { useEffect } from 'react'

@@ -1,6 +1,6 @@
 'use client'
 import menuItems from '@/app/[locale]/manage/menuItems'
-import { useAppStore } from '@/components/app-provider'
+import { useAppStore } from '@/store/useAppStore'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,

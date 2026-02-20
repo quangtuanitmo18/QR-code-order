@@ -18,7 +18,7 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 // ScrollArea not available, using div with overflow
-import { useAppStore } from '@/components/app-provider'
+import { useAppStore } from '@/store/useAppStore'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from '@/components/ui/use-toast'
 import { Role } from '@/constants/type'

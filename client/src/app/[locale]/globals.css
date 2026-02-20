@@ -92,3 +92,8 @@
     --chart-5: 340 75% 55%;
   }
 }
+
+/* Custom Virtuoso Scrollbar Fix */
+[data-testid="virtuoso-scroller"] > div[data-viewport-type="element"] {
+  width: 98% !important;
+}

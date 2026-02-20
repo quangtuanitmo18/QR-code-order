@@ -37,7 +37,7 @@ import { useSearchParams } from 'next/navigation'
 import { createContext, useEffect, useState } from 'react'
 
 import TableSkeleton from '@/app/[locale]/manage/orders/table-skeleton'
-import { useAppStore } from '@/components/app-provider'
+import { useAppStore } from '@/store/useAppStore'
 import { Button } from '@/components/ui/button'
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'

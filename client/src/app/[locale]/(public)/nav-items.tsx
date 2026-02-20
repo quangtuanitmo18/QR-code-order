@@ -1,5 +1,5 @@
 'use client'
-import { useAppStore } from '@/components/app-provider'
+import { useAppStore } from '@/store/useAppStore'
 import {
   AlertDialog,
   AlertDialogAction,

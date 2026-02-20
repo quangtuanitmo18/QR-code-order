@@ -1,37 +1,38 @@
 'use client'
 
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { toast } from '@/components/ui/use-toast'
+import { useCallSignaling } from '@/hooks/useCallSignaling'
 import { handleErrorApi } from '@/lib/utils'
 import {
-  useDeleteConversationMutation,
-  useMuteConversationMutation,
-  usePinConversationMutation,
-  useUnmuteConversationMutation,
-  useUnpinConversationMutation,
+    useDeleteConversationMutation,
+    useMuteConversationMutation,
+    usePinConversationMutation,
+    useUnmuteConversationMutation,
+    useUnpinConversationMutation,
 } from '@/queries/useChat'
 import { ConversationType } from '@/schemaValidations/chat.schema'
-import { Bell, BellOff, MoreVertical, Search, Users } from 'lucide-react'
+import { Bell, BellOff, MoreVertical, Phone, Search, Users, Video } from 'lucide-react'
 import { useState } from 'react'
 import { MessageSearchDialog } from './message-search-dialog'
 
@@ -55,6 +56,8 @@ export function ChatHeader({
   const deleteMutation = useDeleteConversationMutation()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+
+  const { startCall } = useCallSignaling()
 
   if (!conversation) {
     return (
@@ -163,6 +166,40 @@ export function ChatHeader({
       {/* Right side - Action buttons */}
       <div className="flex items-center gap-1">
         <TooltipProvider>
+          {/* Audio Call */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="cursor-pointer"
+                onClick={() => conversation && startCall(conversation.id, false)}
+              >
+                <Phone className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Voice Call</p>
+            </TooltipContent>
+          </Tooltip>
+
+          {/* Video Call */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="cursor-pointer"
+                onClick={() => conversation && startCall(conversation.id, true)}
+              >
+                <Video className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Video Call</p>
+            </TooltipContent>
+          </Tooltip>
+
           {/* Search */}
           <Tooltip>
             <TooltipTrigger asChild>

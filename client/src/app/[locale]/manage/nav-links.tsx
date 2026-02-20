@@ -1,7 +1,7 @@
 'use client'
 
 import menuItems from '@/app/[locale]/manage/menuItems'
-import { useAppStore } from '@/components/app-provider'
+import { useAppStore } from '@/store/useAppStore'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Link, usePathname } from '@/i18n/routing'

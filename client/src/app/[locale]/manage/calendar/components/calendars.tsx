@@ -17,7 +17,7 @@ import {
   useToggleCalendarTypeVisibilityMutation,
 } from '@/queries/useCalendarType'
 import { CalendarTypeType } from '@/schemaValidations/calendar-type.schema'
-import { useAppStore } from '@/components/app-provider'
+import { useAppStore } from '@/store/useAppStore'
 
 interface CalendarsProps {
   onCalendarToggle?: (calendarId: number, visible: boolean) => void

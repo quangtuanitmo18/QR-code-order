@@ -23,7 +23,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { useCalendar } from './use-calendar'
-import { useAppStore } from '@/components/app-provider'
+import { useAppStore } from '@/store/useAppStore'
 import { CalendarTypeType } from '@/schemaValidations/calendar-type.schema'
 import { useDeleteCalendarTypeMutation } from '@/queries/useCalendarType'
 import { handleErrorApi } from '@/lib/utils'

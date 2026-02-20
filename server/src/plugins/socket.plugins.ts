@@ -3,8 +3,9 @@ import prisma from '@/database'
 import { AuthError } from '@/utils/errors'
 import { getChalk } from '@/utils/helpers'
 import { verifyAccessToken } from '@/utils/jwt'
-import { registerChatSocketHandlers } from './chat.socket'
 import fastifyPlugin from 'fastify-plugin'
+import { registerCallSocketHandlers } from './call.socket'
+import { registerChatSocketHandlers } from './chat.socket'
 
 export const socketPlugin = fastifyPlugin(async (fastify) => {
   const chalk = await getChalk()
@@ -31,6 +32,7 @@ export const socketPlugin = fastifyPlugin(async (fastify) => {
             socketId: socket.id
           }
         })
+        socket.join(`user-${userId}`)
       } else {
         await prisma.socket.upsert({
           where: {
@@ -45,6 +47,7 @@ export const socketPlugin = fastifyPlugin(async (fastify) => {
           }
         })
         socket.join(ManagerRoom)
+        socket.join(`user-${userId}`)
       }
       socket.handshake.auth.decodedAccessToken = decodedAccessToken
     } catch (error: any) {
@@ -57,6 +60,9 @@ export const socketPlugin = fastifyPlugin(async (fastify) => {
 
     // Register chat socket handlers
     registerChatSocketHandlers(fastify, socket)
+
+    // Register call socket handlers
+    registerCallSocketHandlers(fastify, socket)
 
     socket.on('disconnect', async (reason) => {
       console.log(chalk.redBright('🔌 Socket disconnected:', socket.id))

@@ -2,7 +2,7 @@
 
 import couponApiRequest from '@/apiRequests/coupon'
 import guestApiRequest from '@/apiRequests/guest'
-import { useAppStore } from '@/components/app-provider'
+import { useAppStore } from '@/store/useAppStore'
 import { PaymentTestInfoDialog } from '@/components/payment-test-info-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
