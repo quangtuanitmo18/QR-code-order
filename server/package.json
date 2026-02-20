@@ -40,6 +40,8 @@
     "fastify-raw-body": "^4.3.0",
     "fastify-socket.io": "^5.0.0",
     "fastify-type-provider-zod": "^2.0.0",
+    "firebase": "^12.9.0",
+    "firebase-admin": "^13.6.1",
     "mediasoup": "^3.19.3",
     "ms": "^2.1.3",
     "query-string": "^9.1.0",

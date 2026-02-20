@@ -53,7 +53,10 @@ const configSchema = z.object({
   STRIPE_RETURN_URL: z.string().url(),
   YOOKASSA_SHOP_ID: z.string(),
   YOOKASSA_SECRET_KEY: z.string(),
-  YOOKASSA_RETURN_URL: z.string().url()
+  YOOKASSA_RETURN_URL: z.string().url(),
+  FIREBASE_PROJECT_ID: z.string(),
+  FIREBASE_CLIENT_EMAIL: z.string(),
+  FIREBASE_PRIVATE_KEY: z.string()
 })
 
 const configServer = configSchema.safeParse(process.env)

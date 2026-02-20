@@ -64,6 +64,11 @@ export const socketPlugin = fastifyPlugin(async (fastify) => {
     // Register call socket handlers
     registerCallSocketHandlers(fastify, socket)
 
+    // Handle Tab Visibility (focus / blur)
+    socket.on('client-visibility', ({ isFocused }: { isFocused: boolean }) => {
+      socket.data = { ...socket.data, isFocused }
+    })
+
     socket.on('disconnect', async (reason) => {
       console.log(chalk.redBright('🔌 Socket disconnected:', socket.id))
     })

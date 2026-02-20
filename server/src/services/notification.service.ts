@@ -4,6 +4,17 @@ import { GetNotificationsQueryParamsType, NotificationType } from '@/schemaValid
 import { EntityError } from '@/utils/errors'
 import { addDays, addHours, subDays } from 'date-fns'
 
+import prisma from '@/database'
+import { messaging } from '@/lib/firebase-admin'
+
+export interface FcmPayload {
+  title: string
+  body: string
+  data?: {
+    [key: string]: string
+  }
+}
+
 export const notificationService = {
   /**
    * Get notifications for a user
@@ -225,6 +236,115 @@ export const notificationService = {
 
     return {
       created: notificationsToCreate.length
+    }
+  },
+
+  /**
+   * Send an FCM Notification to a specific account's registered devices.
+   */
+  async sendToAccount(accountId: number, payload: FcmPayload) {
+    try {
+      // 1. Fetch all tokens for this user
+      const userTokens = await prisma.fcmToken.findMany({
+        where: { accountId },
+        select: { token: true }
+      })
+
+      if (userTokens.length === 0) {
+        // User has no registered devices, fail silently
+        return { success: false, reason: 'No registered FCM tokens' }
+      }
+
+      const tokens = userTokens.map((t: { token: string }) => t.token)
+
+      // 2. Prepare the Firebase Multicast Message (Using Data-only to prevent FCM Web SDK from duplicating UI)
+      const message = {
+        tokens,
+        data: {
+          ...payload.data,
+          title: payload.title,
+          body: payload.body
+        }
+      }
+
+      // 3. Send via Firebase Admin
+      const response = await messaging.sendEachForMulticast(message)
+
+      // 4. Cleanup invalid or expired tokens
+      if (response.failureCount > 0) {
+        const failedTokens: string[] = []
+        response.responses.forEach((resp: any, idx: number) => {
+          if (!resp.success) {
+            const errorCode = resp.error?.code
+            // These error codes mean the token is dead/uninstalled/invalid
+            if (
+              errorCode === 'messaging/invalid-registration-token' ||
+              errorCode === 'messaging/registration-token-not-registered'
+            ) {
+              failedTokens.push(tokens[idx])
+            }
+          }
+        })
+
+        if (failedTokens.length > 0) {
+          await this.cleanupTokens(failedTokens)
+        }
+      }
+
+      return {
+        success: true,
+        successCount: response.successCount,
+        failureCount: response.failureCount
+      }
+    } catch (error) {
+      console.error('[NotificationService.sendToAccount] Failed:', error)
+      return { success: false, reason: 'Internal error' }
+    }
+  },
+
+  /**
+   * Send a silent data payload to an account (e.g. to dismiss a call rings)
+   */
+  async sendSilentDataToAccount(accountId: number, data: { [key: string]: string }) {
+    try {
+      const userTokens = await prisma.fcmToken.findMany({
+        where: { accountId },
+        select: { token: true }
+      })
+
+      if (userTokens.length === 0) return { success: false }
+
+      const tokens = userTokens.map((t: { token: string }) => t.token)
+      
+      // No 'notification' object means it won't pop up on the OS level, 
+      // but the Service Worker's onBackgroundMessage will still catch it.
+      const message = {
+        tokens,
+        data
+      }
+
+      const response = await messaging.sendEachForMulticast(message)
+      
+      return { success: true, count: response.successCount }
+    } catch (error) {
+       console.error('[NotificationService.sendSilentDataToAccount] Failed:', error)
+       return { success: false }
+    }
+  },
+
+  /**
+   * Internal Method to purge dead tokens from the DB
+   */
+  async cleanupTokens(invalidTokens: string[]) {
+    try {
+      await prisma.fcmToken.deleteMany({
+        where: {
+          token: { in: invalidTokens }
+        }
+      })
+      console.log(`[NotificationService] Purged ${invalidTokens.length} dead FCM tokens.`)
+    } catch (error) {
+      console.error('[NotificationService.cleanupTokens] Failed:', error)
     }
   }
 }

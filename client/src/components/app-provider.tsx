@@ -3,11 +3,13 @@ import { CallModal } from '@/components/call/CallModal'
 import { GlobalChatNotification } from '@/components/chat/global-chat-notification'
 import ListenLogoutSocket from '@/components/listen-logout-socket'
 import RefreshToken from '@/components/refresh-token'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { ViewportProvider } from '@/hooks/useViewport'
+import { useVisibility } from '@/hooks/useVisibility'
 import {
-  decodeToken,
-  generateSocketInstace,
-  getAccessTokenFromLocalStorage
+    decodeToken,
+    generateSocketInstace,
+    getAccessTokenFromLocalStorage
 } from '@/lib/utils'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
@@ -70,6 +72,9 @@ export default function AppProvider({ children }: { children: React.ReactNode })
   // }, [])
   // const isAuth = Boolean(role)
   // Nếu mọi người dùng React 19 và Next.js 15 thì không cần AppContext.Provider, chỉ cần AppContext là đủ
+  usePushNotifications()
+  useVisibility()
+
   return (
     // <AppContext.Provider
     //   value={{ role, setRole, isAuth, socket, setSocket, disconnectSocket }}

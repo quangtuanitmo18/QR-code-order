@@ -17,6 +17,7 @@ import chatRoutes from '@/routes/chat.route'
 import couponRoutes from '@/routes/coupon.route'
 import dishRoutes from '@/routes/dish.route'
 import employeeSpinRoutes from '@/routes/employee-spin.route'
+import fcmRoutes from '@/routes/fcm.route'
 import guestRoutes from '@/routes/guest.route'
 import indicatorRoutes from '@/routes/indicator.route'
 import mediaRoutes from '@/routes/media.route'
@@ -163,6 +164,7 @@ const start = async () => {
     fastify.register(taskCommentRoutes, { prefix: '/tasks' })
     fastify.register(taskAttachmentRoutes, { prefix: '/tasks' })
     fastify.register(chatRoutes, { prefix: '/chat' })
+    fastify.register(fcmRoutes, { prefix: '/notifications' })
 
     // Initialize system data
     await initOwnerAccount()

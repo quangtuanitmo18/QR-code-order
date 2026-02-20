@@ -39,6 +39,7 @@ Table Account {
   sentMessages Message [not null]
   messageReactions MessageReaction [not null]
   messageReadReceipts MessageReadReceipt [not null]
+  fcmTokens FcmToken [not null]
 }
 
 Table Dish {
@@ -519,6 +520,16 @@ Table MessageReadReceipt {
   }
 }
 
+Table FcmToken {
+  id Int [pk, increment]
+  accountId Int [not null]
+  token String [unique, not null]
+  deviceType String [default: 'web']
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  account Account [not null]
+}
+
 Ref: Account.ownerId - Account.id
 
 Ref: DishSnapshot.dishId > Dish.id
@@ -632,3 +643,5 @@ Ref: MessageReaction.accountId > Account.id [delete: Cascade]
 Ref: MessageReadReceipt.messageId > Message.id [delete: Cascade]
 
 Ref: MessageReadReceipt.accountId > Account.id [delete: Cascade]
+
+Ref: FcmToken.accountId > Account.id [delete: Cascade]

@@ -1,5 +1,6 @@
 import { chatRepository } from '@/repositories/chat.repository'
 import { callService } from '@/services/call.service'
+import { notificationService } from '@/services/notification.service'
 import { getChalk } from '@/utils/helpers'
 import type { FastifyInstance } from 'fastify'
 import { types as mediasoupTypes } from 'mediasoup'
@@ -65,14 +66,40 @@ export async function registerCallSocketHandlers(fastify: FastifyInstance, socke
 
       // Notify other participants that a call is incoming
       // We emit to all participants in the conversation EXCEPT the caller
-      conversation.participants.forEach((p: { accountId: number }) => {
+      conversation.participants.forEach(async (p: any) => {
         if (p.accountId !== accountId) {
+          const targetSocketRoom = `user-${p.accountId}`
           // Assuming user sockets join a room like `user-${accountId}` (similar to chat plugin emits)
-          fastify.io.to(`user-${p.accountId}`).emit('call-incoming', {
+          fastify.io.to(targetSocketRoom).emit('call-incoming', {
             conversationId,
             callerId: accountId,
             isVideo
           })
+
+          // Push Notification Logic for Call Ringing
+          const targetSockets = await fastify.io.in(targetSocketRoom).fetchSockets()
+          const isOnline = targetSockets.length > 0
+          let isFocused = false 
+          for (const s of targetSockets) {
+            if (s.data?.isFocused) {
+               isFocused = true
+               break
+            }
+          }
+
+          if (!isOnline || !isFocused) {
+            const callerParticipant = conversation.participants.find((x: any) => x.accountId === accountId)
+            const callerName = callerParticipant?.account?.name || 'Someone'
+            
+            await notificationService.sendToAccount(p.accountId, {
+              title: `Incoming ${isVideo ? 'Video ' : ''}Call`,
+              body: `${callerName} is calling you`,
+              data: {
+                type: 'INCOMING_CALL',
+                conversationId: String(conversationId)
+              }
+            })
+          }
         }
       })
 
@@ -115,6 +142,13 @@ export async function registerCallSocketHandlers(fastify: FastifyInstance, socke
         responderId: accountId
       })
 
+      // Send a silent FCM payload to the answering user's OTHER offline/blurred devices 
+      // so their ringing notifications disappear immediately when they answer on one device.
+      await notificationService.sendSilentDataToAccount(accountId, {
+        type: 'CALL_CANCELLED',
+        conversationId: String(conversationId)
+      })
+
       if (process.env.NODE_ENV !== 'production') {
         console.log(chalk.greenBright(`📞 User ${accountId} accepted call in conversation ${conversationId}`))
       }
@@ -141,6 +175,16 @@ export async function registerCallSocketHandlers(fastify: FastifyInstance, socke
       fastify.io.to(callRoom).emit('call-declined', {
         conversationId,
         responderId: accountId
+      })
+
+      // Send a silent FCM payload to everyone else in the call room to stop ringing
+      conversation.participants.forEach(async (p: any) => {
+        if (p.accountId !== accountId) {
+          await notificationService.sendSilentDataToAccount(p.accountId, {
+             type: 'CALL_CANCELLED',
+             conversationId: String(conversationId)
+          })
+        }
       })
 
       if (process.env.NODE_ENV !== 'production') {
