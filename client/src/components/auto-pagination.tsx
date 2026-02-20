@@ -40,12 +40,13 @@ Với range = 2 áp dụng cho khoảng cách đầu, cuối và xung quanh curr
  */
 
 const RANGE = 2
+const NOOP = (_pageNumber: number) => {}
 export default function AutoPagination({
   page,
   pageSize,
   pathname = '/',
   isLink = true,
-  onClick = (pageNumber) => {},
+  onClick = NOOP,
 }: Props) {
   const renderPagination = () => {
     let dotAfter = false

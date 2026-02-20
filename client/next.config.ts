@@ -41,7 +41,7 @@ const nextConfig: NextConfig = {
   experimental: {
     // Optimize package imports to avoid loading entire libraries (e.g. lucide-react) as barrels.
     // This keeps ergonomic imports while reducing bundle size.
-    optimizePackageImports: ['lucide-react'],
+    optimizePackageImports: ['lucide-react', '@radix-ui/react-icons', 'date-fns'],
   },
   // Add the new turbopack configuration
   turbopack: {},

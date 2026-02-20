@@ -2,7 +2,9 @@
   "ErrorMessage": {
     "invalidEmail": "Invalid email",
     "required": "This field is required",
-    "minmaxPassword": "Password must be between 6 and 100 characters"
+    "minmaxPassword": "Password must be between 6 and 100 characters",
+    "Email or password is incorrect": "Email or password is incorrect",
+    "Email does not exist": "Email does not exist"
   },
   "Brand": {
     "title": "Big Boy Restaurant",
