@@ -13,11 +13,13 @@ import { useMediasoup } from '@/hooks/useMediasoup'
 import { useAppStore } from '@/store/useAppStore'
 import { useCallStore } from '@/store/useCallStore'
 import { Loader2, Mic, MicOff, Phone, PhoneOff, Video, VideoOff } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 import { VideoTile } from './VideoTile'
 
 export function CallModal() {
   const socket = useAppStore((state) => state.socket)
+  const searchParams = useSearchParams()
   const {
     status,
     conversationId,
@@ -114,6 +116,31 @@ export function CallModal() {
       socket.off('active-speaker', handleActiveSpeaker)
     }
   }, [socket, setIncomingCall, setCallConnected, setActiveSpeakerId, endCall])
+
+  // When the page is opened from a push notification with ?callRoom=<conversationId>,
+  // ask the server to re-emit call-incoming if the caller is still waiting.
+  // A ref guard ensures this only fires ONCE per callRoom value.
+  const callCheckSentRef = useRef<string | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    const callRoomParam = searchParams.get('callRoom')
+    if (!callRoomParam || !socket?.connected) return
+
+    // Only emit once per callRoom value
+    if (callCheckSentRef.current === callRoomParam) return
+    callCheckSentRef.current = callRoomParam
+
+    const callConvId = parseInt(callRoomParam, 10)
+    if (isNaN(callConvId)) return
+
+    socket.emit('call-check', { conversationId: callConvId })
+
+    // Clean up the callRoom param from URL so it doesn't re-trigger
+    const url = new URL(window.location.href)
+    url.searchParams.delete('callRoom')
+    router.replace(url.pathname + url.search, { scroll: false })
+  }, [socket?.connected, searchParams, router])
 
   // Timer for connected state
   useEffect(() => {

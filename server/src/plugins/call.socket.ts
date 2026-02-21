@@ -168,6 +168,61 @@ export async function registerCallSocketHandlers(fastify: FastifyInstance, socke
   })
 
   /**
+   * Check if there is an active (ringing) call in a conversation.
+   * Used when a user opens the page from a push notification and needs
+   * to restore the incoming-call UI that was missed because the socket
+   * was not yet connected when the original call-incoming was emitted.
+   *
+   * Client emits:  'call-check', { conversationId: number }
+   * Server replies: 'call-incoming' if a caller is waiting, or nothing.
+   */
+  socket.on('call-check', async (data: { conversationId: number; isVideo?: boolean }) => {
+    try {
+      const { conversationId } = data
+      if (!conversationId) return
+
+      // Verify user is a participant
+      const conversation = await chatRepository.findById(conversationId, accountId)
+      if (!conversation) return
+
+      const callRoom = getCallRoom(conversationId)
+      const socketsInRoom = await fastify.io.in(callRoom).fetchSockets()
+
+      // If there are sockets in the call room, someone is calling
+      if (socketsInRoom.length > 0) {
+        // Find the caller (the first socket in the room that is NOT this user)
+        let callerAccountId: number | null = null
+        const isVideo = data.isVideo ?? false
+
+        for (const s of socketsInRoom) {
+          const sid = (s.handshake.auth.decodedAccessToken as any)?.userId as number
+          if (sid && sid !== accountId) {
+            callerAccountId = sid
+            break
+          }
+        }
+
+        if (callerAccountId) {
+          // Re-emit call-incoming directly to THIS socket only
+          socket.emit('call-incoming', {
+            conversationId,
+            callerId: callerAccountId,
+            isVideo
+          })
+
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(
+              chalk.cyanBright(`📞 Re-emitted call-incoming to user ${accountId} for conversation ${conversationId}`)
+            )
+          }
+        }
+      }
+    } catch (error: any) {
+      console.error(chalk.red('❌ Error checking call:'), error)
+    }
+  })
+
+  /**
    * Decline a call
    * Client emits: 'call-decline', { conversationId: number }
    */
