@@ -557,7 +557,8 @@ model Message {
   conversationId Int
   senderId       Int
   content        String
-  type           String   @default("text") // "text" | "image" | "file"
+  type           String   @default("text") // "text" | "image" | "file" | "call"
+  callMeta       String?  // JSON: { callType: "voice"|"video", callStatus: "completed"|"missed"|"declined", durationSeconds: number }
   replyToId      Int? // For message replies
   isEdited       Boolean  @default(false)
   isDeleted      Boolean  @default(false) // Soft delete

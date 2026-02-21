@@ -1,32 +1,32 @@
 'use client'
 
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { toast } from '@/components/ui/use-toast'
 import { cn, handleErrorApi } from '@/lib/utils'
 import {
-    useAddReactionMutation,
-    useDeleteMessageMutation,
-    useEditMessageMutation,
-    useRemoveReactionMutation,
+  useAddReactionMutation,
+  useDeleteMessageMutation,
+  useEditMessageMutation,
+  useRemoveReactionMutation,
 } from '@/queries/useMessage'
 import { MessageType } from '@/schemaValidations/message.schema'
 import { useChatStore } from '@/store/useChatStore'
@@ -34,6 +34,7 @@ import { format } from 'date-fns'
 import { CheckCheck, Copy, MoreHorizontal, Reply, Smile, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Virtuoso } from 'react-virtuoso'
+import { CallMessageBubble } from './call-message-bubble'
 import { EditMessageDialog } from './edit-message-dialog'
 
 interface MessageListProps {
@@ -105,7 +106,8 @@ export function MessageList({
       const isConsecutive =
         prevMessage &&
         prevMessage.senderId === message.senderId &&
-        new Date(message.createdAt).getTime() - new Date(prevMessage.createdAt).getTime() < 5 * 60 * 1000
+        new Date(message.createdAt).getTime() - new Date(prevMessage.createdAt).getTime() <
+          5 * 60 * 1000
 
       // We show avatar/name if it's the first message of the day or not consecutive
       const startOfDayOrNewSender =
@@ -116,7 +118,13 @@ export function MessageList({
       const showAvatar = message.senderId !== currentUserId && startOfDayOrNewSender
       const showName = message.senderId !== currentUserId && startOfDayOrNewSender
 
-      flattened.push({ type: 'message', message, showAvatar, showName, isConsecutive: isConsecutive && !startOfDayOrNewSender })
+      flattened.push({
+        type: 'message',
+        message,
+        showAvatar,
+        showName,
+        isConsecutive: isConsecutive && !startOfDayOrNewSender,
+      })
     })
 
     // Optionally append typing indicator as an item if we want it in the virtualized list
@@ -128,7 +136,7 @@ export function MessageList({
   }, [messages, currentUserId, typingUsers])
 
   return (
-    <div className="flex-1 w-full flex flex-col overflow-hidden">
+    <div className="flex w-full flex-1 flex-col overflow-hidden">
       <Virtuoso
         style={{ overflowX: 'hidden' }}
         className="w-full flex-1 px-4"
@@ -141,14 +149,14 @@ export function MessageList({
           Header: () =>
             isLoadingMore ? (
               <div className="flex justify-center p-4">
-                <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" />
+                <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
               </div>
             ) : null,
         }}
         itemContent={(index, item) => {
           if (item.type === 'date') {
             return (
-              <div className="flex items-center justify-center py-4 my-2">
+              <div className="my-2 flex items-center justify-center py-4">
                 <div className="rounded-full border bg-background px-3 py-1 text-xs text-muted-foreground shadow-sm">
                   {formatDateHeader(item.date)}
                 </div>
@@ -161,7 +169,7 @@ export function MessageList({
               <div className="flex gap-3 py-2">
                 <div className="w-8" />
                 <div className="max-w-[70%] flex-1">
-                  <div className="rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground animate-pulse">
+                  <div className="animate-pulse rounded-lg bg-muted px-3 py-2 text-sm text-muted-foreground">
                     {typingUsers.length === 1
                       ? 'Someone is typing...'
                       : `${typingUsers.length} people are typing...`}
@@ -187,6 +195,17 @@ export function MessageList({
               )
             }
 
+            // Call messages: render a special centered bubble
+            if (message.type === 'call' && message.callMeta) {
+              return (
+                <CallMessageBubble
+                  callMeta={message.callMeta}
+                  isOwnMessage={isOwnMessage}
+                  timestamp={message.createdAt}
+                />
+              )
+            }
+
             return (
               <div
                 className={cn(
@@ -204,7 +223,7 @@ export function MessageList({
                           src={message.sender.avatar || undefined}
                           alt={message.sender.name}
                         />
-                        <AvatarFallback className="text-xs bg-primary/10 text-primary uppercase">
+                        <AvatarFallback className="bg-primary/10 text-xs uppercase text-primary">
                           {message.sender.name.slice(0, 2)}
                         </AvatarFallback>
                       </Avatar>
@@ -221,19 +240,19 @@ export function MessageList({
                 >
                   {/* Sender name for group messages */}
                   {showName && message.sender && !isOwnMessage && (
-                    <div className="mb-1 text-xs font-semibold text-muted-foreground ml-1">
+                    <div className="mb-1 ml-1 text-xs font-semibold text-muted-foreground">
                       {message.sender.name}
                     </div>
                   )}
 
                   {/* Message bubble */}
-                  <div className="group/message relative w-full flex flex-col">
+                  <div className="group/message relative flex w-full flex-col">
                     <div
                       className={cn(
                         'break-words px-4 py-2.5 text-[15px] shadow-sm',
-                        isOwnMessage 
-                          ? 'bg-primary text-primary-foreground rounded-2xl rounded-tr-sm' 
-                          : 'bg-muted/60 text-foreground rounded-2xl rounded-tl-sm border',
+                        isOwnMessage
+                          ? 'rounded-2xl rounded-tr-sm bg-primary text-primary-foreground'
+                          : 'rounded-2xl rounded-tl-sm border bg-muted/60 text-foreground'
                       )}
                     >
                       {/* Reply to message */}
@@ -246,17 +265,19 @@ export function MessageList({
                               : 'border-muted-foreground/50'
                           )}
                         >
-                          <div className="font-semibold text-xs mb-1">
+                          <div className="mb-1 text-xs font-semibold">
                             {message.replyTo.sender?.name || 'User'}
                           </div>
-                          <div className="truncate text-xs line-clamp-2 white-space-normal">
+                          <div className="white-space-normal line-clamp-2 truncate text-xs">
                             {message.replyTo.content}
                           </div>
                         </div>
                       )}
 
                       {/* Message content */}
-                      <p className="whitespace-pre-wrap leading-relaxed">{message.isDeleted ? 'Message deleted' : message.content}</p>
+                      <p className="whitespace-pre-wrap leading-relaxed">
+                        {message.isDeleted ? 'Message deleted' : message.content}
+                      </p>
 
                       {/* Attachments */}
                       {message.attachments && message.attachments.length > 0 && (
@@ -293,18 +314,24 @@ export function MessageList({
 
                     {/* Reactions */}
                     {message.reactions && message.reactions.length > 0 && (
-                      <div className={cn("mt-1 flex flex-wrap gap-1 relative z-10", isOwnMessage ? "justify-end" : "justify-start")}>
+                      <div
+                        className={cn(
+                          'relative z-10 mt-1 flex flex-wrap gap-1',
+                          isOwnMessage ? 'justify-end' : 'justify-start'
+                        )}
+                      >
                         {message.reactions.map((reaction: any, idx: number) => (
                           <div
                             key={idx}
                             className={cn(
                               'inline-flex cursor-pointer items-center gap-1 rounded-full border px-2 py-0.5 text-xs',
-                              'bg-background shadow-sm hover:bg-muted transition-colors'
+                              'bg-background shadow-sm transition-colors hover:bg-muted'
                             )}
                           >
                             <span>{reaction.emoji}</span>
-                            <span className="text-muted-foreground font-medium">
-                              {message.reactions?.filter((r: any) => r.emoji === reaction.emoji).length || 1}
+                            <span className="font-medium text-muted-foreground">
+                              {message.reactions?.filter((r: any) => r.emoji === reaction.emoji)
+                                .length || 1}
                             </span>
                           </div>
                         ))}
@@ -317,14 +344,14 @@ export function MessageList({
                         'mt-1 flex items-center gap-1 text-[11px] font-medium tracking-wide',
                         isOwnMessage
                           ? 'justify-end text-muted-foreground/80'
-                          : 'text-muted-foreground/80 ml-1'
+                          : 'ml-1 text-muted-foreground/80'
                       )}
                     >
                       <span>{formatMessageTime(message.createdAt)}</span>
                       {message.isEdited && <span className="italic">Edited</span>}
                       {message.id < 0 && <span className="italic text-primary/70">Sending...</span>}
                       {isOwnMessage && message.id > 0 && (
-                        <div className="flex ml-1">
+                        <div className="ml-1 flex">
                           {message.readReceipts && message.readReceipts.length > 0 ? (
                             <CheckCheck className="h-3.5 w-3.5 text-blue-500" />
                           ) : (
@@ -336,22 +363,23 @@ export function MessageList({
 
                     {/* Message actions */}
                     {message.id > 0 && (
-                      <div className={cn(
-                        "absolute top-0 flex gap-1 opacity-0 group-hover/message:opacity-100 transition-opacity bg-background/50 backdrop-blur-sm rounded-lg p-0.5 shadow-sm border",
-                        isOwnMessage ? "-left-20" : "-right-20"
-                      )}>
+                      <div
+                        className={cn(
+                          'absolute top-0 flex gap-1 rounded-lg border bg-background/50 p-0.5 opacity-0 shadow-sm backdrop-blur-sm transition-opacity group-hover/message:opacity-100',
+                          isOwnMessage ? '-left-20' : '-right-20'
+                        )}
+                      >
                         {/* Add Reaction */}
                         <Popover>
                           <PopoverTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 rounded-sm"
-                            >
+                            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-sm">
                               <Smile className="h-4 w-4" />
                             </Button>
                           </PopoverTrigger>
-                          <PopoverContent className="w-auto p-2 border-border/50" align={isOwnMessage ? "end" : "start"}>
+                          <PopoverContent
+                            className="w-auto border-border/50 p-2"
+                            align={isOwnMessage ? 'end' : 'start'}
+                          >
                             <div className="flex gap-1.5">
                               {commonEmojis.map((emoji) => {
                                 const hasReaction = message.reactions?.some(
@@ -364,7 +392,7 @@ export function MessageList({
                                     key={emoji}
                                     variant={hasReaction ? 'secondary' : 'ghost'}
                                     size="icon"
-                                    className="h-8 w-8 text-lg rounded-full"
+                                    className="h-8 w-8 rounded-full text-lg"
                                     onClick={async () => {
                                       try {
                                         if (hasReaction) {
@@ -393,15 +421,11 @@ export function MessageList({
 
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 rounded-sm"
-                            >
+                            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-sm">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align={isOwnMessage ? "end" : "start"}>
+                          <DropdownMenuContent align={isOwnMessage ? 'end' : 'start'}>
                             <DropdownMenuItem
                               className="cursor-pointer"
                               onClick={() => setReplyingTo(message)}

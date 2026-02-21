@@ -246,6 +246,57 @@ export const messageRepository = {
   },
 
   /**
+   * Create a call message (system-generated when a call ends)
+   */
+  async createCallMessage(data: {
+    conversationId: number
+    senderId: number
+    callMeta: { callType: 'voice' | 'video'; callStatus: 'completed' | 'missed' | 'declined'; durationSeconds: number }
+  }): Promise<Message> {
+    const statusLabel =
+      data.callMeta.callStatus === 'completed'
+        ? `${data.callMeta.callType === 'video' ? 'Video' : 'Voice'} call`
+        : data.callMeta.callStatus === 'missed'
+          ? `Missed ${data.callMeta.callType === 'video' ? 'video' : 'voice'} call`
+          : `Declined ${data.callMeta.callType === 'video' ? 'video' : 'voice'} call`
+
+    return await prisma.message.create({
+      data: {
+        conversationId: data.conversationId,
+        senderId: data.senderId,
+        content: statusLabel,
+        type: 'call',
+        callMeta: JSON.stringify(data.callMeta)
+      },
+      include: {
+        sender: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatar: true
+          }
+        },
+        replyTo: {
+          include: {
+            sender: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                avatar: true
+              }
+            }
+          }
+        },
+        attachments: true,
+        reactions: true,
+        readReceipts: true
+      }
+    })
+  },
+
+  /**
    * Update message (edit)
    */
   async update(id: number, data: { content: string }): Promise<Message> {

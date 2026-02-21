@@ -299,7 +299,7 @@ export function CallModal() {
               variant="destructive"
               size="lg"
               className="h-14 rounded-full px-8 shadow-lg transition-transform hover:scale-105"
-              onClick={hangUp}
+              onClick={() => hangUp(duration)}
             >
               <PhoneOff className="mr-2 h-6 w-6" />
               Cancel
@@ -315,7 +315,7 @@ export function CallModal() {
     <Dialog
       open={true}
       onOpenChange={(open) => {
-        if (!open) hangUp()
+        if (!open) hangUp(duration)
       }}
     >
       <DialogContent className="flex h-[100dvh] w-[100vw] flex-col overflow-hidden border-none bg-background p-0 shadow-2xl sm:h-[85vh] sm:max-w-4xl sm:rounded-2xl [&>button]:hidden">
@@ -324,10 +324,10 @@ export function CallModal() {
             <DialogTitle>Active Call</DialogTitle>
             <DialogDescription>{formatDuration(duration)}</DialogDescription>
           </div>
-          <Button variant="destructive" size="sm" onClick={hangUp}>
+          {/* <Button variant="destructive" size="sm" onClick={() => hangUp(duration)}>
             <PhoneOff className="mr-2 h-4 w-4" />
             Leave
-          </Button>
+          </Button> */}
         </DialogHeader>
 
         <div className="relative flex h-full w-full flex-1 items-center justify-center overflow-hidden bg-zinc-950">
@@ -395,7 +395,7 @@ export function CallModal() {
             variant="destructive"
             size="icon"
             className="h-12 w-12 rounded-full transition-transform hover:scale-105"
-            onClick={hangUp}
+            onClick={() => hangUp(duration)}
           >
             <PhoneOff className="h-5 w-5" />
           </Button>
