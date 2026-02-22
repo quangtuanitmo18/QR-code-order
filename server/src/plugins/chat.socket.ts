@@ -1,6 +1,5 @@
 import prisma from '@/database'
 import { chatRepository } from '@/repositories/chat.repository'
-import { getChalk } from '@/utils/helpers'
 import type { FastifyInstance } from 'fastify'
 import { Socket } from 'socket.io'
 
@@ -27,11 +26,10 @@ function getConversationRoom(conversationId: number): string {
  * Register chat socket handlers
  */
 export async function registerChatSocketHandlers(fastify: FastifyInstance, socket: Socket) {
-  const chalk = await getChalk()
   const accountId = (socket.handshake.auth.decodedAccessToken as any)?.userId as number
 
   if (!accountId) {
-    console.error(chalk.red('❌ Chat socket: No accountId found'))
+    fastify.log.error('[Chat Socket] No accountId found')
     return
   }
 
@@ -61,7 +59,7 @@ export async function registerChatSocketHandlers(fastify: FastifyInstance, socke
 
       // Log in development only
       if (process.env.NODE_ENV !== 'production') {
-        console.log(chalk.cyanBright(`👤 User ${accountId} joined conversation ${conversationId}`))
+        fastify.log.info(`[Chat] User ${accountId} joined conversation ${conversationId}`)
       }
 
       // Emit confirmation
@@ -75,7 +73,7 @@ export async function registerChatSocketHandlers(fastify: FastifyInstance, socke
     } catch (error: any) {
       // Log error (always log errors, even in production)
       if (process.env.NODE_ENV !== 'production') {
-        console.error(chalk.red('❌ Error joining conversation:'), error)
+        fastify.log.error({ err: error }, '[Chat] Error joining conversation:')
       }
       socket.emit('error', { message: error.message || 'Failed to join conversation' })
     }
@@ -98,7 +96,7 @@ export async function registerChatSocketHandlers(fastify: FastifyInstance, socke
 
       // Log in development only
       if (process.env.NODE_ENV !== 'production') {
-        console.log(chalk.yellow(`👤 User ${accountId} left conversation ${conversationId}`))
+        fastify.log.info(`[Chat] User ${accountId} left conversation ${conversationId}`)
       }
 
       // Clear typing indicator
@@ -113,7 +111,7 @@ export async function registerChatSocketHandlers(fastify: FastifyInstance, socke
         userId: accountId
       })
     } catch (error: any) {
-      console.error(chalk.red('❌ Error leaving conversation:'), error)
+      fastify.log.error({ err: error }, '[Chat] Error leaving conversation:')
     }
   })
 
@@ -165,7 +163,7 @@ export async function registerChatSocketHandlers(fastify: FastifyInstance, socke
         userId: accountId
       })
     } catch (error: any) {
-      console.error(chalk.red('❌ Error in typing-start:'), error)
+      fastify.log.error({ err: error }, '[Chat] Error in typing-start:')
     }
   })
 
@@ -190,7 +188,7 @@ export async function registerChatSocketHandlers(fastify: FastifyInstance, socke
         userId: accountId
       })
     } catch (error: any) {
-      console.error(chalk.red('❌ Error in typing-stop:'), error)
+      fastify.log.error({ err: error }, '[Chat] Error in typing-stop:')
     }
   })
 
@@ -256,7 +254,7 @@ export async function emitNewMessage(
     })
 
     // Broadcast 'new-message' to everyone's personal room
-    participants.forEach(async (p) => {
+    const notifyPromises = participants.map(async (p) => {
       // We can emit to everyone including sender (frontend deduplicates by ID)
       // or we can exclude sender.
       // For standard implementation, we just emit to all participants' personal rooms
@@ -300,8 +298,12 @@ export async function emitNewMessage(
         })
       }
     })
+
+    await Promise.allSettled(notifyPromises).catch((err) =>
+      fastify.log.error({ err }, 'Error sending new message notifications:')
+    )
   } catch (error) {
-    console.error('Failed to emit new-message globally', error)
+    fastify.log.error({ err: error }, 'Failed to emit new-message globally')
   }
 }
 

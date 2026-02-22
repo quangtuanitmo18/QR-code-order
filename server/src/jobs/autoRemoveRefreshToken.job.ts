@@ -3,7 +3,7 @@ import { Cron } from 'croner'
 
 // Cron pattern for every hour
 
-const autoRemoveRefreshTokenJob = () => {
+const autoRemoveRefreshTokenJob = (fastify: any) => {
   Cron('@hourly', async () => {
     try {
       await prisma.refreshToken.deleteMany({
@@ -14,7 +14,7 @@ const autoRemoveRefreshTokenJob = () => {
         }
       })
     } catch (error) {
-      console.error(error)
+      fastify.log.error({ err: error }, '[Auto Remove Refresh Token Job] Error:')
     }
   })
 }

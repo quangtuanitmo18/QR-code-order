@@ -1,10 +1,15 @@
 import { Role } from '@/constants/type'
 import { calendarRepository } from '@/repositories/calendar.repository'
+import {
+  CreateEventBodyType,
+  GetEventsQueryParamsType,
+  RecurringRuleSchema,
+  UpdateEventBodyType
+} from '@/schemaValidations/calendar.schema'
 import { notificationService } from '@/services/notification.service'
-import { CreateEventBodyType, GetEventsQueryParamsType, UpdateEventBodyType } from '@/schemaValidations/calendar.schema'
-import { RecurringRuleSchema } from '@/schemaValidations/calendar.schema'
 import { RoleType } from '@/types/jwt.types'
 import { EntityError } from '@/utils/errors'
+import { getContextLogger } from '@/utils/logger'
 import { addDays, addMonths, addWeeks } from 'date-fns'
 
 // Recurring rule type
@@ -117,11 +122,12 @@ function expandRecurringEvents(
           // For weekly, we need to find the next occurrence
           // This is handled in the switch below, so we'll let the loop handle it
           break
-        case 'monthly':
+        case 'monthly': {
           // For monthly, approximate
           const monthsDiff = Math.floor(daysDiff / 30)
           currentDate = addMonths(currentDate, Math.floor(monthsDiff / rule.interval) * rule.interval)
           break
+        }
       }
     }
 
@@ -158,7 +164,7 @@ function expandRecurringEvents(
             currentDate = addWeeks(currentDate, rule.interval)
           }
           break
-        case 'monthly':
+        case 'monthly': {
           if (rule.dayOfMonth !== undefined) {
             // Find next occurrence of the specified day of month
             currentDate = addMonths(currentDate, rule.interval)
@@ -172,6 +178,7 @@ function expandRecurringEvents(
             currentDate = addMonths(currentDate, rule.interval)
           }
           break
+        }
       }
 
       occurrenceCount++
@@ -287,7 +294,7 @@ export const calendarService = {
         await notificationService.createEventCreatedNotifications(event.id, body.employeeIds)
       } catch (error) {
         // Log error but don't fail event creation
-        console.error('[Calendar Service] Failed to create notifications:', error)
+        getContextLogger()?.error('[Calendar Service] Failed to create notifications:', error)
       }
 
       // Return event directly (serializerCompiler will handle Date serialization)
@@ -353,7 +360,7 @@ export const calendarService = {
           await notificationService.createEventUpdatedNotifications(eventId, assignedUserIds)
         } catch (error) {
           // Log error but don't fail event update
-          console.error('[Calendar Service] Failed to create update notifications:', error)
+          getContextLogger()?.error('[Calendar Service] Failed to create update notifications:', error)
         }
       }
 
@@ -392,7 +399,7 @@ export const calendarService = {
       } catch (error) {
         // Log error but don't fail event deletion
         // Note: Event is already deleted, so we can't fetch it again
-        console.error('[Calendar Service] Failed to create cancellation notifications:', error)
+        getContextLogger()?.error('[Calendar Service] Failed to create cancellation notifications:', error)
       }
     }
 

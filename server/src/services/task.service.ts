@@ -3,6 +3,7 @@ import prisma from '@/database'
 import { taskAttachmentRepository } from '@/repositories/task-attachment.repository'
 import { taskRepository } from '@/repositories/task.repository'
 import { EntityError } from '@/utils/errors'
+import { getContextLogger } from '@/utils/logger'
 import fs from 'fs'
 import path from 'path'
 
@@ -211,7 +212,7 @@ export const taskService = {
           await fs.promises.unlink(filePath)
         } catch (error) {
           // Log error but continue with deletion
-          console.error(`Failed to delete attachment file: ${filePath}`, error)
+          getContextLogger()?.error(`Failed to delete attachment file: ${filePath}`, error)
         }
       }
     }

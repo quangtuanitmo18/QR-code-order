@@ -1,4 +1,5 @@
 import envConfig from '@/config'
+import { getContextLogger } from '@/utils/logger'
 import Stripe from 'stripe'
 
 // Initialize Stripe with test API key
@@ -58,7 +59,7 @@ export const createStripeCheckoutSession = async ({
 
     return session
   } catch (error: any) {
-    console.error('Stripe checkout session creation failed:', error)
+    getContextLogger()?.error('Stripe checkout session creation failed:', error)
     throw new Error(`Failed to create Stripe checkout session: ${error.message}`)
   }
 }
@@ -74,7 +75,7 @@ export const verifyStripeWebhook = (payload: string | Buffer, signature: string)
   try {
     return stripe.webhooks.constructEvent(payload, signature, envConfig.STRIPE_WEBHOOK_SECRET)
   } catch (error: any) {
-    console.error('Webhook signature verification failed:', error)
+    getContextLogger()?.error('Webhook signature verification failed:', error)
     throw new Error(`Webhook signature verification failed: ${error.message}`)
   }
 }
@@ -90,7 +91,7 @@ export const getStripeSession = async (sessionId: string) => {
       expand: ['payment_intent'] // Include payment intent details
     })
   } catch (error: any) {
-    console.error('Failed to retrieve Stripe session:', error)
+    getContextLogger()?.error('Failed to retrieve Stripe session:', error)
     throw new Error(`Failed to retrieve Stripe session: ${error.message}`)
   }
 }

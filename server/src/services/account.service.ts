@@ -15,6 +15,7 @@ import { comparePassword, hashPassword } from '@/utils/crypto'
 import { EntityError, isPrismaClientKnownRequestError } from '@/utils/errors'
 import { getChalk } from '@/utils/helpers'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '@/utils/jwt'
+import { getContextLogger } from '@/utils/logger'
 
 export const accountService = {
   // Initialize owner account on first run
@@ -29,7 +30,7 @@ export const accountService = {
         role: Role.Owner
       })
       const chalk = await getChalk()
-      console.log(
+      getContextLogger()?.info(
         chalk.bgCyan(`Create owner account: ${envConfig.INITIAL_EMAIL_OWNER}|${envConfig.INITIAL_PASSWORD_OWNER}`)
       )
     }

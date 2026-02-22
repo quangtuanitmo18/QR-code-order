@@ -2,6 +2,7 @@ import { calendarRepository } from '@/repositories/calendar.repository'
 import { notificationRepository } from '@/repositories/notification.repository'
 import { GetNotificationsQueryParamsType, NotificationType } from '@/schemaValidations/calendar.schema'
 import { EntityError } from '@/utils/errors'
+import { getContextLogger } from '@/utils/logger'
 import { addDays, addHours, subDays } from 'date-fns'
 
 import prisma from '@/database'
@@ -269,7 +270,7 @@ export const notificationService = {
 
       // 3. Send via Firebase Admin
       const response = await messaging.sendEachForMulticast(message)
-      console.log('send notification', response)
+      getContextLogger()?.info('send notification', response)
 
       // 4. Cleanup invalid or expired tokens
       if (response.failureCount > 0) {
@@ -298,7 +299,7 @@ export const notificationService = {
         failureCount: response.failureCount
       }
     } catch (error) {
-      console.error('[NotificationService.sendToAccount] Failed:', error)
+      getContextLogger()?.error('[NotificationService.sendToAccount] Failed:', error)
       return { success: false, reason: 'Internal error' }
     }
   },
@@ -328,7 +329,7 @@ export const notificationService = {
 
       return { success: true, count: response.successCount }
     } catch (error) {
-      console.error('[NotificationService.sendSilentDataToAccount] Failed:', error)
+      getContextLogger()?.error('[NotificationService.sendSilentDataToAccount] Failed:', error)
       return { success: false }
     }
   },
@@ -343,9 +344,9 @@ export const notificationService = {
           token: { in: invalidTokens }
         }
       })
-      console.log(`[NotificationService] Purged ${invalidTokens.length} dead FCM tokens.`)
+      getContextLogger()?.info(`[NotificationService] Purged ${invalidTokens.length} dead FCM tokens.`)
     } catch (error) {
-      console.error('[NotificationService.cleanupTokens] Failed:', error)
+      getContextLogger()?.error('[NotificationService.cleanupTokens] Failed:', error)
     }
   }
 }

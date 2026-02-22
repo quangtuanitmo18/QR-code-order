@@ -1,4 +1,5 @@
 import prisma from '@/database'
+import { getContextLogger } from '@/utils/logger'
 
 export const orderRepository = {
   // Find guest by ID
@@ -45,18 +46,26 @@ export const orderRepository = {
     orderHandlerId: number
     status: string
   }) {
-    return await prisma.order.create({
-      data,
-      include: {
-        items: {
-          include: {
-            dishSnapshot: true
-          }
-        },
-        guest: true,
-        orderHandler: true
+    try {
+      return await prisma.order.create({
+        data,
+        include: {
+          items: {
+            include: {
+              dishSnapshot: true
+            }
+          },
+          guest: true,
+          orderHandler: true
+        }
+      })
+    } catch (error) {
+      const logger = getContextLogger()
+      if (logger) {
+        logger.error({ err: error, data }, 'Database error creating order')
       }
-    })
+      throw error
+    }
   },
 
   // Find socket by guestId

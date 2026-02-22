@@ -12,6 +12,7 @@ import { useCallSignaling } from '@/hooks/useCallSignaling'
 import { useMediasoup } from '@/hooks/useMediasoup'
 import { useAppStore } from '@/store/useAppStore'
 import { useCallStore } from '@/store/useCallStore'
+import { useQueryClient } from '@tanstack/react-query'
 import { Loader2, Mic, MicOff, Phone, PhoneOff, Video, VideoOff } from 'lucide-react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -20,6 +21,8 @@ import { VideoTile } from './VideoTile'
 export function CallModal() {
   const socket = useAppStore((state) => state.socket)
   const searchParams = useSearchParams()
+  const router = useRouter()
+  const queryClient = useQueryClient()
   const {
     status,
     conversationId,
@@ -117,11 +120,7 @@ export function CallModal() {
     }
   }, [socket, setIncomingCall, setCallConnected, setActiveSpeakerId, endCall])
 
-  // When the page is opened from a push notification with ?callRoom=<conversationId>,
-  // ask the server to re-emit call-incoming if the caller is still waiting.
-  // A ref guard ensures this only fires ONCE per callRoom value.
   const callCheckSentRef = useRef<string | null>(null)
-  const router = useRouter()
 
   useEffect(() => {
     const callRoomParam = searchParams.get('callRoom')
@@ -136,10 +135,12 @@ export function CallModal() {
 
     socket.emit('call-check', { conversationId: callConvId })
 
-    // Clean up the callRoom param from URL so it doesn't re-trigger
-    const url = new URL(window.location.href)
-    url.searchParams.delete('callRoom')
-    router.replace(url.pathname + url.search, { scroll: false })
+    // Clean up the callRoom param from URL using Next.js router
+    const newSearchParams = new URLSearchParams(searchParams.toString())
+    newSearchParams.delete('callRoom')
+    const newSearch = newSearchParams.toString()
+    const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : '')
+    router.replace(newPath, { scroll: false })
   }, [socket?.connected, searchParams, router])
 
   // Timer for connected state
@@ -275,6 +276,16 @@ export function CallModal() {
   // Do not render anything if idle
   if (status === 'idle') return null
 
+  // Get caller info from react-query cache
+  const cachedConversations = queryClient.getQueryData(['chat', 'conversations']) as any
+  const currentConversation = cachedConversations?.pages
+    ?.flatMap((p: any) => p.conversations)
+    ?.find((c: any) => c.id === conversationId)
+  const callerParticipant = currentConversation?.participants?.find(
+    (p: any) => p.account.id === useCallStore.getState().callerId
+  )
+  const callerName = callerParticipant?.account?.name || 'Someone'
+
   // Ringing state (incoming call)
   if (status === 'ringing') {
     return (
@@ -286,7 +297,7 @@ export function CallModal() {
             </div>
           </div>
           <h2 className="text-2xl font-semibold tracking-tight">Incoming Call...</h2>
-          <p className="mb-8 mt-2 text-sm text-muted-foreground">Someone is calling you</p>
+          <p className="mb-8 mt-2 text-sm text-muted-foreground">{callerName} is calling you</p>
           <div className="flex justify-center gap-4">
             <Button
               variant="destructive"

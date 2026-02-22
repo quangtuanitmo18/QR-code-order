@@ -28,14 +28,7 @@ export const getMySpinsController = async (employeeId: number, query: GetEmploye
     filters.eventId = query.eventId
   }
 
-  console.log('query', query)
-  console.log('filters', filters)
-  console.log('employeeId', employeeId)
-
   const spins = await employeeSpinService.getEmployeeSpins(employeeId, filters)
-
-  // Debug: Log result count
-  console.log('[getMySpinsController] Result count:', spins.length)
 
   // Calculate pagination
   const page = query.page ?? 1

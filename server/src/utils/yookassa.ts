@@ -1,4 +1,5 @@
 import envConfig from '@/config'
+import { getContextLogger } from '@/utils/logger'
 
 // Lazy load YooKassa SDK
 let YooKassaSDK: any = null
@@ -69,7 +70,7 @@ export const createYooKassaPayment = async ({
       // Settings → Shop → Payment Settings → Turn OFF "Принимаю платежи за ЖКУ"
     }
 
-    console.log('Creating YooKassa payment:', {
+    getContextLogger()?.info({
       amount: paymentConfig.amount,
       transactionRef,
       returnUrl
@@ -77,7 +78,7 @@ export const createYooKassaPayment = async ({
 
     const payment = await yookassa.createPayment(paymentConfig)
 
-    console.log('YooKassa payment created successfully:', {
+    getContextLogger()?.info({
       id: payment.id,
       status: payment.status,
       confirmation_url: payment.confirmation?.confirmation_url
@@ -85,11 +86,11 @@ export const createYooKassaPayment = async ({
 
     return payment
   } catch (error: any) {
-    console.error('YooKassa payment creation failed:', error)
+    getContextLogger()?.error('YooKassa payment creation failed:', error)
 
     // Log detailed error information
     if (error.response?.data) {
-      console.error('YooKassa API Error:', JSON.stringify(error.response.data, null, 2))
+      getContextLogger()?.error('YooKassa API Error:', JSON.stringify(error.response.data, null, 2))
     }
 
     throw new Error(`Failed to create YooKassa payment: ${error.message}`)
@@ -106,7 +107,8 @@ export const getYooKassaPayment = async (paymentId: string) => {
     const yookassa = await getYooKassaClient()
     return await yookassa.getPayment(paymentId)
   } catch (error: any) {
-    console.error('Failed to retrieve YooKassa payment:', error)
+    const logger = getContextLogger()
+    if (logger) logger.error('Failed to retrieve YooKassa payment:', error)
     throw new Error(`Failed to retrieve YooKassa payment: ${error.message}`)
   }
 }
@@ -120,7 +122,7 @@ export const getYooKassaPayment = async (paymentId: string) => {
  */
 export async function verifyYooKassaWebhook(signature: string, body: any) {
   try {
-    console.log('🔍 Verifying YooKassa webhook notification')
+    getContextLogger()?.info('🔍 Verifying YooKassa webhook notification')
 
     // Validate notification structure
     if (!body.type || body.type !== 'notification') {
@@ -137,7 +139,7 @@ export async function verifyYooKassaWebhook(signature: string, body: any) {
 
     const paymentId = body.object.id
 
-    console.log('📋 Notification details:', {
+    getContextLogger()?.info('📋 Notification details:', {
       type: body.type,
       event: body.event,
       paymentId,
@@ -151,9 +153,9 @@ export async function verifyYooKassaWebhook(signature: string, body: any) {
     let payment
     try {
       payment = await yookassa.getPayment(paymentId)
-      console.log('✅ Payment fetched from YooKassa:', JSON.stringify(payment, null, 2))
+      getContextLogger()?.info('✅ Payment fetched from YooKassa:', JSON.stringify(payment, null, 2))
     } catch (fetchError: any) {
-      console.error('❌ Failed to fetch payment from YooKassa:', fetchError.message)
+      getContextLogger()?.error('❌ Failed to fetch payment from YooKassa:', fetchError.message)
       throw new Error(`Cannot verify payment ${paymentId}: ${fetchError.message}`)
     }
 
@@ -161,7 +163,7 @@ export async function verifyYooKassaWebhook(signature: string, body: any) {
       throw new Error(`Payment ${paymentId} not found in YooKassa`)
     }
 
-    console.log('✅ Webhook verified - payment exists in YooKassa:', {
+    getContextLogger()?.info('✅ Webhook verified - payment exists in YooKassa:', {
       id: payment.id,
       status: payment.status,
       amount: payment.amount?.value
@@ -169,7 +171,7 @@ export async function verifyYooKassaWebhook(signature: string, body: any) {
 
     // Additional security: Check payment status matches notification
     if (payment.status !== body.object.status) {
-      console.warn('⚠️ Payment status mismatch:', {
+      getContextLogger()?.warn('⚠️ Payment status mismatch:', {
         notificationStatus: body.object.status,
         actualStatus: payment.status
       })
@@ -177,7 +179,7 @@ export async function verifyYooKassaWebhook(signature: string, body: any) {
 
     return body
   } catch (error: any) {
-    console.error('❌ Webhook verification failed:', error.message)
+    getContextLogger()?.error('❌ Webhook verification failed:', error.message)
     throw error
   }
 }

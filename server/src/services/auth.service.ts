@@ -5,6 +5,7 @@ import { RoleType, TokenPayload } from '@/types/jwt.types'
 import { comparePassword } from '@/utils/crypto'
 import { AuthError, EntityError, StatusError } from '@/utils/errors'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '@/utils/jwt'
+import { getContextLogger } from '@/utils/logger'
 import axios from 'axios'
 import qs from 'querystring'
 
@@ -12,6 +13,8 @@ export const authService = {
   // Logout user
   async logout(refreshToken: string) {
     await authRepository.deleteRefreshToken(refreshToken)
+    const logger = getContextLogger()
+    if (logger) logger.info('User logged out successfully')
     return 'Logout successfully'
   },
 
@@ -42,6 +45,9 @@ export const authService = {
       token: refreshToken,
       expiresAt: refreshTokenExpiresAt
     })
+
+    const logger = getContextLogger()
+    if (logger) logger.info({ accountId: account.id }, 'User logged in successfully (email/password)')
 
     return {
       account,
@@ -96,15 +102,20 @@ export const authService = {
     }
 
     try {
+      const logger = getContextLogger()
+      if (logger) logger.info('Calling Google OAuth token endpoint')
+
       const encodedBody = qs.stringify(bodyData)
       const response = await axios.post('https://oauth2.googleapis.com/token', encodedBody, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         }
       })
+
+      if (logger) logger.info('Successfully received Google OAuth token')
       return response.data
     } catch (error) {
-      console.error('Google OAuth error:', (error as any)?.response.status, (error as any)?.response.data)
+      getContextLogger()?.error('Google OAuth error:', (error as any)?.response.status, (error as any)?.response.data)
       throw new StatusError({
         status: 500,
         message: 'Can not connect to Google OAuth'
@@ -142,6 +153,8 @@ export const authService = {
     const googleUser = await this.getGoogleUser({ id_token, access_token })
 
     if (!googleUser.verified_email) {
+      const logger = getContextLogger()
+      if (logger) logger.warn({ email: googleUser.email }, 'Google login blocked: unverified email')
       throw new StatusError({
         status: 403,
         message: 'Unverified email from Google'
@@ -150,6 +163,8 @@ export const authService = {
 
     const account = await authRepository.findAccountByEmail(googleUser.email)
     if (!account) {
+      const logger = getContextLogger()
+      if (logger) logger.warn({ email: googleUser.email }, 'Google login blocked: account not found in system')
       throw new StatusError({
         status: 403,
         message: 'This account does not exist on the website'
@@ -172,6 +187,9 @@ export const authService = {
       token: refreshToken,
       expiresAt: refreshTokenExpiresAt
     })
+
+    const logger = getContextLogger()
+    if (logger) logger.info({ accountId: account.id }, 'User logged in successfully (Google OAuth)')
 
     return {
       accessToken,

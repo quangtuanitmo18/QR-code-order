@@ -1,14 +1,12 @@
 import { ManagerRoom, Role } from '@/constants/type'
 import prisma from '@/database'
 import { AuthError } from '@/utils/errors'
-import { getChalk } from '@/utils/helpers'
 import { verifyAccessToken } from '@/utils/jwt'
 import fastifyPlugin from 'fastify-plugin'
 import { registerCallSocketHandlers } from './call.socket'
 import { registerChatSocketHandlers } from './chat.socket'
 
 export const socketPlugin = fastifyPlugin(async (fastify) => {
-  const chalk = await getChalk()
   fastify.io.use(async (socket, next) => {
     const { Authorization } = socket.handshake.auth
 
@@ -56,7 +54,7 @@ export const socketPlugin = fastifyPlugin(async (fastify) => {
     next()
   })
   fastify.io.on('connection', async (socket) => {
-    console.log(chalk.cyanBright('🔌 Socket connected:', socket.id))
+    fastify.log.info(`[Socket] Connected: ${socket.id}`)
 
     // Register chat socket handlers
     registerChatSocketHandlers(fastify, socket)
@@ -70,7 +68,7 @@ export const socketPlugin = fastifyPlugin(async (fastify) => {
     })
 
     socket.on('disconnect', async (reason) => {
-      console.log(chalk.redBright('🔌 Socket disconnected:', socket.id))
+      fastify.log.info(`[Socket] Disconnected: ${socket.id}`)
     })
   })
 })

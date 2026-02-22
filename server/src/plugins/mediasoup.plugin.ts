@@ -1,4 +1,4 @@
-import { getChalk } from '@/utils/helpers'
+import { FastifyInstance } from 'fastify'
 import fastifyPlugin from 'fastify-plugin'
 import * as mediasoup from 'mediasoup'
 import { types as mediasoupTypes } from 'mediasoup'
@@ -17,7 +17,7 @@ export const mediasoupConfig = {
     rtcMinPort: 20000,
     rtcMaxPort: 30000,
     logLevel: 'warn' as mediasoup.types.WorkerLogLevel,
-    logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp'] as mediasoup.types.WorkerLogTag[],
+    logTags: ['info', 'ice', 'dtls', 'rtp', 'srtp', 'rtcp'] as mediasoup.types.WorkerLogTag[]
   },
   router: {
     mediaCodecs: [
@@ -25,15 +25,15 @@ export const mediasoupConfig = {
         kind: 'audio',
         mimeType: 'audio/opus',
         clockRate: 48000,
-        channels: 2,
+        channels: 2
       },
       {
         kind: 'video',
         mimeType: 'video/VP8',
         clockRate: 90000,
         parameters: {
-          'x-google-start-bitrate': 1000,
-        },
+          'x-google-start-bitrate': 1000
+        }
       },
       {
         kind: 'video',
@@ -41,8 +41,8 @@ export const mediasoupConfig = {
         clockRate: 90000,
         parameters: {
           'profile-id': 2,
-          'x-google-start-bitrate': 1000,
-        },
+          'x-google-start-bitrate': 1000
+        }
       },
       {
         kind: 'video',
@@ -52,10 +52,10 @@ export const mediasoupConfig = {
           'packetization-mode': 1,
           'profile-level-id': '4d0032',
           'level-asymmetry-allowed': 1,
-          'x-google-start-bitrate': 1000,
-        },
-      },
-    ] as mediasoup.types.RtpCodecCapability[],
+          'x-google-start-bitrate': 1000
+        }
+      }
+    ] as mediasoup.types.RtpCodecCapability[]
   },
   webRtcTransport: {
     listenIps: [
@@ -64,8 +64,8 @@ export const mediasoupConfig = {
         ip: '0.0.0.0',
         // In production, this should ideally be the public IP of the server
         // Using an env variable or an external IP discovery service
-        announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP || '127.0.0.1', 
-      },
+        announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP || '127.0.0.1'
+      }
     ],
     initialAvailableOutgoingBitrate: 1000000,
     minimumAvailableOutgoingBitrate: 600000,
@@ -73,15 +73,14 @@ export const mediasoupConfig = {
     // Enable DataChannels (optional but good for future ping/pong or chat)
     enableUdp: true,
     enableTcp: true,
-    preferUdp: true,
-  },
+    preferUdp: true
+  }
 }
 
 /**
  * Create a specialized pool of Mediasoup workers
  */
-async function createWorkers() {
-  const chalk = await getChalk()
+async function createWorkers(fastify: FastifyInstance) {
   const numWorkers = Object.keys(os.cpus()).length
 
   for (let i = 0; i < numWorkers; i++) {
@@ -89,11 +88,11 @@ async function createWorkers() {
       logLevel: mediasoupConfig.worker.logLevel,
       logTags: mediasoupConfig.worker.logTags,
       rtcMinPort: mediasoupConfig.worker.rtcMinPort,
-      rtcMaxPort: mediasoupConfig.worker.rtcMaxPort,
+      rtcMaxPort: mediasoupConfig.worker.rtcMaxPort
     })
 
     worker.on('died', () => {
-      console.error(chalk.red(`Worker ${worker.pid} died! Exiting process...`))
+      fastify.log.error(`Worker ${worker.pid} died! Exiting process...`)
       // It's serious if a worker dies, typically we should crash and let process manager restart
       process.exit(1)
     })
@@ -101,7 +100,7 @@ async function createWorkers() {
     workers.push(worker)
   }
 
-  console.log(chalk.green(`✅ Initialized ${numWorkers} Mediasoup workers`))
+  fastify.log.info(`[Mediasoup] Initialized ${numWorkers} workers successfully`)
 }
 
 /**
@@ -116,8 +115,8 @@ export function getMediasoupWorker(): Worker {
 }
 
 export const mediasoupPlugin = fastifyPlugin(async (fastify) => {
-  await createWorkers()
-  
+  await createWorkers(fastify)
+
   // Extend Fastify instance to easily access getMediasoupWorker if needed
   fastify.decorate('getMediasoupWorker', getMediasoupWorker)
 })

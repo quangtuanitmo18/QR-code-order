@@ -52,9 +52,7 @@ export const buildVNPayPaymentUrl = async (params: BuildPaymentUrlParams) => {
 }
 
 export const verifyVNPayReturn = async (query: any) => {
-  console.log('query', query)
   const vnpay = await getVnpay()
-  console.log('vnpay', vnpay)
   return vnpay.verifyReturnUrl(query)
 }
 

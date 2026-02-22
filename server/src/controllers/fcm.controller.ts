@@ -10,9 +10,9 @@ export const fcmController = {
     try {
       const accountId = req.decodedAccessToken?.userId || (req as any).user?.id || (req as any).account?.id
       if (!accountId) {
-         return reply.status(401).send({ message: 'Unauthorized: No accountId found' })
+        return reply.status(401).send({ message: 'Unauthorized: No accountId found' })
       }
-      
+
       const { token, deviceType } = req.body
 
       if (!token) {
@@ -44,7 +44,7 @@ export const fcmController = {
         payload: { data: fcmToken }
       })
     } catch (error) {
-      console.error('[FcmController.registerToken] Error:', error)
+      req.log.error({ err: error }, '[FcmController.registerToken] Error')
       return reply.status(500).send({
         status: 500,
         message: 'Internal server error',
@@ -60,7 +60,7 @@ export const fcmController = {
     try {
       const accountId = req.decodedAccessToken?.userId || (req as any).user?.id || (req as any).account?.id
       if (!accountId) {
-         return reply.status(401).send({ message: 'Unauthorized: No accountId found' })
+        return reply.status(401).send({ message: 'Unauthorized: No accountId found' })
       }
       const { token } = req.body
 
@@ -85,7 +85,7 @@ export const fcmController = {
         payload: { data: null }
       })
     } catch (error) {
-      console.error('[FcmController.unregisterToken] Error:', error)
+      req.log.error({ err: error }, '[FcmController.unregisterToken] Error')
       return reply.status(500).send({
         status: 500,
         message: 'Internal server error',

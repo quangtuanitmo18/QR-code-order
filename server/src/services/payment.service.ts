@@ -5,6 +5,7 @@ import { couponRepository } from '@/repositories/coupon.repository'
 import { paymentRepository } from '@/repositories/payment.repository'
 import { couponService } from '@/services/coupon.service'
 import { convertUSDtoRUB, convertUSDtoVND, getLiveExchangeRate } from '@/utils/currency'
+import { getContextLogger } from '@/utils/logger'
 import { createStripeCheckoutSession, getStripeSession, stripe } from '@/utils/stripe'
 import { buildVNPayPaymentUrl, verifyVNPayReturn } from '@/utils/vnpay'
 import { createYooKassaPayment, getYooKassaPaymentStatus } from '@/utils/yookassa'
@@ -298,6 +299,9 @@ export const paymentService = {
     const exchangeRate = await getLiveExchangeRate()
     const totalAmountVND = await convertUSDtoVND(totalAmountUSD)
 
+    const logger = getContextLogger()
+    if (logger) logger.info({ guestId, totalAmountVND, transactionRef }, 'Generating VNPay Payment URL')
+
     // Build VNPay payment URL with VND amount
     const paymentUrl = await buildVNPayPaymentUrl({
       amount: totalAmountVND,
@@ -306,6 +310,8 @@ export const paymentService = {
       ipAddr,
       returnUrl: envConfig.VNPAY_RETURN_URL
     })
+
+    if (logger) logger.info({ paymentUrl }, 'VNPay Payment URL generated successfully')
 
     const paymentData = {
       guestId,
@@ -388,6 +394,9 @@ export const paymentService = {
     // Convert USD to cents (Stripe requires integer cents)
     const amountInCents = Math.round(totalAmountUSD * 100)
 
+    const logger = getContextLogger()
+    if (logger) logger.info({ guestId, amountInCents, transactionRef }, 'Creating Stripe Checkout Session')
+
     // Create Stripe Checkout Session
     const session = await createStripeCheckoutSession({
       amount: amountInCents,
@@ -396,6 +405,8 @@ export const paymentService = {
       returnUrl: envConfig.STRIPE_RETURN_URL,
       guestEmail: undefined // No email field in Guest model
     })
+
+    if (logger) logger.info({ sessionId: session.id }, 'Stripe Session created successfully')
 
     const paymentData = {
       guestId,
@@ -474,6 +485,9 @@ export const paymentService = {
 
     const returnUrlWithRef = `${envConfig.YOOKASSA_RETURN_URL}?txnRef=${transactionRef}`
 
+    const logger = getContextLogger()
+    if (logger) logger.info({ guestId, totalAmountRUB, transactionRef }, 'Creating YooKassa payment')
+
     const yookassaPayment = await createYooKassaPayment({
       amount: totalAmountRUB,
       transactionRef,
@@ -481,6 +495,8 @@ export const paymentService = {
       returnUrl: returnUrlWithRef,
       guestEmail: undefined
     })
+
+    if (logger) logger.info({ yookassaPaymentId: yookassaPayment.id }, 'YooKassa payment created successfully')
 
     const paymentData = {
       guestId,
@@ -549,7 +565,7 @@ export const paymentService = {
   // Verify VNPay payment and update
   async verifyVNPayPayment(query: any, paymentHandlerId?: number) {
     const verifyResult = await verifyVNPayReturn(query)
-    console.log('verifyResult', verifyResult)
+    getContextLogger()?.info('verifyResult', verifyResult)
 
     if (!verifyResult.isVerified) {
       throw new Error('Invalid payment signature')
@@ -665,7 +681,7 @@ export const paymentService = {
     } else if (event.type === 'payment_intent.succeeded' || event.type === 'payment_intent.payment_failed') {
       const paymentIntent = event.data.object as Stripe.PaymentIntent
 
-      console.log('🔍 Looking for payment with payment_intent:', paymentIntent.id)
+      getContextLogger()?.info('🔍 Looking for payment with payment_intent:', paymentIntent.id)
 
       // Try multiple methods to find the payment
 
@@ -673,11 +689,11 @@ export const paymentService = {
       let existingPayment = await paymentRepository.findPaymentByExternalTransactionId(paymentIntent.id)
 
       if (existingPayment) {
-        console.log('✅ Found payment by externalTransactionId')
+        getContextLogger()?.info('✅ Found payment by externalTransactionId')
         transactionRef = existingPayment.transactionRef
       } else {
         // Method 2: Get session ID from payment intent and find by externalSessionId
-        console.log('⚠️ Not found by externalTransactionId, trying to get session from payment intent')
+        getContextLogger()?.info('⚠️ Not found by externalTransactionId, trying to get session from payment intent')
 
         // Stripe payment intents may have invoice or customer
         // We need to list checkout sessions to find the right one
@@ -688,17 +704,17 @@ export const paymentService = {
 
         if (sessions.data.length > 0) {
           const session = sessions.data[0]
-          console.log('✅ Found session:', session.id)
+          getContextLogger()?.info('✅ Found session:', session.id)
 
           // Find payment by session ID
           existingPayment = await paymentRepository.findPaymentByExternalSessionId(session.id)
 
           if (existingPayment) {
-            console.log('✅ Found payment by externalSessionId')
+            getContextLogger()?.info('✅ Found payment by externalSessionId')
             transactionRef = existingPayment.transactionRef
           }
         } else {
-          console.log('⚠️ No session found for payment intent, trying recent payments')
+          getContextLogger()?.info('⚠️ No session found for payment intent, trying recent payments')
 
           // Method 3: Check recent pending payments (last resort)
           const recentPayments = await paymentRepository.findRecentPendingStripePayments()
@@ -709,13 +725,13 @@ export const paymentService = {
               try {
                 const session = await getStripeSession(p.externalSessionId)
                 if (session.payment_intent === paymentIntent.id) {
-                  console.log('✅ Found payment by matching session payment_intent')
+                  getContextLogger()?.info('✅ Found payment by matching session payment_intent')
                   transactionRef = p.transactionRef
                   break
                 }
               } catch (err) {
                 // Session might be expired, continue
-                console.log('⚠️ Failed to get session:', p.externalSessionId)
+                getContextLogger()?.info('⚠️ Failed to get session:', p.externalSessionId)
               }
             }
           }
@@ -724,11 +740,11 @@ export const paymentService = {
     }
 
     if (!transactionRef) {
-      console.error('❌ Could not find transaction reference for event:', event.type, event.id)
+      getContextLogger()?.error('❌ Could not find transaction reference for event:', event.type, event.id)
       throw new Error('Transaction reference not found in event')
     }
 
-    console.log('✅ Transaction reference found:', transactionRef)
+    getContextLogger()?.info('✅ Transaction reference found:', transactionRef)
 
     // Find payment by transaction ref
     payment = await paymentRepository.findPaymentByTransactionRef(transactionRef)
@@ -759,7 +775,7 @@ export const paymentService = {
         try {
           paymentMethod = await stripe.paymentMethods.retrieve(paymentIntent.payment_method as string)
         } catch (err) {
-          console.error('Failed to retrieve payment method:', err)
+          getContextLogger()?.error('Failed to retrieve payment method:', err)
         }
       }
 

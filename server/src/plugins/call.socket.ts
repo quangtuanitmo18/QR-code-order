@@ -2,7 +2,6 @@ import { chatRepository } from '@/repositories/chat.repository'
 import { messageRepository } from '@/repositories/message.repository'
 import { callService } from '@/services/call.service'
 import { notificationService } from '@/services/notification.service'
-import { getChalk } from '@/utils/helpers'
 import type { FastifyInstance } from 'fastify'
 import { types as mediasoupTypes } from 'mediasoup'
 import { Socket } from 'socket.io'
@@ -26,11 +25,10 @@ function getCallRoom(conversationId: number): string {
  * Register call socket handlers for simple P2P signaling / Mediasoup App Signaling
  */
 export async function registerCallSocketHandlers(fastify: FastifyInstance, socket: Socket) {
-  const chalk = await getChalk()
   const accountId = (socket.handshake.auth.decodedAccessToken as any)?.userId as number
 
   if (!accountId) {
-    console.error(chalk.red('❌ Call socket: No accountId found'))
+    fastify.log.error('[Call Socket] No accountId found')
     return
   }
 
@@ -70,19 +68,19 @@ export async function registerCallSocketHandlers(fastify: FastifyInstance, socke
         return
       }
 
-      // Notify other participants that a call is incoming
-      // We emit to all participants in the conversation EXCEPT the caller
-      conversation.participants.forEach(async (p: any) => {
-        if (p.accountId !== accountId) {
+      // Push Notification Logic for Call Ringing
+      const notifyPromises = conversation.participants
+        .filter((p: any) => p.accountId !== accountId)
+        .map(async (p: any) => {
           const targetSocketRoom = `user-${p.accountId}`
-          // Assuming user sockets join a room like `user-${accountId}` (similar to chat plugin emits)
+
+          // Emit socket event to the user's room
           fastify.io.to(targetSocketRoom).emit('call-incoming', {
             conversationId,
             callerId: accountId,
             isVideo
           })
 
-          // Push Notification Logic for Call Ringing
           const targetSockets = await fastify.io.in(targetSocketRoom).fetchSockets()
           const isOnline = targetSockets.length > 0
           let isFocused = false
@@ -106,8 +104,9 @@ export async function registerCallSocketHandlers(fastify: FastifyInstance, socke
               }
             })
           }
-        }
-      })
+        })
+
+      Promise.allSettled(notifyPromises).catch((err) => fastify.log.error('Error sending call notifications:', err))
 
       // Caller joins a dedicated call room
       const callRoom = getCallRoom(conversationId)
@@ -119,12 +118,64 @@ export async function registerCallSocketHandlers(fastify: FastifyInstance, socke
       callMessageCreated = false
 
       if (process.env.NODE_ENV !== 'production') {
-        console.log(chalk.cyanBright(`📞 User ${accountId} is calling in conversation ${conversationId}`))
+        fastify.log.info(`[Call] User ${accountId} is calling in conversation ${conversationId}`)
       }
 
       socket.emit('call-ringing', { conversationId })
+
+      // Auto-decline/timeout after 60 seconds if not answered
+      setTimeout(async () => {
+        // Only timeout if the call is still active and hasn't been accepted or ended
+        if (activeCallConversationId === conversationId && !callAccepted) {
+          if (process.env.NODE_ENV !== 'production') {
+            fastify.log.info(`[Call] Timeout in conversation ${conversationId}`)
+          }
+
+          // Notify caller and receiver that call missed/timed out
+          fastify.io.to(callRoom).emit('call-ended', {
+            conversationId,
+            endedById: null,
+            reason: 'timeout'
+          })
+
+          // Send silent notification to stop ringing
+          const cancelPromises = conversation.participants
+            .filter((p: any) => p.accountId !== accountId)
+            .map((p: any) =>
+              notificationService.sendSilentDataToAccount(p.accountId, {
+                type: 'CALL_CANCELLED',
+                conversationId: String(conversationId)
+              })
+            )
+          Promise.allSettled(cancelPromises).catch((e) => fastify.log.error(e))
+
+          // Create missed call message
+          if (!callMessageCreated) {
+            callMessageCreated = true
+            try {
+              const callMessage = await messageRepository.createCallMessage({
+                conversationId,
+                senderId: accountId,
+                callMeta: { callType: isVideo ? 'video' : 'voice', callStatus: 'missed', durationSeconds: 0 }
+              })
+              await chatRepository.updateTimestamp(conversationId)
+              await emitNewMessage(fastify, conversationId, callMessage, accountId)
+            } catch (err) {
+              fastify.log.error({ err }, '[Call] Error creating missed call message on timeout:')
+            }
+          }
+
+          // Cleanup
+          socket.leave(callRoom)
+          callService.cleanupPeer(conversationId, accountId)
+
+          activeCallConversationId = null
+          callAccepted = false
+          callerId = null
+        }
+      }, 60000)
     } catch (error: any) {
-      console.error(chalk.red('❌ Error initiating call:'), error)
+      fastify.log.error({ err: error }, '[Call] Error initiating call:')
       socket.emit('call-error', { message: error.message || 'Failed to initiate call' })
     }
   })
@@ -160,10 +211,10 @@ export async function registerCallSocketHandlers(fastify: FastifyInstance, socke
       })
 
       if (process.env.NODE_ENV !== 'production') {
-        console.log(chalk.greenBright(`📞 User ${accountId} accepted call in conversation ${conversationId}`))
+        fastify.log.info(`[Call] User ${accountId} accepted call ${conversationId}`)
       }
     } catch (error: any) {
-      console.error(chalk.red('❌ Error accepting call:'), error)
+      fastify.log.error({ err: error }, '[Call] Error accepting call:')
     }
   })
 
@@ -211,14 +262,12 @@ export async function registerCallSocketHandlers(fastify: FastifyInstance, socke
           })
 
           if (process.env.NODE_ENV !== 'production') {
-            console.log(
-              chalk.cyanBright(`📞 Re-emitted call-incoming to user ${accountId} for conversation ${conversationId}`)
-            )
+            fastify.log.info(`[Call] Re-emitted call-incoming to user ${accountId} for conversation ${conversationId}`)
           }
         }
       }
     } catch (error: any) {
-      console.error(chalk.red('❌ Error checking call:'), error)
+      fastify.log.error({ err: error }, '[Call] Error checking call:')
     }
   })
 
@@ -243,14 +292,18 @@ export async function registerCallSocketHandlers(fastify: FastifyInstance, socke
       })
 
       // Send a silent FCM payload to everyone else in the call room to stop ringing
-      conversation.participants.forEach(async (p: any) => {
-        if (p.accountId !== accountId) {
-          await notificationService.sendSilentDataToAccount(p.accountId, {
+      const cancelPromises = conversation.participants
+        .filter((p: any) => p.accountId !== accountId)
+        .map((p: any) =>
+          notificationService.sendSilentDataToAccount(p.accountId, {
             type: 'CALL_CANCELLED',
             conversationId: String(conversationId)
           })
-        }
-      })
+        )
+
+      Promise.allSettled(cancelPromises).catch((err) =>
+        fastify.log.error('Error sending call cancelled notifications:', err)
+      )
 
       // Create "declined" call message — sender = the person who initiated the call
       if (!callMessageCreated) {
@@ -265,15 +318,15 @@ export async function registerCallSocketHandlers(fastify: FastifyInstance, socke
           await chatRepository.updateTimestamp(conversationId)
           await emitNewMessage(fastify, conversationId, callMessage, senderId)
         } catch (err) {
-          console.error(chalk.red('❌ Error creating declined call message:'), err)
+          fastify.log.error({ err }, '[Call] Error creating declined call message:')
         }
       }
 
       if (process.env.NODE_ENV !== 'production') {
-        console.log(chalk.yellowBright(`📞 User ${accountId} declined call in conversation ${conversationId}`))
+        fastify.log.info(`[Call] User ${accountId} declined call ${conversationId}`)
       }
     } catch (error: any) {
-      console.error(chalk.red('❌ Error declining call:'), error)
+      fastify.log.error({ err: error }, '[Call] Error declining call:')
     }
   })
 
@@ -319,7 +372,7 @@ export async function registerCallSocketHandlers(fastify: FastifyInstance, socke
           await chatRepository.updateTimestamp(conversationId)
           await emitNewMessage(fastify, conversationId, callMessage, senderId)
         } catch (err) {
-          console.error(chalk.red('❌ Error creating call message:'), err)
+          fastify.log.error({ err }, '[Call] Error creating call message:')
         }
       }
 
@@ -330,10 +383,10 @@ export async function registerCallSocketHandlers(fastify: FastifyInstance, socke
       }
 
       if (process.env.NODE_ENV !== 'production') {
-        console.log(chalk.gray(`📞 User ${accountId} ended call in conversation ${conversationId}`))
+        fastify.log.info(`[Call] User ${accountId} ended call ${conversationId}`)
       }
     } catch (error: any) {
-      console.error(chalk.red('❌ Error ending call:'), error)
+      fastify.log.error({ err: error }, '[Call] Error ending call:')
     }
   })
 
@@ -526,12 +579,12 @@ export async function registerCallSocketHandlers(fastify: FastifyInstance, socke
           await chatRepository.updateTimestamp(disconnectedConversationId)
           await emitNewMessage(fastify, disconnectedConversationId, callMessage, senderId)
         } catch (err) {
-          console.error(chalk.red('❌ Error creating disconnect call message:'), err)
+          fastify.log.error({ err }, '[Call] Error creating disconnect call message:')
         }
       }
 
       if (process.env.NODE_ENV !== 'production') {
-        console.log(chalk.gray(`🔌 User ${accountId} disconnected, cleaned up call ${disconnectedConversationId}`))
+        fastify.log.info(`[Socket] User ${accountId} disconnected, cleaned up call ${disconnectedConversationId}`)
       }
 
       activeCallConversationId = null

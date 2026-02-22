@@ -5,6 +5,7 @@ import { couponRepository } from '@/repositories/coupon.repository'
 import { orderRepository } from '@/repositories/order.repository'
 import { CreateOrdersBodyType, UpdateOrderBodyType } from '@/schemaValidations/order.schema'
 import { couponService } from '@/services/coupon.service'
+import { getContextLogger } from '@/utils/logger'
 
 export const orderService = {
   // Create order (bill) with multiple items
@@ -152,6 +153,11 @@ export const orderService = {
           })
         }
 
+        const logger = getContextLogger()
+        if (logger) {
+          logger.info({ orderId: createdOrder.id, guestId, totalAmount }, 'Order created successfully')
+        }
+
         return createdOrder
       }),
       orderRepository.findSocketByGuestId(guestId)
@@ -237,6 +243,11 @@ export const orderService = {
         guestId: orderRecord.guestId!
       }
     })
+
+    const logger = getContextLogger()
+    if (logger) {
+      logger.info({ orderId, status, orderHandlerId }, 'Order status updated successfully')
+    }
 
     return {
       order: orderRecord,

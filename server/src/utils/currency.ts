@@ -1,4 +1,5 @@
 // server/src/utils/currency.ts
+import { getContextLogger } from '@/utils/logger'
 
 export async function convertUSDtoVND(usdAmount: number): Promise<number> {
   const USD_TO_VND_RATE = await getLiveExchangeRate('VND')
@@ -22,7 +23,7 @@ export async function getLiveExchangeRate(targetCurrency: 'VND' | 'RUB' = 'VND')
 
     return data.rates.VND || 25000
   } catch (error) {
-    console.error('Failed to fetch exchange rate, using default:', error)
+    getContextLogger()?.error('Failed to fetch exchange rate, using default:', error)
     return targetCurrency === 'RUB' ? 95 : 25000
   }
 }

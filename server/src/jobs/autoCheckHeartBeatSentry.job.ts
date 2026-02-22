@@ -2,10 +2,12 @@ import envConfig from '@/config'
 import axios from 'axios'
 import { Cron } from 'croner'
 
-const autoCheckHeartbeatJob = () => {
+import { FastifyInstance } from 'fastify'
+
+const autoCheckHeartbeatJob = (fastify: FastifyInstance) => {
   // Only create the job if SENTRY_HEARTBEAT_URL is configured
   if (!envConfig.SENTRY_HEARTBEAT_URL) {
-    console.log('Heartbeat monitoring disabled: No SENTRY_HEARTBEAT_URL provided')
+    fastify.log.info('Heartbeat monitoring disabled: No SENTRY_HEARTBEAT_URL provided')
     return
   }
 
@@ -13,7 +15,7 @@ const autoCheckHeartbeatJob = () => {
     try {
       const response = await axios.post(envConfig.SENTRY_HEARTBEAT_URL)
     } catch (error) {
-      console.error('Failed to send heartbeat to GlitchTip:', error)
+      fastify.log.error({ err: error }, 'Failed to send heartbeat to GlitchTip')
     }
   })
 }

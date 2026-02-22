@@ -42,7 +42,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
 
       reply.redirect(redirectUrl)
     } catch (error: any) {
-      console.log('error', error)
+      request.log.info('error', error)
       const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
       const redirectUrl = `${clientUrl}/guest/orders/payment-result?success=false&error=${encodeURIComponent(error.message)}`
       reply.redirect(redirectUrl)
@@ -90,10 +90,10 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
 
       const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=${paymentSuccess}&amount=${payment.amount}&txnRef=${transactionRef}&method=Stripe`
 
-      console.log('Stripe return: Redirecting to', redirectUrl)
+      request.log.info('Stripe return: Redirecting to', redirectUrl)
       reply.redirect(redirectUrl)
     } catch (error: any) {
-      console.error('Stripe return error:', error)
+      request.log.error('Stripe return error:', error)
       const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
       const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=false&error=${encodeURIComponent(error.message)}`
       reply.redirect(redirectUrl)
@@ -122,18 +122,18 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
         const rawBody = (request as any).rawBody
 
         if (!rawBody) {
-          console.error('❌ No raw body available for signature verification')
+          request.log.error('[Stripe Webhook] No raw body available for signature verification')
           reply.status(400).send({ error: 'Raw body not available' })
           return
         }
 
-        console.log('✅ Raw body type:', typeof rawBody)
-        console.log('✅ Raw body is Buffer:', Buffer.isBuffer(rawBody))
+        request.log.info('[Stripe Webhook] Raw body type:', typeof rawBody)
+        request.log.info('[Stripe Webhook] Raw body is Buffer:', Buffer.isBuffer(rawBody))
 
         // Verify webhook signature
         const event = verifyStripeWebhook(rawBody, signature)
 
-        console.log('✅ Stripe webhook event:', event.type, event.id)
+        request.log.info('[Stripe Webhook] Event:', event.type, event.id)
 
         // Handle relevant events
         if (
@@ -150,14 +150,14 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
             } else {
               fastify.io.to(ManagerRoom).emit('payment', result.orders)
             }
-            console.log('✅ Stripe payment processed: Emitted to Socket.io')
+            request.log.info('[Stripe Webhook] Payment processed: Emitted to Socket.io')
           }
         }
 
         reply.send({ received: true })
       } catch (error: any) {
-        console.error('❌ Stripe webhook error:', error.message)
-        console.error('❌ Stack:', error.stack)
+        request.log.error('[Stripe Webhook] Error:', error.message)
+        request.log.error('[Stripe Webhook] Stack:', error.stack)
         reply.status(400).send({ error: error.message })
       }
     }
@@ -170,7 +170,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
     try {
       const { txnRef } = request.query as { txnRef?: string }
 
-      console.log('YooKassa return: Query params:', JSON.stringify(request.query, null, 2))
+      request.log.info('YooKassa return: Query params:', JSON.stringify(request.query, null, 2))
 
       if (!txnRef) {
         throw new Error('Transaction reference is required')
@@ -188,7 +188,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
       // Fetch latest payment status from YooKassa
       const yookassaPayment = await getYooKassaPayment(payment.externalTransactionId!)
 
-      console.log('YooKassa return: Payment status from API:', yookassaPayment.status)
+      request.log.info('YooKassa return: Payment status from API:', yookassaPayment.status)
 
       // Update payment status if needed (webhook may not have been processed yet)
       if (yookassaPayment.status === 'succeeded' && payment.status === 'Pending') {
@@ -210,10 +210,10 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
 
       const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=${paymentSuccess}&amount=${payment.amount}&txnRef=${txnRef}&method=YooKassa`
 
-      console.log('YooKassa return: Redirecting to', redirectUrl)
+      request.log.info('YooKassa return: Redirecting to', redirectUrl)
       reply.redirect(redirectUrl)
     } catch (error: any) {
-      console.error('YooKassa return error:', error)
+      request.log.error('YooKassa return error:', error)
       const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
       const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=false&error=${encodeURIComponent(error.message)}`
       reply.redirect(redirectUrl)
@@ -223,28 +223,28 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
   // YooKassa Webhook (Notification)
   fastify.post('/yookassa/webhook', async (request, reply) => {
     try {
-      console.log('📥 YooKassa webhook received')
-      console.log('Headers:', JSON.stringify(request.headers, null, 2))
-      console.log('Body:', JSON.stringify(request.body, null, 2))
+      request.log.info('[YooKassa Webhook] Received')
+      request.log.info('Headers:', JSON.stringify(request.headers, null, 2))
+      request.log.info('Body:', JSON.stringify(request.body, null, 2))
 
       // YooKassa sends signature in 'signature' header, NOT 'authorization'
       const signature = request.headers['signature'] as string
 
       if (!signature) {
-        console.error('❌ No signature header')
+        request.log.error('[YooKassa Webhook] No signature header')
         reply.status(400).send({ error: 'No signature header provided' })
         return
       }
 
-      console.log('✅ Signature header present:', signature.substring(0, 30) + '...')
+      request.log.info('[YooKassa Webhook] Signature header present:', signature.substring(0, 30) + '...')
 
       // Verify webhook signature
       const notification = await verifyYooKassaWebhook(signature, request.body)
 
-      console.log('✅ Webhook verified successfully')
-      console.log('Notification type:', notification.type)
-      console.log('Event:', notification.event)
-      console.log('Payment ID:', notification.object?.id)
+      request.log.info('[YooKassa Webhook] Verified successfully')
+      request.log.info('Notification type:', notification.type)
+      request.log.info('Event:', notification.event)
+      request.log.info('Payment ID:', notification.object?.id)
 
       // Check if already processed (idempotency)
       const paymentId = notification.object.id
@@ -253,7 +253,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
       })
 
       if (existingPayment?.status === 'Success' && notification.event === 'payment.succeeded') {
-        console.log('⚠️ Notification already processed:', paymentId)
+        request.log.info('[YooKassa Webhook] Notification already processed:', paymentId)
         reply.status(200).send()
         return
       }
@@ -274,14 +274,14 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
           } else {
             fastify.io.to(ManagerRoom).emit('payment', result.orders)
           }
-          console.log('✅ YooKassa payment processed: Emitted to Socket.io')
+          request.log.info('[YooKassa Webhook] Payment processed: Emitted to Socket.io')
         }
       }
 
       reply.status(200).send()
     } catch (error: any) {
-      console.error('❌ YooKassa webhook error:', error.message)
-      console.error('Stack:', error.stack)
+      request.log.error('[YooKassa Webhook] Error:', error.message)
+      request.log.error('Stack:', error.stack)
       reply.status(400).send({ error: error.message })
     }
   })

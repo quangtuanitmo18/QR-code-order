@@ -10,20 +10,20 @@ import { Cron } from 'croner'
  *
  * Cron pattern: every 15 minutes
  */
-const calendarNotificationJob = () => {
+const calendarNotificationJob = (fastify: any) => {
   Cron('*/15 * * * *', async () => {
     try {
       const result = await notificationService.createNotificationsForUpcomingEvents()
 
       if (result.created > 0) {
-        console.log(`[Calendar Notification Job] Created ${result.created} notification(s)`)
+        fastify.log.info(`[Calendar Notification Job] Created ${result.created} notification(s)`)
       }
     } catch (error) {
-      console.error('[Calendar Notification Job] Error creating notifications:', error)
+      fastify.log.error({ err: error }, '[Calendar Notification Job] Error creating notifications:')
     }
   })
 
-  console.log('[Calendar Notification Job] Scheduled to run every 15 minutes')
+  fastify.log.info('[Calendar Notification Job] Scheduled to run every 15 minutes')
 }
 
 export default calendarNotificationJob

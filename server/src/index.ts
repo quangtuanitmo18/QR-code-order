@@ -34,6 +34,7 @@ import taskRoutes from '@/routes/task.route'
 import testRoutes from '@/routes/test.route'
 import { calendarTypeService } from '@/services/calendar-type.service'
 import { createFolder } from '@/utils/helpers'
+import { loggerStorage } from '@/utils/logger'
 import fastifyAuth from '@fastify/auth'
 import fastifyCookie from '@fastify/cookie'
 import cors from '@fastify/cors'
@@ -43,8 +44,30 @@ import rawBody from 'fastify-raw-body'
 import fastifySocketIO from 'fastify-socket.io'
 import path from 'path'
 
+const isDev = envConfig.NODE_ENV !== 'production'
+
 const fastify = Fastify({
-  logger: true,
+  logger: isDev
+    ? {
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            translateTime: 'SYS:standard',
+            ignore: 'pid,hostname',
+            colorize: true
+          }
+        },
+        redact: {
+          paths: ['req.headers.authorization', 'req.headers.cookie', 'password', 'token'],
+          censor: '[REDACTED]'
+        }
+      }
+    : {
+        redact: {
+          paths: ['req.headers.authorization', 'req.headers.cookie', 'password', 'token'],
+          censor: '[REDACTED]'
+        }
+      },
   bodyLimit: 10 * 1024 * 1024 // 10MB - allows file uploads up to 10MB
 
   // https - reverse proxy nginx config
@@ -70,8 +93,8 @@ const start = async () => {
     // initSentry()
 
     createFolder(path.resolve(envConfig.UPLOAD_FOLDER))
-    autoRemoveRefreshTokenJob()
-    calendarNotificationJob()
+    autoRemoveRefreshTokenJob(fastify)
+    calendarNotificationJob(fastify)
     // autoCheckHeartbeatJob()
 
     const whitelist = ['*']
@@ -105,7 +128,7 @@ const start = async () => {
         origin: envConfig.CLIENT_URL
       }
     })
-    
+
     // Register mediasoup first so workers are available
     await fastify.register(mediasoupPlugin)
     fastify.register(socketPlugin)
@@ -119,6 +142,11 @@ const start = async () => {
     //     reply.send(error)
     //   })
     // }
+
+    // Register ALS context for contextual logging
+    fastify.addHook('onRequest', (request, reply, done) => {
+      loggerStorage.run(request.log, done)
+    })
 
     fastify.register(authRoutes, {
       prefix: '/auth'
@@ -178,8 +206,7 @@ const start = async () => {
 
     fastify.log.info(`Server is ready: ${API_URL}`)
   } catch (err) {
-    console.log(err)
-    fastify.log.error(err)
+    fastify.log.error({ err }, 'Server startup error')
     // if (sentryInitialized) {
     //   Sentry.captureException(err)
     // }
@@ -219,8 +246,7 @@ process.on('unhandledRejection', (reason) => {
   // if (sentryInitialized) {
   //   Sentry.captureException(reason)
   // }
-  fastify.log.error({ reason }, 'Unhandled Rejection')
-  console.error('UNHANDLED REJECTION >>>', reason)
+  fastify.log.error({ reason }, 'UNHANDLED REJECTION >>>')
   process.exit(1)
 })
 

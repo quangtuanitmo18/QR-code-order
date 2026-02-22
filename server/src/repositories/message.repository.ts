@@ -1,4 +1,5 @@
 import prisma from '@/database'
+import { getContextLogger } from '@/utils/logger'
 import { Message } from '@prisma/client'
 
 interface FindAllFilters {
@@ -209,40 +210,48 @@ export const messageRepository = {
     type?: string
     replyToId?: number | null
   }): Promise<Message> {
-    return await prisma.message.create({
-      data: {
-        conversationId: data.conversationId,
-        senderId: data.senderId,
-        content: data.content,
-        type: data.type ?? 'text',
-        replyToId: data.replyToId ?? null
-      },
-      include: {
-        sender: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            avatar: true
-          }
+    try {
+      return await prisma.message.create({
+        data: {
+          conversationId: data.conversationId,
+          senderId: data.senderId,
+          content: data.content,
+          type: data.type ?? 'text',
+          replyToId: data.replyToId ?? null
         },
-        replyTo: {
-          include: {
-            sender: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                avatar: true
+        include: {
+          sender: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              avatar: true
+            }
+          },
+          replyTo: {
+            include: {
+              sender: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  avatar: true
+                }
               }
             }
-          }
-        },
-        attachments: true,
-        reactions: true,
-        readReceipts: true
+          },
+          attachments: true,
+          reactions: true,
+          readReceipts: true
+        }
+      })
+    } catch (error) {
+      const logger = getContextLogger()
+      if (logger) {
+        logger.error({ err: error }, 'Database error while creating message')
       }
-    })
+      throw error
+    }
   },
 
   /**

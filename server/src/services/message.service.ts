@@ -3,6 +3,7 @@ import { chatRepository } from '@/repositories/chat.repository'
 import { messageRepository } from '@/repositories/message.repository'
 import { messageAttachmentService } from '@/services/message-attachment.service'
 import { EntityError } from '@/utils/errors'
+import { getContextLogger } from '@/utils/logger'
 
 interface GetMessagesParams {
   conversationId: number
@@ -45,6 +46,11 @@ export const messageService = {
       before: params.before,
       limit: params.limit
     })
+
+    const logger = getContextLogger()
+    if (logger) {
+      logger.info(`Fetched ${result.messages.length} messages for conversation ${params.conversationId}`)
+    }
 
     // Add fileUrl to attachments for all messages
     const messagesWithFileUrls = result.messages.map((message: any) => {
@@ -138,6 +144,11 @@ export const messageService = {
       type: messageType,
       replyToId: data.replyToId
     })
+
+    const logger = getContextLogger()
+    if (logger) {
+      logger.info(`Message ${message.id} created in conversation ${data.conversationId} by user ${data.senderId}`)
+    }
 
     // Handle file attachments if provided
     if (data.files && data.files.length > 0) {
