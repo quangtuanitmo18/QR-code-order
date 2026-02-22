@@ -99,7 +99,7 @@ export default function AutoPagination({
           return renderDotBefore(index)
         }
         return (
-          <PaginationItem key={index}>
+          <PaginationItem key={pageNumber}>
             {isLink && (
               <PaginationLink
                 href={{

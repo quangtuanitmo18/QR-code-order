@@ -1,11 +1,11 @@
 'use client'
 
 import menuItems from '@/app/[locale]/manage/menuItems'
-import { useAppStore } from '@/store/useAppStore'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { Link, usePathname } from '@/i18n/routing'
 import { cn } from '@/lib/utils'
+import { useAppStore } from '@/store/useAppStore'
 import { Package2, PanelLeft, Settings } from 'lucide-react'
 import { useState } from 'react'
 
@@ -14,7 +14,6 @@ export default function NavLinks() {
   const role = useAppStore((state) => state.role)
   // Start expanded on desktop so the toggle button and labels are clearly visible.
   const [isExpanded, setIsExpanded] = useState(true)
-
 
   if (pathname.includes('/manage/login')) {
     return <></>
@@ -90,9 +89,9 @@ export default function NavLinks() {
               )
 
               return isExpanded ? (
-                <div key={index}>{linkContent}</div>
+                <div key={Item.href}>{linkContent}</div>
               ) : (
-                <Tooltip key={index}>
+                <Tooltip key={Item.href}>
                   <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
                   <TooltipContent side="right">{Item.title}</TooltipContent>
                 </Tooltip>

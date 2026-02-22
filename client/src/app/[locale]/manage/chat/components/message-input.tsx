@@ -2,10 +2,10 @@
 
 import { Button } from '@/components/ui/button'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Textarea } from '@/components/ui/textarea'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
@@ -31,7 +31,7 @@ export function MessageInput({
   const [selectedFiles, setSelectedFiles] = useState<File[]>([])
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
+
   const replyingTo = useChatStore((state) => state.replyingTo)
   const setReplyingTo = useChatStore((state) => state.setReplyingTo)
 
@@ -56,7 +56,11 @@ export function MessageInput({
   const handleSendMessage = () => {
     const trimmedMessage = message.trim()
     if ((trimmedMessage || selectedFiles.length > 0) && !disabled) {
-      onSendMessage(trimmedMessage, selectedFiles.length > 0 ? selectedFiles : undefined, replyingTo?.id)
+      onSendMessage(
+        trimmedMessage,
+        selectedFiles.length > 0 ? selectedFiles : undefined,
+        replyingTo?.id
+      )
       setMessage('')
       setSelectedFiles([])
       setReplyingTo(null)
@@ -105,15 +109,15 @@ export function MessageInput({
     <div className="border-t p-4">
       {/* Replying to banner */}
       {replyingTo && (
-        <div className="mb-2 flex items-center justify-between rounded-lg bg-muted/50 p-2 text-sm border-l-2 border-primary">
+        <div className="mb-2 flex items-center justify-between rounded-lg border-l-2 border-primary bg-muted/50 p-2 text-sm">
           <div className="flex flex-col truncate">
-            <span className="font-semibold text-xs text-primary">{replyingTo.sender.name}</span>
+            <span className="text-xs font-semibold text-primary">{replyingTo.sender.name}</span>
             <span className="truncate text-muted-foreground">{replyingTo.content}</span>
           </div>
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 rounded-full ml-2 cursor-pointer"
+            className="ml-2 h-6 w-6 cursor-pointer rounded-full"
             onClick={() => setReplyingTo(null)}
           >
             <X className="h-4 w-4" />
@@ -126,7 +130,7 @@ export function MessageInput({
         <div className="mb-2 flex flex-wrap gap-2">
           {selectedFiles.map((file, index) => (
             <div
-              key={index}
+              key={`${file.name}-${file.size}`}
               className="flex items-center gap-2 rounded-lg bg-muted px-2 py-1 text-sm"
             >
               <span className="max-w-[150px] truncate">{file.name}</span>

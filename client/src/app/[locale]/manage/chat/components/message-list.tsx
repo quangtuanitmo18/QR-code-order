@@ -1,5 +1,7 @@
 'use client'
 
+import Image from 'next/image'
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +39,8 @@ import { Virtuoso } from 'react-virtuoso'
 import { CallMessageBubble } from './call-message-bubble'
 import { EditMessageDialog } from './edit-message-dialog'
 
+const EMPTY_TYPING_USERS: number[] = []
+
 interface MessageListProps {
   messages: MessageType[]
   currentUserId: number | null
@@ -49,7 +53,7 @@ interface MessageListProps {
 export function MessageList({
   messages,
   currentUserId,
-  typingUsers = [],
+  typingUsers = EMPTY_TYPING_USERS,
   onLoadMore,
   hasMore,
   isLoadingMore,
@@ -285,10 +289,13 @@ export function MessageList({
                           {message.attachments.map((attachment: any) => (
                             <div key={attachment.id} className="overflow-hidden rounded-lg">
                               {attachment.mimeType.startsWith('image/') ? (
-                                <img
+                                <Image
                                   src={attachment.fileUrl}
                                   alt={attachment.fileName}
+                                  width={400}
+                                  height={256}
                                   className="max-h-64 max-w-full rounded-lg object-contain"
+                                  unoptimized
                                 />
                               ) : (
                                 <a
@@ -322,7 +329,7 @@ export function MessageList({
                       >
                         {message.reactions.map((reaction: any, idx: number) => (
                           <div
-                            key={idx}
+                            key={`${reaction.emoji}-${reaction.account?.id ?? reaction.accountId ?? idx}`}
                             className={cn(
                               'inline-flex cursor-pointer items-center gap-1 rounded-full border px-2 py-0.5 text-xs',
                               'bg-background shadow-sm transition-colors hover:bg-muted'

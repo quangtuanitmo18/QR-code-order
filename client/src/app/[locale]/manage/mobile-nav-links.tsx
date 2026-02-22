@@ -1,6 +1,5 @@
 'use client'
 import menuItems from '@/app/[locale]/manage/menuItems'
-import { useAppStore } from '@/store/useAppStore'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -12,6 +11,7 @@ import {
 } from '@/components/ui/sheet'
 import { Link, usePathname } from '@/i18n/routing'
 import { cn } from '@/lib/utils'
+import { useAppStore } from '@/store/useAppStore'
 import { Package2, PanelLeft } from 'lucide-react'
 
 export default function MobileNavLinks() {
@@ -52,7 +52,7 @@ export default function MobileNavLinks() {
             if (!Item.roles.includes(role as any)) return null
             return (
               <Link
-                key={index}
+                key={Item.href}
                 href={Item.href}
                 className={cn('flex min-h-[44px] items-center gap-4 px-2.5 hover:text-foreground', {
                   'text-foreground': isActive,

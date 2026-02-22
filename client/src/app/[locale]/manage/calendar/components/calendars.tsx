@@ -1,7 +1,7 @@
 'use client'
 
+import { Check, ChevronRight, Eye, EyeOff, MoreHorizontal, Plus } from 'lucide-react'
 import { useMemo } from 'react'
-import { Check, ChevronRight, Plus, Eye, EyeOff, MoreHorizontal } from 'lucide-react'
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import {
@@ -103,10 +103,18 @@ export function Calendars({
               <div className="flex items-center gap-1">
                 {index === 0 && isOwner && (
                   <div
+                    role="button"
+                    tabIndex={0}
                     className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-sm opacity-0 hover:bg-accent group-hover/collapsible:opacity-100"
                     onClick={(e) => {
                       e.stopPropagation()
                       onNewCalendar?.()
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.stopPropagation()
+                        onNewCalendar?.()
+                      }
                     }}
                   >
                     <Plus className="h-3 w-3" />
@@ -136,15 +144,16 @@ export function Calendars({
                         </button>
 
                         {/* Calendar Name */}
-                        <span
+                        <button
+                          type="button"
                           className={cn(
-                            'flex-1 cursor-pointer truncate text-sm',
+                            'flex-1 cursor-pointer truncate text-left text-sm',
                             !item.visible && 'text-muted-foreground'
                           )}
                           onClick={() => handleToggleVisibility(item)}
                         >
                           {item.label}
-                        </span>
+                        </button>
 
                         {/* Visibility Icon */}
                         <div className="opacity-0 group-hover/calendar-item:opacity-100">
@@ -159,12 +168,13 @@ export function Calendars({
                         {isOwner && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <div
+                              <button
+                                type="button"
                                 className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-sm p-0 opacity-0 hover:bg-accent group-hover/calendar-item:opacity-100"
                                 onClick={(e) => e.stopPropagation()}
                               >
                                 <MoreHorizontal className="h-3 w-3" />
-                              </div>
+                              </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" side="right">
                               <DropdownMenuItem

@@ -198,10 +198,11 @@ export const messageService = {
     const updatedMessage = await messageRepository.update(id, { content })
 
     // Add fileUrl to attachments if they exist
-    if (updatedMessage.attachments && updatedMessage.attachments.length > 0) {
+    const msg = updatedMessage as any
+    if (msg.attachments && msg.attachments.length > 0) {
       return {
         ...updatedMessage,
-        attachments: updatedMessage.attachments.map((attachment: any) => ({
+        attachments: msg.attachments.map((attachment: any) => ({
           ...attachment,
           fileUrl: `${API_URL}/static/chat/${attachment.filePath}`
         }))

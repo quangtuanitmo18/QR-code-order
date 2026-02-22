@@ -190,7 +190,11 @@ export const paymentRepository = {
       include: {
         orders: {
           include: {
-            dishSnapshot: true,
+            items: {
+              include: {
+                dishSnapshot: true
+              }
+            },
             orderHandler: true,
             guest: true
           }

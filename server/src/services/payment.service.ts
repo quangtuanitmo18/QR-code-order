@@ -46,9 +46,7 @@ export const paymentService = {
       }
 
       const dishIds = [
-        ...new Set(
-          orders.flatMap((o) => o.items?.map((i) => i.dishSnapshot?.dishId).filter(Boolean) || [])
-        )
+        ...new Set(orders.flatMap((o) => o.items?.map((i) => i.dishSnapshot?.dishId).filter(Boolean) || []))
       ] as number[]
 
       const validateResult = await couponService.validate({
@@ -143,8 +141,19 @@ export const paymentService = {
     couponId?: number | null
     discountAmount?: number
   }) {
-    const { guestId, totalAmount, currency, transactionRef, description, note, orders, paymentHandlerId, guest, couponId, discountAmount } =
-      params
+    const {
+      guestId,
+      totalAmount,
+      currency,
+      transactionRef,
+      description,
+      note,
+      orders,
+      paymentHandlerId,
+      guest,
+      couponId,
+      discountAmount
+    } = params
 
     const exchangeRate = currency === 'USD' ? await getLiveExchangeRate() : 1
     const amountVND = currency === 'USD' ? await convertUSDtoVND(totalAmount) : totalAmount
@@ -273,7 +282,18 @@ export const paymentService = {
     couponId?: number | null
     discountAmount?: number
   }) {
-    const { guestId, totalAmountUSD, currency, transactionRef, description, note, ipAddr, guest, couponId, discountAmount } = params
+    const {
+      guestId,
+      totalAmountUSD,
+      currency,
+      transactionRef,
+      description,
+      note,
+      ipAddr,
+      guest,
+      couponId,
+      discountAmount
+    } = params
 
     const exchangeRate = await getLiveExchangeRate()
     const totalAmountVND = await convertUSDtoVND(totalAmountUSD)
@@ -609,7 +629,11 @@ export const paymentService = {
             }
           },
           include: {
-            dishSnapshot: true,
+            items: {
+              include: {
+                dishSnapshot: true
+              }
+            },
             orderHandler: true,
             guest: true
           }
@@ -804,7 +828,11 @@ export const paymentService = {
             id: { in: orders.map((order) => order.id) }
           },
           include: {
-            dishSnapshot: true,
+            items: {
+              include: {
+                dishSnapshot: true
+              }
+            },
             orderHandler: true,
             guest: true
           }
@@ -915,7 +943,11 @@ export const paymentService = {
             }
           },
           include: {
-            dishSnapshot: true,
+            items: {
+              include: {
+                dishSnapshot: true
+              }
+            },
             orderHandler: true,
             guest: true
           }

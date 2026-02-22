@@ -265,6 +265,7 @@ export const calendarRepository = {
           eventId,
           employeeId
         })),
+        // @ts-expect-error - skipDuplicates works at runtime but SQLite Prisma types don't include it
         skipDuplicates: true
       })
 

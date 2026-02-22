@@ -20,7 +20,9 @@ export default function ChatClient() {
   const queryConversationIdStr = searchParams.get('conversationId')
   const queryConversationId = queryConversationIdStr ? parseInt(queryConversationIdStr, 10) : null
 
-  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(queryConversationId)
+  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(
+    queryConversationId
+  )
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const [typingUsers, setTypingUsers] = useState<Set<number>>(new Set())
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -40,7 +42,7 @@ export default function ChatClient() {
     { limit: 20 },
     !!selectedConversationId
   )
-  
+
   const messages = useMemo(() => {
     if (!messagesQuery.data) return []
     // Infinite Query pages are ordered: [newest_page, older_page_1, older_page_2]
@@ -171,8 +173,16 @@ export default function ChatClient() {
         {/* Mobile Sidebar Overlay */}
         {isSidebarOpen && (
           <div
+            role="button"
+            tabIndex={0}
             className="fixed inset-0 z-40 bg-black/50 lg:hidden"
             onClick={() => setIsSidebarOpen(false)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                setIsSidebarOpen(false)
+              }
+            }}
           />
         )}
 
@@ -245,17 +255,17 @@ export default function ChatClient() {
             {selectedConversationId ? (
               <>
                 <MessageList
-            messages={messages}
-            currentUserId={currentUserId}
-            typingUsers={Array.from(typingUsers)}
-            onLoadMore={() => {
-              if (messagesQuery.hasNextPage && !messagesQuery.isFetchingNextPage) {
-                messagesQuery.fetchNextPage()
-              }
-            }}
-            hasMore={messagesQuery.hasNextPage}
-            isLoadingMore={messagesQuery.isFetchingNextPage}
-          />
+                  messages={messages}
+                  currentUserId={currentUserId}
+                  typingUsers={Array.from(typingUsers)}
+                  onLoadMore={() => {
+                    if (messagesQuery.hasNextPage && !messagesQuery.isFetchingNextPage) {
+                      messagesQuery.fetchNextPage()
+                    }
+                  }}
+                  hasMore={messagesQuery.hasNextPage}
+                  isLoadingMore={messagesQuery.isFetchingNextPage}
+                />
 
                 {/* Message Input */}
                 <MessageInput

@@ -1,28 +1,28 @@
 'use client'
 
 import {
-    addMonths,
-    eachDayOfInterval,
-    endOfMonth,
-    format,
-    isSameDay,
-    isSameMonth,
-    isToday,
-    startOfMonth,
-    subMonths,
+  addMonths,
+  eachDayOfInterval,
+  endOfMonth,
+  format,
+  isSameDay,
+  isSameMonth,
+  isToday,
+  startOfMonth,
+  subMonths,
 } from 'date-fns'
 import {
-    Calendar as CalendarIcon,
-    ChevronDown,
-    ChevronLeft,
-    ChevronRight,
-    Clock,
-    Grid3X3,
-    List,
-    MapPin,
-    Menu,
-    Search,
-    Users,
+  Calendar as CalendarIcon,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Grid3X3,
+  List,
+  MapPin,
+  Menu,
+  Search,
+  Users,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -31,22 +31,24 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { CalendarEventType } from '@/schemaValidations/calendar.schema'
 import { CalendarNotifications } from './notifications'
+
+const EMPTY_EVENTS: CalendarEventType[] = []
 
 interface CalendarMainProps {
   selectedDate?: Date
@@ -61,7 +63,7 @@ export function CalendarMain({
   selectedDate,
   onDateSelect,
   onMenuClick,
-  events = [],
+  events = EMPTY_EVENTS,
   onEventClick,
   canCreateEvent = false,
 }: CalendarMainProps) {
@@ -140,6 +142,8 @@ export function CalendarMain({
             return (
               <div
                 key={day.toISOString()}
+                role="button"
+                tabIndex={0}
                 className={cn(
                   'min-h-[120px] cursor-pointer border-b border-r p-2 transition-colors last:border-r-0',
                   isCurrentMonth
@@ -149,6 +153,12 @@ export function CalendarMain({
                   isDayToday && 'bg-accent/20'
                 )}
                 onClick={() => onDateSelect?.(day)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault()
+                    onDateSelect?.(day)
+                  }
+                }}
               >
                 <div className="mb-1 flex items-center justify-between">
                   <span
@@ -172,6 +182,8 @@ export function CalendarMain({
                     return (
                       <div
                         key={event.id}
+                        role="button"
+                        tabIndex={0}
                         className={cn(
                           'cursor-pointer truncate rounded-sm p-1 text-xs text-white',
                           event.color || 'bg-blue-500'
@@ -179,6 +191,12 @@ export function CalendarMain({
                         onClick={(e) => {
                           e.stopPropagation()
                           handleEventClick(event)
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.stopPropagation()
+                            handleEventClick(event)
+                          }
                         }}
                       >
                         <div className="flex items-center gap-1">
@@ -253,7 +271,10 @@ export function CalendarMain({
                       {event.assignments && event.assignments.length > 0 && (
                         <div className="flex -space-x-2">
                           {event.assignments.slice(0, 3).map((assignment, index) => (
-                            <Avatar key={index} className="border-2 border-background">
+                            <Avatar
+                              key={assignment.employee.id ?? index}
+                              className="border-2 border-background"
+                            >
                               <AvatarFallback className="text-xs">
                                 {assignment.employee.name.charAt(0).toUpperCase()}
                               </AvatarFallback>
@@ -385,7 +406,10 @@ export function CalendarMain({
                     <span>Assigned to:</span>
                     <div className="flex -space-x-2">
                       {selectedEvent.assignments.map((assignment, index) => (
-                        <Avatar key={index} className="h-6 w-6 border-2 border-background">
+                        <Avatar
+                          key={assignment.employee.id ?? index}
+                          className="h-6 w-6 border-2 border-background"
+                        >
                           <AvatarFallback className="text-xs">
                             {assignment.employee.name.charAt(0).toUpperCase()}
                           </AvatarFallback>
