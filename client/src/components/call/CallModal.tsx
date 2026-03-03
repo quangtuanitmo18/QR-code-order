@@ -1,32 +1,34 @@
 'use client'
 
-import { useAppStore } from '@/store/useAppStore'
 import { Button } from '@/components/ui/button'
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
 import { useCallSignaling } from '@/hooks/useCallSignaling'
 import { useMediasoup } from '@/hooks/useMediasoup'
+import { useAppStore } from '@/store/useAppStore'
 import { useCallStore } from '@/store/useCallStore'
 import { Loader2, Mic, MicOff, Phone, PhoneOff, Video, VideoOff } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { useEffect, useRef, useState } from 'react'
 import { VideoTile } from './VideoTile'
 
 export function CallModal() {
-  const socket = useAppStore(state => state.socket)
-  const { 
-    status, 
-    conversationId, 
-    isVideo, 
+  const socket = useAppStore((state) => state.socket)
+  const searchParams = useSearchParams()
+  const {
+    status,
+    conversationId,
+    isVideo,
     activeSpeakerId,
     setIncomingCall,
     setCallConnected,
     endCall,
-    setActiveSpeakerId
+    setActiveSpeakerId,
   } = useCallStore()
   const { acceptCall, declineCall, hangUp } = useCallSignaling()
 
@@ -41,18 +43,23 @@ export function CallModal() {
     resumeProducer,
     cleanupHooks,
     localStream,
-    remoteStreams
+    remoteStreams,
   } = useMediasoup()
 
   const [isMuted, setIsMuted] = useState(false)
-  const [isVideoOff, setIsVideoOff] = useState(!isVideo)
+  const [isVideoOff, setIsVideoOff] = useState(false)
+  const [remoteVideoOff, setRemoteVideoOff] = useState(false)
   const [duration, setDuration] = useState(0)
 
   // Global socket listener for call signaling
   useEffect(() => {
     if (!socket) return
 
-    const handleCallIncoming = (data: { conversationId: number; callerId: number; isVideo: boolean }) => {
+    const handleCallIncoming = (data: {
+      conversationId: number
+      callerId: number
+      isVideo: boolean
+    }) => {
       // Only accept incoming call if we are idle (don't interrupt existing calls)
       if (useCallStore.getState().status === 'idle') {
         setIncomingCall(data.conversationId, data.callerId, data.isVideo)
@@ -84,7 +91,11 @@ export function CallModal() {
       }
     }
 
-    const handleActiveSpeaker = (data: { conversationId: number, accountId: number | null, volume: number }) => {
+    const handleActiveSpeaker = (data: {
+      conversationId: number
+      accountId: number | null
+      volume: number
+    }) => {
       const currentConv = useCallStore.getState().conversationId
       if (currentConv === data.conversationId) {
         setActiveSpeakerId(data.accountId)
@@ -106,12 +117,37 @@ export function CallModal() {
     }
   }, [socket, setIncomingCall, setCallConnected, setActiveSpeakerId, endCall])
 
+  // When the page is opened from a push notification with ?callRoom=<conversationId>,
+  // ask the server to re-emit call-incoming if the caller is still waiting.
+  // A ref guard ensures this only fires ONCE per callRoom value.
+  const callCheckSentRef = useRef<string | null>(null)
+  const router = useRouter()
+
+  useEffect(() => {
+    const callRoomParam = searchParams.get('callRoom')
+    if (!callRoomParam || !socket?.connected) return
+
+    // Only emit once per callRoom value
+    if (callCheckSentRef.current === callRoomParam) return
+    callCheckSentRef.current = callRoomParam
+
+    const callConvId = parseInt(callRoomParam, 10)
+    if (isNaN(callConvId)) return
+
+    socket.emit('call-check', { conversationId: callConvId })
+
+    // Clean up the callRoom param from URL so it doesn't re-trigger
+    const url = new URL(window.location.href)
+    url.searchParams.delete('callRoom')
+    router.replace(url.pathname + url.search, { scroll: false })
+  }, [socket?.connected, searchParams, router])
+
   // Timer for connected state
   useEffect(() => {
     let interval: NodeJS.Timeout
     if (status === 'connected') {
       interval = setInterval(() => {
-        setDuration(prev => prev + 1)
+        setDuration((prev) => prev + 1)
       }, 1000)
     } else {
       setDuration(0)
@@ -137,7 +173,7 @@ export function CallModal() {
 
         const [sendTransport, recvTransport] = await Promise.all([
           createSendTransport(conversationId),
-          createRecvTransport(conversationId)
+          createRecvTransport(conversationId),
         ])
 
         if (sendTransport) {
@@ -146,7 +182,15 @@ export function CallModal() {
       }
       setup()
     }
-  }, [status, conversationId, isVideo, initDevice, createSendTransport, createRecvTransport, produceLocalMedia])
+  }, [
+    status,
+    conversationId,
+    isVideo,
+    initDevice,
+    createSendTransport,
+    createRecvTransport,
+    produceLocalMedia,
+  ])
 
   // Listen for new remote producers
   useEffect(() => {
@@ -164,19 +208,40 @@ export function CallModal() {
     }
   }, [socket, status, deviceLoaded, conversationId, consumeRemoteMedia])
 
+  // Listen for remote producer paused/resumed events
+  useEffect(() => {
+    if (!socket || status !== 'connected') return
+
+    const handleProducerPaused = ({ kind }: { accountId: number; kind: string }) => {
+      if (kind === 'video') setRemoteVideoOff(true)
+    }
+    const handleProducerResumed = ({ kind }: { accountId: number; kind: string }) => {
+      if (kind === 'video') setRemoteVideoOff(false)
+    }
+
+    socket.on('producer-paused', handleProducerPaused)
+    socket.on('producer-resumed', handleProducerResumed)
+
+    return () => {
+      socket.off('producer-paused', handleProducerPaused)
+      socket.off('producer-resumed', handleProducerResumed)
+    }
+  }, [socket, status])
+
   // Cleanup when call ends
   useEffect(() => {
     if (status === 'idle') {
       cleanupHooks()
       setIsMuted(false)
-      setIsVideoOff(!isVideo)
+      setIsVideoOff(false)
+      setRemoteVideoOff(false)
     }
-  }, [status, cleanupHooks, isVideo])
+  }, [status, cleanupHooks])
 
   const toggleMute = () => {
     if (localStream) {
-      localStream.getAudioTracks().forEach(t => t.enabled = isMuted)
-      
+      localStream.getAudioTracks().forEach((t) => (t.enabled = isMuted))
+
       // Server-side Pause/Resume
       if (conversationId) {
         if (!isMuted) {
@@ -185,15 +250,15 @@ export function CallModal() {
           resumeProducer(conversationId, 'audio')
         }
       }
-      
+
       setIsMuted(!isMuted)
     }
   }
 
   const toggleVideo = () => {
     if (localStream) {
-      localStream.getVideoTracks().forEach(t => t.enabled = isVideoOff)
-      
+      localStream.getVideoTracks().forEach((t) => (t.enabled = isVideoOff))
+
       // Server-side Pause/Resume
       if (conversationId) {
         if (!isVideoOff) {
@@ -202,7 +267,7 @@ export function CallModal() {
           resumeProducer(conversationId, 'video')
         }
       }
-      
+
       setIsVideoOff(!isVideoOff)
     }
   }
@@ -214,21 +279,19 @@ export function CallModal() {
   if (status === 'ringing') {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm">
-        <div className="bg-card w-full max-w-sm rounded-lg p-6 shadow-lg border text-center animate-in zoom-in-95 duration-200">
+        <div className="w-full max-w-sm rounded-lg border bg-card p-6 text-center shadow-lg duration-200 animate-in zoom-in-95">
           <div className="mb-4">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-              <Phone className="h-10 w-10 text-primary animate-pulse" />
+              <Phone className="h-10 w-10 animate-pulse text-primary" />
             </div>
           </div>
           <h2 className="text-2xl font-semibold tracking-tight">Incoming Call...</h2>
-          <p className="text-sm text-muted-foreground mt-2 mb-8">
-            Someone is calling you
-          </p>
+          <p className="mb-8 mt-2 text-sm text-muted-foreground">Someone is calling you</p>
           <div className="flex justify-center gap-4">
             <Button
               variant="destructive"
               size="lg"
-              className="rounded-full h-14 w-14 p-0 shadow-lg hover:scale-105 transition-transform"
+              className="h-14 w-14 rounded-full p-0 shadow-lg transition-transform hover:scale-105"
               onClick={declineCall}
             >
               <PhoneOff className="h-6 w-6" />
@@ -236,7 +299,7 @@ export function CallModal() {
             <Button
               variant="default"
               size="lg"
-              className="bg-green-500 hover:bg-green-600 rounded-full h-14 w-14 p-0 shadow-lg hover:scale-105 transition-transform"
+              className="h-14 w-14 rounded-full bg-green-500 p-0 shadow-lg transition-transform hover:scale-105 hover:bg-green-600"
               onClick={acceptCall}
             >
               <Phone className="h-6 w-6 fill-current" />
@@ -251,21 +314,21 @@ export function CallModal() {
   if (status === 'calling') {
     return (
       <div className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-sm">
-        <div className="bg-card w-full max-w-sm rounded-lg p-6 shadow-lg border text-center animate-in zoom-in-95 duration-200">
-           <div className="mb-4">
+        <div className="w-full max-w-sm rounded-lg border bg-card p-6 text-center shadow-lg duration-200 animate-in zoom-in-95">
+          <div className="mb-4">
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/10">
-              <Phone className="h-10 w-10 text-primary animate-bounce" />
+              <Phone className="h-10 w-10 animate-bounce text-primary" />
             </div>
           </div>
-          <h2 className="text-2xl font-semibold tracking-tight mb-8">Calling...</h2>
+          <h2 className="mb-8 text-2xl font-semibold tracking-tight">Calling...</h2>
           <div className="flex justify-center">
             <Button
               variant="destructive"
               size="lg"
-              className="rounded-full h-14 px-8 shadow-lg hover:scale-105 transition-transform"
-              onClick={hangUp}
+              className="h-14 rounded-full px-8 shadow-lg transition-transform hover:scale-105"
+              onClick={() => hangUp(duration)}
             >
-              <PhoneOff className="h-6 w-6 mr-2" />
+              <PhoneOff className="mr-2 h-6 w-6" />
               Cancel
             </Button>
           </div>
@@ -276,71 +339,91 @@ export function CallModal() {
 
   // Connected state (active call)
   return (
-    <Dialog open={true} onOpenChange={(open) => { if(!open) hangUp() }}>
-      <DialogContent className="w-[100vw] h-[100dvh] sm:h-[85vh] sm:max-w-4xl p-0 flex flex-col overflow-hidden bg-background border-none sm:rounded-2xl shadow-2xl [&>button]:hidden">
-        <DialogHeader className="p-4 bg-background/95 z-10 border-b flex-shrink-0 flex flex-row items-center justify-between space-y-0">
+    <Dialog
+      open={true}
+      onOpenChange={(open) => {
+        if (!open) hangUp(duration)
+      }}
+    >
+      <DialogContent className="flex h-[100dvh] w-[100vw] flex-col overflow-hidden border-none bg-background p-0 shadow-2xl sm:h-[85vh] sm:max-w-4xl sm:rounded-2xl [&>button]:hidden">
+        <DialogHeader className="z-10 flex flex-shrink-0 flex-row items-center justify-between space-y-0 border-b bg-background/95 p-4">
           <div>
             <DialogTitle>Active Call</DialogTitle>
-            <DialogDescription>
-              {formatDuration(duration)}
-            </DialogDescription>
+            <DialogDescription>{formatDuration(duration)}</DialogDescription>
           </div>
-          <Button variant="destructive" size="sm" onClick={hangUp}>
-            <PhoneOff className="h-4 w-4 mr-2" />
+          {/* <Button variant="destructive" size="sm" onClick={() => hangUp(duration)}>
+            <PhoneOff className="mr-2 h-4 w-4" />
             Leave
-          </Button>
+          </Button> */}
         </DialogHeader>
 
-        <div className="flex-1 bg-zinc-950 relative flex items-center justify-center overflow-hidden w-full h-full">
+        <div className="relative flex h-full w-full flex-1 items-center justify-center overflow-hidden bg-zinc-950">
           {/* Main Remote Area */}
           {remoteStreams.size > 0 ? (
-            <div className={`absolute inset-0 transition-all duration-300 ${activeSpeakerId ? 'ring-4 ring-primary ring-inset' : ''}`}>
-              <VideoTile 
-                stream={Array.from(remoteStreams.values())[0]} 
-                className={`h-full w-full object-cover ${isVideo ? '' : 'opacity-0'}`} // Hide video element visually if audio only, but keep stream for audio playback
+            <div
+              className={`absolute inset-0 transition-all duration-300 ${activeSpeakerId ? 'ring-4 ring-inset ring-primary' : ''}`}
+            >
+              <VideoTile
+                stream={Array.from(remoteStreams.values())[0]}
+                className={`h-full w-full object-cover ${isVideo && !remoteVideoOff ? '' : 'opacity-0'}`}
               />
-              {!isVideo && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center bg-zinc-900 pointer-events-none">
-                  <div className={`h-32 w-32 rounded-full bg-zinc-800 flex items-center justify-center text-4xl text-zinc-500 shadow-xl transition-all duration-300 ${activeSpeakerId ? 'ring-4 ring-primary scale-110' : ''}`}>
-                    <Mic className="h-12 w-12" />
+              {(!isVideo || remoteVideoOff) && (
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center bg-zinc-900">
+                  <div
+                    className={`flex h-32 w-32 items-center justify-center rounded-full bg-zinc-800 text-4xl text-zinc-500 shadow-xl transition-all duration-300 ${activeSpeakerId ? 'scale-110 ring-4 ring-primary' : ''}`}
+                  >
+                    {remoteVideoOff ? (
+                      <VideoOff className="h-12 w-12" />
+                    ) : (
+                      <Mic className="h-12 w-12" />
+                    )}
                   </div>
-                  <p className="mt-6 text-xl font-medium text-white">Voice Call</p>
+                  <p className="mt-6 text-xl font-medium text-white">
+                    {remoteVideoOff ? 'Camera Off' : 'Voice Call'}
+                  </p>
                 </div>
               )}
             </div>
           ) : (
-            <div className="text-center text-muted-foreground flex flex-col items-center">
-              <Loader2 className="h-10 w-10 text-primary animate-spin mb-4" />
+            <div className="flex flex-col items-center text-center text-muted-foreground">
+              <Loader2 className="mb-4 h-10 w-10 animate-spin text-primary" />
               <p>Connecting media...</p>
             </div>
           )}
 
           {/* Picture-in-Picture Local Video (Only if Video Call) */}
           {isVideo && localStream && (
-            <div className="absolute bottom-6 right-6 w-32 md:w-48 aspect-[3/4] md:aspect-video rounded-xl overflow-hidden shadow-2xl bg-zinc-900 ring-2 ring-primary/30 z-20">
+            <div className="absolute bottom-6 right-6 z-20 aspect-[3/4] w-32 overflow-hidden rounded-xl bg-zinc-900 shadow-2xl ring-2 ring-primary/30 md:aspect-video md:w-48">
               <VideoTile stream={localStream} isLocal className="h-full w-full object-cover" />
             </div>
           )}
         </div>
 
-        <div className="p-4 bg-background/95 border-t flex-shrink-0 flex justify-center gap-6 z-30">
-          <Button 
-            variant={isMuted ? "destructive" : "secondary"} 
-            size="icon" 
-            className="rounded-full h-12 w-12"
+        <div className="z-30 flex flex-shrink-0 justify-center gap-6 border-t bg-background/95 p-4">
+          <Button
+            variant={isMuted ? 'destructive' : 'secondary'}
+            size="icon"
+            className="h-12 w-12 rounded-full"
             onClick={toggleMute}
           >
             {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
           </Button>
-          <Button 
-            variant={isVideoOff ? "destructive" : "secondary"} 
-            size="icon" 
-            className="rounded-full h-12 w-12"
-            onClick={toggleVideo}
+          {isVideo && (
+            <Button
+              variant={isVideoOff ? 'destructive' : 'secondary'}
+              size="icon"
+              className="h-12 w-12 rounded-full"
+              onClick={toggleVideo}
+            >
+              {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
+            </Button>
+          )}
+          <Button
+            variant="destructive"
+            size="icon"
+            className="h-12 w-12 rounded-full transition-transform hover:scale-105"
+            onClick={() => hangUp(duration)}
           >
-            {isVideoOff ? <VideoOff className="h-5 w-5" /> : <Video className="h-5 w-5" />}
-          </Button>
-          <Button variant="destructive" size="icon" className="rounded-full h-12 w-12 hover:scale-105 transition-transform" onClick={hangUp}>
             <PhoneOff className="h-5 w-5" />
           </Button>
         </div>

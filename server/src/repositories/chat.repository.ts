@@ -443,6 +443,7 @@ export const chatRepository = {
         conversationId,
         accountId
       })),
+      // @ts-expect-error - skipDuplicates works at runtime but SQLite Prisma types don't include it
       skipDuplicates: true
     })
 

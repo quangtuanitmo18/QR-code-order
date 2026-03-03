@@ -242,18 +242,23 @@ import { notificationService } from '@/services/notification.service'
 /**
  * Emit new message event to conversation participants
  */
-export async function emitNewMessage(fastify: FastifyInstance, conversationId: number, message: any, senderId?: number) {
+export async function emitNewMessage(
+  fastify: FastifyInstance,
+  conversationId: number,
+  message: any,
+  senderId?: number
+) {
   try {
     // Find all participants of the conversation
     const participants = await prisma.conversationParticipant.findMany({
       where: { conversationId },
       select: { account: { select: { id: true, name: true } } }
     })
-    
+
     // Broadcast 'new-message' to everyone's personal room
     participants.forEach(async (p) => {
       // We can emit to everyone including sender (frontend deduplicates by ID)
-      // or we can exclude sender. 
+      // or we can exclude sender.
       // For standard implementation, we just emit to all participants' personal rooms
       const targetSocketRoom = `user-${p.account.id}`
       fastify.io.to(targetSocketRoom).emit('new-message', {
@@ -268,22 +273,23 @@ export async function emitNewMessage(fastify: FastifyInstance, conversationId: n
       // We need to fetch the target users socket metadata to see if they're actually focused
       const targetSockets = await fastify.io.in(targetSocketRoom).fetchSockets()
       const isOnline = targetSockets.length > 0
-      
+
       // We assume they aren't focused unless proven otherwise
-      let isFocused = false 
+      let isFocused = false
       for (const s of targetSockets) {
         if (s.data?.isFocused) {
-           isFocused = true
-           break
+          isFocused = true
+          break
         }
       }
 
       // If offline or tab is blurred, send FCM
       if (!isOnline || !isFocused) {
-        const senderNameText = participants.find(x => x.account.id === senderId)?.account.name || 'Someone'
-        let bodyText = message.body || 'Attachement sent'
+        const senderNameText = participants.find((x) => x.account.id == senderId)?.account.name || 'Someone'
+
+        let bodyText = message.content || 'Attachment sent'
         if (bodyText.length > 50) bodyText = bodyText.substring(0, 50) + '...'
-        
+
         await notificationService.sendToAccount(p.account.id, {
           title: `New message from ${senderNameText}`,
           body: bodyText,

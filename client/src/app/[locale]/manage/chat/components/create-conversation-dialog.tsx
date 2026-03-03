@@ -18,13 +18,13 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 // ScrollArea not available, using div with overflow
-import { useAppStore } from '@/store/useAppStore'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { toast } from '@/components/ui/use-toast'
 import { Role } from '@/constants/type'
 import { handleErrorApi } from '@/lib/utils'
 import { useAccountMe, useGetAccountList } from '@/queries/useAccount'
 import { useCreateConversationMutation } from '@/queries/useChat'
+import { useAppStore } from '@/store/useAppStore'
 
 const createConversationSchema = z.object({
   type: z.enum(['direct', 'group']),
@@ -69,9 +69,9 @@ export function CreateConversationDialog({
   })
 
   // Get available accounts (Owner and Employee only, exclude current user)
-  const currentUserId = currentUserQuery.data?.payload.data.id
+  const currentUserId = currentUserQuery.data?.payload?.data?.id
   const availableAccounts =
-    accountsQuery.data?.payload.data.filter(
+    accountsQuery.data?.payload?.data?.filter(
       (account) =>
         (account.role === Role.Owner || account.role === Role.Employee) &&
         account.id !== currentUserId

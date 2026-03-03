@@ -468,6 +468,7 @@ Table Message {
   senderId Int [not null]
   content String [not null]
   type String [not null, default: 'text']
+  callMeta String
   replyToId Int
   isEdited Boolean [not null, default: false]
   isDeleted Boolean [not null, default: false]

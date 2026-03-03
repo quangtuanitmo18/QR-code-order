@@ -37,7 +37,6 @@ import { useSearchParams } from 'next/navigation'
 import { createContext, useEffect, useState } from 'react'
 
 import TableSkeleton from '@/app/[locale]/manage/orders/table-skeleton'
-import { useAppStore } from '@/store/useAppStore'
 import { Button } from '@/components/ui/button'
 import { Command, CommandGroup, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
@@ -46,6 +45,7 @@ import { cn } from '@/lib/utils'
 import { useGetOrderListQuery, useUpdateOrderMutation } from '@/queries/useOrder'
 import { useTableListQuery } from '@/queries/useTable'
 import { GuestCreateOrdersResType } from '@/schemaValidations/guest.schema'
+import { useAppStore } from '@/store/useAppStore'
 import { endOfDay, format, startOfDay } from 'date-fns'
 import { useTranslations } from 'next-intl'
 
@@ -285,6 +285,7 @@ export default function OrderTable() {
                 variant="outline"
                 role="combobox"
                 aria-expanded={openStatusFilter}
+                aria-controls="status-filter-list"
                 className="w-full justify-between text-sm sm:w-[150px]"
               >
                 {table.getColumn('status')?.getFilterValue()
@@ -300,7 +301,7 @@ export default function OrderTable() {
             <PopoverContent className="w-[200px] p-0">
               <Command>
                 <CommandGroup>
-                  <CommandList>
+                  <CommandList id="status-filter-list">
                     {OrderStatusValues.map((status) => (
                       <CommandItem
                         key={status}

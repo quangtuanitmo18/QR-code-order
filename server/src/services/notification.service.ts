@@ -269,6 +269,7 @@ export const notificationService = {
 
       // 3. Send via Firebase Admin
       const response = await messaging.sendEachForMulticast(message)
+      console.log('send notification', response)
 
       // 4. Cleanup invalid or expired tokens
       if (response.failureCount > 0) {
@@ -315,8 +316,8 @@ export const notificationService = {
       if (userTokens.length === 0) return { success: false }
 
       const tokens = userTokens.map((t: { token: string }) => t.token)
-      
-      // No 'notification' object means it won't pop up on the OS level, 
+
+      // No 'notification' object means it won't pop up on the OS level,
       // but the Service Worker's onBackgroundMessage will still catch it.
       const message = {
         tokens,
@@ -324,11 +325,11 @@ export const notificationService = {
       }
 
       const response = await messaging.sendEachForMulticast(message)
-      
+
       return { success: true, count: response.successCount }
     } catch (error) {
-       console.error('[NotificationService.sendSilentDataToAccount] Failed:', error)
-       return { success: false }
+      console.error('[NotificationService.sendSilentDataToAccount] Failed:', error)
+      return { success: false }
     }
   },
 

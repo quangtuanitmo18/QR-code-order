@@ -83,7 +83,11 @@ export const guestRepository = {
     return await prisma.order.create({
       data,
       include: {
-        dishSnapshot: true,
+        items: {
+          include: {
+            dishSnapshot: true
+          }
+        },
         guest: true,
         orderHandler: true
       }

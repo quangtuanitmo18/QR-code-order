@@ -1,19 +1,22 @@
 'use client'
-import { CallModal } from '@/components/call/CallModal'
 import { GlobalChatNotification } from '@/components/chat/global-chat-notification'
 import ListenLogoutSocket from '@/components/listen-logout-socket'
 import RefreshToken from '@/components/refresh-token'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { ViewportProvider } from '@/hooks/useViewport'
 import { useVisibility } from '@/hooks/useVisibility'
-import {
-    decodeToken,
-    generateSocketInstace,
-    getAccessTokenFromLocalStorage
-} from '@/lib/utils'
+import { decodeToken, generateSocketInstace, getAccessTokenFromLocalStorage } from '@/lib/utils'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import dynamic from 'next/dynamic'
 import { useEffect, useRef } from 'react'
+
+const CallModal = dynamic(() => import('@/components/call/CallModal').then((m) => m.CallModal), {
+  ssr: false,
+})
+const ReactQueryDevtools = dynamic(
+  () => import('@tanstack/react-query-devtools').then((m) => m.ReactQueryDevtools),
+  { ssr: false }
+)
 
 // Default
 // staleTime: 0
@@ -23,6 +26,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
+      staleTime: 1000, // 1s — prevents duplicate fetches on rapid navigation
     },
   },
 })
