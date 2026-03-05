@@ -6,7 +6,7 @@ export const CreateDishBody = z.object({
   price: z.coerce.number().positive(),
   description: z.string().max(10000),
   image: z.string().url(),
-  category: z.string().min(1).max(256).trim(),
+  category: z.string().trim().min(1).max(256),
   status: z.enum(DishStatusValues).optional(),
 })
 

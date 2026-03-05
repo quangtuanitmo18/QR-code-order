@@ -1,42 +1,39 @@
 import {
-    createCouponController,
-    deleteCouponController,
-    getCouponByIdController,
-    getCouponsController,
-    updateCouponController,
-    validateCouponController
+  createCouponController,
+  deleteCouponController,
+  getCouponByIdController,
+  getCouponsController,
+  updateCouponController,
+  validateCouponController
 } from '@/controllers/coupon.controller'
 import { requireLoginedHook, requireOwnerHook } from '@/hooks/auth.hooks'
 import {
-    CouponParam,
-    CouponParamType,
-    CreateCouponBody,
-    CreateCouponBodyType,
-    CreateCouponRes,
-    CreateCouponResType,
-    DeleteCouponRes,
-    DeleteCouponResType,
-    GetCouponRes,
-    GetCouponResType,
-    GetCouponsQueryParams,
-    GetCouponsQueryParamsType,
-    GetCouponsRes,
-    GetCouponsResType,
-    UpdateCouponBody,
-    UpdateCouponBodyType,
-    UpdateCouponRes,
-    UpdateCouponResType,
-    ValidateCouponBody,
-    ValidateCouponBodyType,
-    ValidateCouponRes,
-    ValidateCouponResType
+  CouponParam,
+  CouponParamType,
+  CreateCouponBody,
+  CreateCouponBodyType,
+  CreateCouponRes,
+  CreateCouponResType,
+  DeleteCouponRes,
+  DeleteCouponResType,
+  GetCouponRes,
+  GetCouponResType,
+  GetCouponsQueryParams,
+  GetCouponsQueryParamsType,
+  GetCouponsRes,
+  GetCouponsResType,
+  UpdateCouponBody,
+  UpdateCouponBodyType,
+  UpdateCouponRes,
+  UpdateCouponResType,
+  ValidateCouponBody,
+  ValidateCouponBodyType,
+  ValidateCouponRes,
+  ValidateCouponResType
 } from '@/schemaValidations/coupon.schema'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 
-export default async function couponRoutes(
-  fastify: FastifyInstance,
-  options: FastifyPluginOptions
-) {
+export default async function couponRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
   // Validate - Employee + Guest (requireLoginedHook only)
   fastify.post<{
     Body: ValidateCouponBodyType
@@ -181,4 +178,3 @@ export default async function couponRoutes(
     }
   )
 }
-

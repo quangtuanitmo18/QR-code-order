@@ -9,6 +9,7 @@ import { socketPlugin } from '@/plugins/socket.plugins'
 import validatorCompilerPlugin from '@/plugins/validatorCompiler.plugins'
 import accountRoutes from '@/routes/account.route'
 import adminSpinRoutes from '@/routes/admin-spin.route'
+import aiChatRoutes from '@/routes/ai-chat.route'
 import authRoutes from '@/routes/auth.route'
 import blogRoutes from '@/routes/blog.route'
 import calendarTypeRoutes from '@/routes/calendar-type.route'
@@ -169,6 +170,7 @@ const start = async () => {
     fastify.register(taskAttachmentRoutes, { prefix: '/tasks' })
     fastify.register(chatRoutes, { prefix: '/chat' })
     fastify.register(fcmRoutes, { prefix: '/notifications' })
+    fastify.register(aiChatRoutes, { prefix: '/ai-chat' })
 
     // Initialize system data
     await initOwnerAccount()

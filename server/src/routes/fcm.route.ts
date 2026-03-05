@@ -1,6 +1,11 @@
 import { fcmController } from '@/controllers/fcm.controller'
 import { requireLoginedHook } from '@/hooks/auth.hooks'
-import { RegisterFcmTokenBody, RegisterFcmTokenBodyType, UnregisterFcmTokenBody, UnregisterFcmTokenBodyType } from '@/schemaValidations/fcm.schema'
+import {
+  RegisterFcmTokenBody,
+  RegisterFcmTokenBodyType,
+  UnregisterFcmTokenBody,
+  UnregisterFcmTokenBodyType
+} from '@/schemaValidations/fcm.schema'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 
 export default async function fcmRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {

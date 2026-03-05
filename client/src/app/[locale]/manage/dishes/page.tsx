@@ -3,6 +3,8 @@ import envConfig, { Locale } from '@/config'
 import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { Suspense } from 'react'
+import DishClient from './dish-client'
+
 type Props = {
   params: Promise<{ locale: Locale }>
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>

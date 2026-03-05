@@ -10,9 +10,9 @@ export const fcmController = {
     try {
       const accountId = req.decodedAccessToken?.userId || (req as any).user?.id || (req as any).account?.id
       if (!accountId) {
-         return reply.status(401).send({ message: 'Unauthorized: No accountId found' })
+        return reply.status(401).send({ message: 'Unauthorized: No accountId found' })
       }
-      
+
       const { token, deviceType } = req.body
 
       if (!token) {
@@ -60,7 +60,7 @@ export const fcmController = {
     try {
       const accountId = req.decodedAccessToken?.userId || (req as any).user?.id || (req as any).account?.id
       if (!accountId) {
-         return reply.status(401).send({ message: 'Unauthorized: No accountId found' })
+        return reply.status(401).send({ message: 'Unauthorized: No accountId found' })
       }
       const { token } = req.body
 

@@ -1,13 +1,19 @@
-import prisma from '@/database';
-import { employeeSpinRepository } from '@/repositories/employee-spin.repository';
-import { EntityError } from '@/utils/errors';
+import prisma from '@/database'
+import { employeeSpinRepository } from '@/repositories/employee-spin.repository'
+import { EntityError } from '@/utils/errors'
 
 export const adminSpinService = {
   /**
    * Grant spin to employee
    * @throws {EntityError} if employee not found or event not found (if eventId provided)
    */
-  async grantSpin(data: { employeeId: number; adminId: number; eventId?: number | null; notes?: string | null; expiredAt?: Date | null }) {
+  async grantSpin(data: {
+    employeeId: number
+    adminId: number
+    eventId?: number | null
+    notes?: string | null
+    expiredAt?: Date | null
+  }) {
     // Verify employee exists
     const employee = await prisma.account.findUnique({
       where: { id: data.employeeId },

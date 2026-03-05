@@ -1,28 +1,28 @@
 import {
-    createDishCategoryController,
-    deleteDishCategoryController,
-    getAllDishCategoriesController,
-    getDishCategoryByIdController,
-    updateDishCategoryController
+  createDishCategoryController,
+  deleteDishCategoryController,
+  getAllDishCategoriesController,
+  getDishCategoryByIdController,
+  updateDishCategoryController
 } from '@/controllers/dish-category.controller'
 import { requireLoginedHook, requireOwnerHook } from '@/hooks/auth.hooks'
 import {
-    CreateDishCategoryBody,
-    CreateDishCategoryBodyType,
-    CreateDishCategoryRes,
-    CreateDishCategoryResType,
-    DeleteDishCategoryRes,
-    DeleteDishCategoryResType,
-    DishCategoryIdParam,
-    DishCategoryIdParamType,
-    GetDishCategoriesRes,
-    GetDishCategoriesResType,
-    GetDishCategoryRes,
-    GetDishCategoryResType,
-    UpdateDishCategoryBody,
-    UpdateDishCategoryBodyType,
-    UpdateDishCategoryRes,
-    UpdateDishCategoryResType
+  CreateDishCategoryBody,
+  CreateDishCategoryBodyType,
+  CreateDishCategoryRes,
+  CreateDishCategoryResType,
+  DeleteDishCategoryRes,
+  DeleteDishCategoryResType,
+  DishCategoryIdParam,
+  DishCategoryIdParamType,
+  GetDishCategoriesRes,
+  GetDishCategoriesResType,
+  GetDishCategoryRes,
+  GetDishCategoryResType,
+  UpdateDishCategoryBody,
+  UpdateDishCategoryBodyType,
+  UpdateDishCategoryRes,
+  UpdateDishCategoryResType
 } from '@/schemaValidations/dish-category.schema'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 

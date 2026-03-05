@@ -1,24 +1,24 @@
 import envConfig from '@/config'
 import {
-    loginController,
-    loginGoogleController,
-    logoutController,
-    refreshTokenController
+  loginController,
+  loginGoogleController,
+  logoutController,
+  refreshTokenController
 } from '@/controllers/auth.controller'
 import { requireLoginedHook } from '@/hooks/auth.hooks'
 import {
-    LoginBody,
-    LoginBodyType,
-    LoginGoogleQuery,
-    LoginGoogleQueryType,
-    LoginRes,
-    LoginResType,
-    LogoutBody,
-    LogoutBodyType,
-    RefreshTokenBody,
-    RefreshTokenBodyType,
-    RefreshTokenRes,
-    RefreshTokenResType
+  LoginBody,
+  LoginBodyType,
+  LoginGoogleQuery,
+  LoginGoogleQueryType,
+  LoginRes,
+  LoginResType,
+  LogoutBody,
+  LogoutBodyType,
+  RefreshTokenBody,
+  RefreshTokenBodyType,
+  RefreshTokenRes,
+  RefreshTokenResType
 } from '@/schemaValidations/auth.schema'
 import { MessageRes, MessageResType } from '@/schemaValidations/common.schema'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'

@@ -56,7 +56,8 @@ const configSchema = z.object({
   YOOKASSA_RETURN_URL: z.string().url(),
   FIREBASE_PROJECT_ID: z.string(),
   FIREBASE_CLIENT_EMAIL: z.string(),
-  FIREBASE_PRIVATE_KEY: z.string()
+  FIREBASE_PRIVATE_KEY: z.string(),
+  OPENROUTER_API_KEY: z.string().optional().default('')
 })
 
 const configServer = configSchema.safeParse(process.env)

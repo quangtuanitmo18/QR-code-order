@@ -59,6 +59,9 @@ model Dish {
   image         String
   category      String         @default("Uncategorized")
   status        String         @default("Available")
+  ingredients   String?
+  allergens     String?
+  tags          String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   dishSnapshots DishSnapshot[]
@@ -80,6 +83,9 @@ model DishSnapshot {
   image       String
   category    String      @default("Uncategorized")
   status      String      @default("Available")
+  ingredients String?
+  allergens   String?
+  tags        String?
   dishId      Int?
   updatedAt   DateTime    @updatedAt
   createdAt   DateTime    @default(now())
@@ -649,3 +655,24 @@ model FcmToken {
   @@index([accountId])
   @@map("FcmToken")
 }
+
+model RestaurantSetting {
+  key         String   @id // e.g. "wifi_password", "opening_hours"
+  value       String
+  description String?
+  updatedAt   DateTime @updatedAt
+  
+  @@map("RestaurantSetting")
+}
+
+model FAQ {
+  id        Int      @id @default(autoincrement())
+  question  String
+  answer    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("FAQ")
+}
+
