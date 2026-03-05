@@ -1,36 +1,37 @@
 'use client'
+import revalidateApiRequest from '@/apiRequests/revalidate'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
 } from '@/components/ui/dialog'
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
+import { Textarea } from '@/components/ui/textarea'
+import { toast } from '@/components/ui/use-toast'
+import { DishStatus, DishStatusValues } from '@/constants/type'
+import { getDishStatus, handleErrorApi } from '@/lib/utils'
+import { useGetDishQuery, useUpdateDishMutation } from '@/queries/useDish'
+import { useDishCategoryListQuery } from '@/queries/useDishCategory'
+import { useUploadMediaMutation } from '@/queries/useMedia'
+import { UpdateDishBody, UpdateDishBodyType } from '@/schemaValidations/dish.schema'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { getDishStatus, handleErrorApi } from '@/lib/utils'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { UpdateDishBody, UpdateDishBodyType } from '@/schemaValidations/dish.schema'
-import { DishStatus, DishStatusValues } from '@/constants/type'
-import { Textarea } from '@/components/ui/textarea'
-import { useUploadMediaMutation } from '@/queries/useMedia'
-import { useGetDishQuery, useUpdateDishMutation } from '@/queries/useDish'
-import { toast } from '@/components/ui/use-toast'
-import revalidateApiRequest from '@/apiRequests/revalidate'
 
 export default function EditDish({
   id,
@@ -45,7 +46,9 @@ export default function EditDish({
   const imageInputRef = useRef<HTMLInputElement | null>(null)
   const uploadMediaMutation = useUploadMediaMutation()
   const updateDishMutation = useUpdateDishMutation()
-  const { data } = useGetDishQuery({ enabled: Boolean(id), id: id as number })
+  const getEditDishQuery = useGetDishQuery({ id: id as number, enabled: Boolean(id) })
+  const { data: categoryData } = useDishCategoryListQuery()
+  const categories = categoryData?.payload.data ?? []
   const form = useForm<UpdateDishBodyType>({
     resolver: zodResolver(UpdateDishBody),
     defaultValues: {
@@ -53,6 +56,7 @@ export default function EditDish({
       description: '',
       price: 0,
       image: undefined,
+      category: '',
       status: DishStatus.Unavailable,
     },
   })
@@ -67,17 +71,18 @@ export default function EditDish({
   }, [file, image])
 
   useEffect(() => {
-    if (data) {
-      const { name, image, description, price, status } = data.payload.data
+    if (getEditDishQuery.data) {
+      const { name, image, description, price, category, status } = getEditDishQuery.data.payload.data
       form.reset({
         name,
         image: image ?? undefined,
         description,
         price,
+        category,
         status,
       })
     }
-  }, [data, form])
+  }, [getEditDishQuery.data, form])
   const onSubmit = async (values: UpdateDishBodyType) => {
     if (updateDishMutation.isPending) return
     try {
@@ -212,6 +217,34 @@ export default function EditDish({
                       <Label htmlFor="description">Description</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Textarea id="description" className="w-full" {...field} />
+                        <FormMessage />
+                      </div>
+                    </div>
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="grid grid-cols-4 items-center justify-items-start gap-4">
+                      <Label htmlFor="category">Category</Label>
+                      <div className="col-span-3 w-full space-y-2">
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger id="category">
+                              <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {categories.map((cat) => (
+                              <SelectItem key={cat.id} value={cat.name}>
+                                {cat.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </div>
                     </div>

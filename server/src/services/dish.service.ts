@@ -47,6 +47,7 @@ export const dishService = {
       price: dish.price,
       description: dish.description,
       image: dish.image,
+      category: dish.category,
       status: dish.status,
       dishId: dish.id
     })

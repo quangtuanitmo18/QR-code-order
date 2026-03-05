@@ -4,33 +4,33 @@ import AddDish from '@/app/[locale]/manage/dishes/add-dish'
 import EditDish from '@/app/[locale]/manage/dishes/edit-dish'
 import AutoPagination from '@/components/auto-pagination'
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
 } from '@/components/ui/table'
 import { toast } from '@/components/ui/use-toast'
 import { formatCurrency, getDishStatus, handleErrorApi } from '@/lib/utils'
@@ -38,16 +38,16 @@ import { useDeleteDishMutation, useDishListQuery } from '@/queries/useDish'
 import { DishListResType } from '@/schemaValidations/dish.schema'
 import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+    ColumnDef,
+    ColumnFiltersState,
+    SortingState,
+    VisibilityState,
+    flexRender,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getPaginationRowModel,
+    getSortedRowModel,
+    useReactTable,
 } from '@tanstack/react-table'
 import DOMPurify from 'dompurify'
 import { useSearchParams } from 'next/navigation'
@@ -105,6 +105,11 @@ export const columns: ColumnDef<DishItem>[] = [
         className="whitespace-pre-line"
       />
     ),
+  },
+  {
+    accessorKey: 'category',
+    header: 'Category',
+    cell: ({ row }) => <div>{row.getValue('category')}</div>,
   },
   {
     accessorKey: 'status',

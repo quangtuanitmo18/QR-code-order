@@ -15,6 +15,7 @@ import calendarTypeRoutes from '@/routes/calendar-type.route'
 import calendarRoutes from '@/routes/calendar.route'
 import chatRoutes from '@/routes/chat.route'
 import couponRoutes from '@/routes/coupon.route'
+import dishCategoryRoutes from '@/routes/dish-category.route'
 import dishRoutes from '@/routes/dish.route'
 import employeeSpinRoutes from '@/routes/employee-spin.route'
 import fcmRoutes from '@/routes/fcm.route'
@@ -105,7 +106,7 @@ const start = async () => {
         origin: envConfig.CLIENT_URL
       }
     })
-    
+
     // Register mediasoup first so workers are available
     await fastify.register(mediasoupPlugin)
     fastify.register(socketPlugin)
@@ -134,6 +135,9 @@ const start = async () => {
     })
     fastify.register(dishRoutes, {
       prefix: '/dishes'
+    })
+    fastify.register(dishCategoryRoutes, {
+      prefix: '/dish-categories'
     })
     fastify.register(tablesRoutes, {
       prefix: '/tables'

@@ -8,6 +8,7 @@ describe('CreateDishBody', () => {
     price: 85000,
     description: 'Beef pho with rare steak',
     image: 'https://example.com/pho.jpg',
+    category: 'Main Course',
   }
 
   it('accepts valid dish data', () => {
@@ -48,6 +49,16 @@ describe('CreateDishBody', () => {
     expect(result.success).toBe(false)
   })
 
+  it('rejects empty category', () => {
+    const result = CreateDishBody.safeParse({ ...validDish, category: '' })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects whitespace-only category', () => {
+    const result = CreateDishBody.safeParse({ ...validDish, category: '   ' })
+    expect(result.success).toBe(false)
+  })
+
   it('rejects invalid status value', () => {
     const result = CreateDishBody.safeParse({ ...validDish, status: 'InvalidStatus' })
     expect(result.success).toBe(false)
@@ -62,6 +73,7 @@ describe('DishSchema', () => {
       price: 85000,
       description: 'Delicious',
       image: 'https://example.com/img.jpg',
+      category: 'Main Course',
       status: DishStatus.Available,
       createdAt: new Date(),
       updatedAt: new Date(),

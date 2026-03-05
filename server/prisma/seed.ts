@@ -4,6 +4,11 @@ import bcrypt from 'bcrypt'
 const prisma = new PrismaClient()
 
 async function main() {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('Seeding is not allowed in production environment.')
+    return
+  }
+
   console.log('Seeding Database...')
 
   // =========================================================================
@@ -97,11 +102,11 @@ async function main() {
 
   console.log('Creating Dishes and Snapshots...')
   const dishData = [
-    { name: 'Beef Noodle Soup', price: 50000, description: 'Rare beef noodle soup', image: 'url1', status: 'Available' },
-    { name: 'Grilled Pork Noodle', price: 45000, description: 'Hanoi style grilled pork with rice noodle', image: 'url2', status: 'Available' },
-    { name: 'Fresh Spring Rolls', price: 20000, description: 'Shrimp and pork spring rolls', image: 'url3', status: 'Available' },
-    { name: 'Iced Milk Coffee', price: 25000, description: 'Special signature coffee', image: 'url4', status: 'Available' },
-    { name: 'Iced Tea', price: 5000, description: 'Refreshing iced tea', image: 'url5', status: 'Available' },
+    { name: 'Beef Noodle Soup', price: 50000, description: 'Rare beef noodle soup', image: 'url1', category: 'Main Course', status: 'Available' },
+    { name: 'Grilled Pork Noodle', price: 45000, description: 'Hanoi style grilled pork with rice noodle', image: 'url2', category: 'Main Course', status: 'Available' },
+    { name: 'Fresh Spring Rolls', price: 20000, description: 'Shrimp and pork spring rolls', image: 'url3', category: 'Appetizer', status: 'Available' },
+    { name: 'Iced Milk Coffee', price: 25000, description: 'Special signature coffee', image: 'url4', category: 'Beverage', status: 'Available' },
+    { name: 'Iced Tea', price: 5000, description: 'Refreshing iced tea', image: 'url5', category: 'Beverage', status: 'Available' },
   ]
   
   const dishes = []
@@ -110,7 +115,7 @@ async function main() {
     const d = await prisma.dish.create({ data })
     const snap = await prisma.dishSnapshot.create({
       data: {
-        name: d.name, price: d.price, description: d.description, image: d.image, status: d.status, dishId: d.id,
+        name: d.name, price: d.price, description: d.description, image: d.image, category: d.category, status: d.status, dishId: d.id,
       }
     })
     dishes.push(d)
@@ -120,14 +125,14 @@ async function main() {
   console.log('Creating Guests...')
   const guest1 = await prisma.guest.create({
     data: {
-      name: 'Nguyen Van A',
+      name: 'John Doe',
       tableNumber: table1.number,
     }
   })
 
   const guest2 = await prisma.guest.create({
     data: {
-      name: 'Tran Thi B',
+      name: 'Jane Smith',
       tableNumber: table2.number,
     }
   })
@@ -231,7 +236,7 @@ async function main() {
       serviceQuality: 5,
       ambiance: 4,
       priceValue: 5,
-      comment: 'Tuyệt vời, đồ ăn rất ngon',
+      comment: 'Excellent, the food is very delicious',
       status: 'VISIBLE',
       approvedBy: admin.id,
       approvedAt: new Date()
@@ -241,10 +246,10 @@ async function main() {
   console.log('Creating Blog Posts...')
   await prisma.blogPost.create({
     data: {
-      title: 'Khai trương chi nhánh mới',
-      slug: 'khai-truong-chi-nhanh-moi',
-      excerpt: 'Chúng tôi rất vui mừng thông báo về việc mở chi nhánh...',
-      content: '# Khai trương chi nhánh mới \n\n Tại Quận 1, TPHCM...',
+      title: 'Grand opening of new branch',
+      slug: 'grand-opening-new-branch',
+      excerpt: 'We are very excited to announce the opening of a new branch...',
+      content: '# Grand opening of new branch \n\n In District 1, HCMC...',
       status: 'PUBLISHED',
       authorId: admin.id,
       publishedAt: new Date()
@@ -253,10 +258,10 @@ async function main() {
 
   await prisma.blogPost.create({
     data: {
-      title: 'Món mới mùa hè này',
-      slug: 'mon-moi-mua-he',
-      excerpt: 'Mùa hè này có gì hot?',
-      content: '# Món mới mùa hè \n\n Hãy thử ngay Bún chả siêu mát mẻ...',
+      title: 'New dishes this summer',
+      slug: 'new-dishes-this-summer',
+      excerpt: 'What is hot this summer?',
+      content: '# New dishes this summer \n\n Try our super cool Bun Cha now...',
       status: 'PUBLISHED',
       authorId: admin.id,
       publishedAt: new Date()
@@ -266,13 +271,16 @@ async function main() {
   console.log('Creating Calendars and Events...')
   const shiftCalendar = await prisma.calendarType.create({
     data: {
-      name: 'work_shift', label: 'Lịch Làm Việc', category: 'work', createdById: admin.id
+      name: 'work_shift',
+      label: 'Work Schedule',
+      category: 'work',
+      createdById: admin.id
     }
   })
 
   const event1 = await prisma.calendarEvent.create({
     data: {
-      title: 'Ca sáng',
+      title: 'Morning Shift',
       typeId: shiftCalendar.id,
       startDate: new Date(new Date().setHours(8, 0, 0, 0)),
       endDate: new Date(new Date().setHours(16, 0, 0, 0)),
@@ -288,8 +296,8 @@ async function main() {
   console.log('Creating Tasks...')
   const task1 = await prisma.task.create({
     data: {
-      title: 'Dọn dẹp khu vực bàn số 2',
-      description: 'Khách hàng vừa rời đi, vui lòng làm sạch bàn số 2.',
+      title: 'Clean up table area 2',
+      description: 'The customers just left, please clean table 2.',
       category: 'Improvement',
       status: 'todo',
       priority: 'normal',
@@ -302,7 +310,7 @@ async function main() {
   const convo = await prisma.conversation.create({
     data: {
       type: 'group',
-      name: 'Nhân viên Full Time',
+      name: 'Full Time Employees',
       createdById: admin.id,
       participants: {
         create: [
@@ -318,7 +326,7 @@ async function main() {
     data: {
       conversationId: convo.id,
       senderId: admin.id,
-      content: 'Chào buổi sáng mọi người!',
+      content: 'Good morning everyone!',
     }
   })
 
@@ -326,15 +334,15 @@ async function main() {
     data: {
       conversationId: convo.id,
       senderId: employee1.id,
-      content: 'Chào sếp!',
+      content: 'Hello boss!',
     }
   })
 
   console.log('Creating Spin Events and Rewards...')
   const spinEvent = await prisma.spinEvent.create({
     data: {
-      name: 'Vòng quay Tết Âm Lịch',
-      description: 'Dành cho toàn bộ nhân viên',
+      name: 'Lunar New Year Spin',
+      description: 'For all employees',
       startDate: new Date(),
       endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
       createdById: admin.id,
@@ -343,7 +351,7 @@ async function main() {
 
   const reward1 = await prisma.spinReward.create({
     data: {
-      name: 'Thêm 1 Ngày Nghỉ Phép',
+      name: '1 Extra Day Off',
       type: 'LEAVE',
       probability: 0.1,
       eventId: spinEvent.id,

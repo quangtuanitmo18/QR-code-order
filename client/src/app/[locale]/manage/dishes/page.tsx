@@ -1,4 +1,3 @@
-import DishTable from '@/app/[locale]/manage/dishes/dish-table'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import envConfig, { Locale } from '@/config'
 import { Metadata } from 'next'
@@ -41,7 +40,7 @@ export default function DishesPage() {
           </CardHeader>
           <CardContent>
             <Suspense>
-              <DishTable />
+              <DishClient />
             </Suspense>
           </CardContent>
         </Card>

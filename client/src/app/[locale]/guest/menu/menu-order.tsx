@@ -83,6 +83,11 @@ export default function MenuOrder() {
               </div>
               <div className="flex flex-1 flex-col space-y-1 sm:space-y-2">
                 <h3 className="text-sm font-semibold sm:text-base">{dish.name}</h3>
+                {dish.category && dish.category !== 'Uncategorized' && (
+                  <span className="inline-block w-fit rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                    {dish.category}
+                  </span>
+                )}
                 <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">
                   {dish.description}
                 </p>

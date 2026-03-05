@@ -60,6 +60,7 @@ describe('POST /dishes', () => {
         price: 16,
         description: 'Test dish for integration tests',
         image: 'http://localhost:4000/static/default-dish.png',
+        category: 'Main Course',
         status: 'Available'
       }
     })
@@ -68,6 +69,7 @@ describe('POST /dishes', () => {
     const body = response.json()
     expect(body.data.name).toBe('E2E Test Pasta')
     expect(body.data.price).toBe(16)
+    expect(body.data.category).toBe('Main Course')
     expect(body.data.id).toBeDefined()
     createdDishId = body.data.id
   })
@@ -94,7 +96,24 @@ describe('POST /dishes', () => {
       headers: { authorization: `Bearer ${adminToken}` },
       payload: {
         name: 'Incomplete Dish'
-        // missing price, description, image
+        // missing price, description, image, category
+      }
+    })
+
+    expect(response.statusCode).toBe(422)
+  })
+
+  it('returns 422 when category is missing', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/dishes',
+      headers: { authorization: `Bearer ${adminToken}` },
+      payload: {
+        name: 'No Category Dish',
+        price: 10,
+        description: 'Missing category field',
+        image: 'http://localhost:4000/static/default-dish.png',
+        status: 'Available'
       }
     })
 
@@ -138,6 +157,7 @@ describe('PUT /dishes/:id', () => {
         price: 19,
         description: 'Updated description',
         image: 'http://localhost:4000/static/default-dish.png',
+        category: 'Appetizer',
         status: 'Available'
       }
     })
@@ -145,6 +165,7 @@ describe('PUT /dishes/:id', () => {
     expect(response.statusCode).toBe(200)
     expect(response.json().data.name).toBe('Updated Test Pasta')
     expect(response.json().data.price).toBe(19)
+    expect(response.json().data.category).toBe('Appetizer')
   })
 })
 
