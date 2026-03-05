@@ -41,6 +41,91 @@ Với range = 2 áp dụng cho khoảng cách đầu, cuối và xung quanh curr
 
 const RANGE = 2
 const NOOP = (_pageNumber: number) => {}
+const PaginationListItems = ({
+  page,
+  pageSize,
+  pathname,
+  isLink,
+  onClick,
+}: {
+  page: number
+  pageSize: number
+  pathname: string
+  isLink: boolean
+  onClick: (pageNumber: number) => void
+}) => {
+  let dotAfter = false
+  let dotBefore = false
+  const renderDotBefore = (index: number) => {
+    if (!dotBefore) {
+      dotBefore = true
+      return (
+        <PaginationItem key={`dot-before-${index}`}>
+          <PaginationEllipsis />
+        </PaginationItem>
+      )
+    }
+    return null
+  }
+  const renderDotAfter = (index: number) => {
+    if (!dotAfter) {
+      dotAfter = true
+      return (
+        <PaginationItem key={`dot-after-${index}`}>
+          <PaginationEllipsis />
+        </PaginationItem>
+      )
+    }
+    return null
+  }
+  return Array(pageSize)
+    .fill(0)
+    .map((_, index) => {
+      const pageNumber = index + 1
+
+      // Điều kiện để return về ...
+      if (page <= RANGE * 2 + 1 && pageNumber > page + RANGE && pageNumber < pageSize - RANGE + 1) {
+        return renderDotAfter(index)
+      } else if (page > RANGE * 2 + 1 && page < pageSize - RANGE * 2) {
+        if (pageNumber < page - RANGE && pageNumber > RANGE) {
+          return renderDotBefore(index)
+        } else if (pageNumber > page + RANGE && pageNumber < pageSize - RANGE + 1) {
+          return renderDotAfter(index)
+        }
+      } else if (page >= pageSize - RANGE * 2 && pageNumber > RANGE && pageNumber < page - RANGE) {
+        return renderDotBefore(index)
+      }
+      return (
+        <PaginationItem key={pageNumber}>
+          {isLink && (
+            <PaginationLink
+              href={{
+                pathname,
+                query: {
+                  page: pageNumber,
+                },
+              }}
+              isActive={pageNumber === page}
+            >
+              {pageNumber}
+            </PaginationLink>
+          )}
+          {!isLink && (
+            <Button
+              onClick={() => {
+                onClick(pageNumber)
+              }}
+              variant={pageNumber === page ? 'outline' : 'ghost'}
+              className="h-9 w-9 p-0"
+            >
+              {pageNumber}
+            </Button>
+          )}
+        </PaginationItem>
+      )
+    })
+}
+
 export default function AutoPagination({
   page,
   pageSize,
@@ -48,86 +133,6 @@ export default function AutoPagination({
   isLink = true,
   onClick = NOOP,
 }: Props) {
-  const renderPagination = () => {
-    let dotAfter = false
-    let dotBefore = false
-    const renderDotBefore = (index: number) => {
-      if (!dotBefore) {
-        dotBefore = true
-        return (
-          <PaginationItem>
-            <PaginationEllipsis />
-          </PaginationItem>
-        )
-      }
-      return null
-    }
-    const renderDotAfter = (index: number) => {
-      if (!dotAfter) {
-        dotAfter = true
-        return (
-          <PaginationItem>
-            <PaginationEllipsis />
-          </PaginationItem>
-        )
-      }
-      return null
-    }
-    return Array(pageSize)
-      .fill(0)
-      .map((_, index) => {
-        const pageNumber = index + 1
-
-        // Điều kiện để return về ...
-        if (
-          page <= RANGE * 2 + 1 &&
-          pageNumber > page + RANGE &&
-          pageNumber < pageSize - RANGE + 1
-        ) {
-          return renderDotAfter(index)
-        } else if (page > RANGE * 2 + 1 && page < pageSize - RANGE * 2) {
-          if (pageNumber < page - RANGE && pageNumber > RANGE) {
-            return renderDotBefore(index)
-          } else if (pageNumber > page + RANGE && pageNumber < pageSize - RANGE + 1) {
-            return renderDotAfter(index)
-          }
-        } else if (
-          page >= pageSize - RANGE * 2 &&
-          pageNumber > RANGE &&
-          pageNumber < page - RANGE
-        ) {
-          return renderDotBefore(index)
-        }
-        return (
-          <PaginationItem key={pageNumber}>
-            {isLink && (
-              <PaginationLink
-                href={{
-                  pathname,
-                  query: {
-                    page: pageNumber,
-                  },
-                }}
-                isActive={pageNumber === page}
-              >
-                {pageNumber}
-              </PaginationLink>
-            )}
-            {!isLink && (
-              <Button
-                onClick={() => {
-                  onClick(pageNumber)
-                }}
-                variant={pageNumber === page ? 'outline' : 'ghost'}
-                className="h-9 w-9 p-0"
-              >
-                {pageNumber}
-              </Button>
-            )}
-          </PaginationItem>
-        )
-      })
-  }
   return (
     <Pagination>
       <PaginationContent>
@@ -163,7 +168,13 @@ export default function AutoPagination({
             </Button>
           )}
         </PaginationItem>
-        {renderPagination()}
+        <PaginationListItems
+          page={page}
+          pageSize={pageSize}
+          pathname={pathname}
+          isLink={isLink}
+          onClick={onClick}
+        />
 
         <PaginationItem>
           {isLink && (

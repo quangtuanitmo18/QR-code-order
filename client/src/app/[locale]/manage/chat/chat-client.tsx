@@ -34,7 +34,8 @@ export default function ChatClient() {
 
   // Fetch conversations
   const conversationsQuery = useGetConversationsQuery()
-  const conversations = conversationsQuery.data?.payload.data.conversations || []
+  const conversationsData = conversationsQuery.data?.payload.data.conversations
+  const conversations = useMemo(() => conversationsData || [], [conversationsData])
 
   // Fetch messages for selected conversation
   const messagesQuery = useGetMessagesQuery(

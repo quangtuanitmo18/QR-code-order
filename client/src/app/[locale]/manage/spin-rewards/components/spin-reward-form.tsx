@@ -30,7 +30,7 @@ import {
   UpdateSpinRewardBodyType,
 } from '@/schemaValidations/spin-reward.schema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 
 interface SpinRewardFormProps {
@@ -57,7 +57,8 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
   // When creating, only load active events
   const { data: eventsData } = useGetSpinEventsQuery(reward ? undefined : { isActive: true })
 
-  const events = eventsData?.payload?.data ?? []
+  const eventsDataRaw = eventsData?.payload?.data
+  const events = React.useMemo(() => eventsDataRaw ?? [], [eventsDataRaw])
 
   const form = useForm<CreateSpinRewardBodyType>({
     resolver: zodResolver(CreateSpinRewardBody),

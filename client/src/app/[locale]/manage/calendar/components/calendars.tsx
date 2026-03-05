@@ -64,7 +64,8 @@ export function Calendars({
   const { data: calendarTypesQuery, isLoading } = useGetCalendarTypesQuery()
   const toggleVisibilityMutation = useToggleCalendarTypeVisibilityMutation()
 
-  const calendarTypes = calendarTypesQuery?.payload.data || []
+  const calendarTypesData = calendarTypesQuery?.payload.data
+  const calendarTypes = useMemo(() => calendarTypesData || [], [calendarTypesData])
   const calendarGroups = useMemo(() => groupCalendarTypes(calendarTypes), [calendarTypes])
 
   const handleToggleVisibility = async (calendarType: CalendarTypeType) => {

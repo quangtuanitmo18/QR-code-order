@@ -1,21 +1,12 @@
 'use client'
 
-import { useAppStore } from '@/store/useAppStore'
 import { toast } from '@/components/ui/use-toast'
-import { decodeToken, generateSocketInstace } from '@/lib/utils'
 import { useRouter } from '@/i18n/routing'
+import { decodeToken, generateSocketInstace } from '@/lib/utils'
 import { useSetTokenToCookieMutation } from '@/queries/useAuth'
-import { Metadata } from 'next'
+import { useAppStore } from '@/store/useAppStore'
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef } from 'react'
-
-export const metadata: Metadata = {
-  title: 'Google Login Redirect',
-  description: 'Google Login Redirect',
-  robots: {
-    index: false,
-  },
-}
 
 export default function Oauth() {
   const { mutateAsync } = useSetTokenToCookieMutation()

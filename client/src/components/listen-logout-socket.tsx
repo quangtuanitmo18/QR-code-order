@@ -46,6 +46,6 @@ export default function ListenLogoutSocket() {
       socket?.off('logout', onLogout)
       console.log('[ListenLogoutSocket] 🔇 Stopped listening for logout events')
     }
-  }, [socket, pathname, setRole, router, mutateAsync, disconnectSocket])
+  }, [socket, pathname, setRole, router, mutateAsync, disconnectSocket, isPending])
   return null
 }

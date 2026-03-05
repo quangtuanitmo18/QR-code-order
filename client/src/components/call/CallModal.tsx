@@ -141,7 +141,7 @@ export function CallModal() {
     const newSearch = newSearchParams.toString()
     const newPath = window.location.pathname + (newSearch ? `?${newSearch}` : '')
     router.replace(newPath, { scroll: false })
-  }, [socket?.connected, searchParams, router])
+  }, [socket, socket?.connected, searchParams, router])
 
   // Timer for connected state
   useEffect(() => {

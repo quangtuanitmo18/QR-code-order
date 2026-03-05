@@ -2,28 +2,28 @@
 
 import { format } from 'date-fns'
 import { CalendarIcon, Clock, MapPin, Tag, Type, Users } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
@@ -32,15 +32,15 @@ import { Role } from '@/constants/type'
 import { cn, handleErrorApi } from '@/lib/utils'
 import { useGetAccountList } from '@/queries/useAccount'
 import {
-    useCreateEventMutation,
-    useDeleteEventMutation,
-    useUpdateEventMutation,
+  useCreateEventMutation,
+  useDeleteEventMutation,
+  useUpdateEventMutation,
 } from '@/queries/useCalendar'
 import { useGetCalendarTypesQuery } from '@/queries/useCalendarType'
 import {
-    CalendarEventType,
-    CreateEventBodyType,
-    UpdateEventBodyType,
+  CalendarEventType,
+  CreateEventBodyType,
+  UpdateEventBodyType,
 } from '@/schemaValidations/calendar.schema'
 
 interface EventFormProps {
@@ -66,7 +66,8 @@ export function EventForm({ event, open, onOpenChange, onSave, onDelete }: Event
 
   const employees =
     accountsQuery.data?.payload.data?.filter((acc) => acc.role === Role.Employee) || []
-  const calendarTypes = calendarTypesQuery.data?.payload.data || []
+  const calendarTypesData = calendarTypesQuery.data?.payload.data
+  const calendarTypes = useMemo(() => calendarTypesData || [], [calendarTypesData])
 
   const [formData, setFormData] = useState<{
     title: string

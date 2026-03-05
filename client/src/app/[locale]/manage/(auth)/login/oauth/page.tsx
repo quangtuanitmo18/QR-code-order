@@ -1,5 +1,6 @@
 import Oauth from '@/app/[locale]/manage/(auth)/login/oauth/oauth'
 import { Metadata } from 'next'
+import { Suspense } from 'react'
 
 export const metadata: Metadata = {
   title: 'Google Login Redirect',
@@ -10,5 +11,9 @@ export const metadata: Metadata = {
 }
 
 export default function OAuthPage() {
-  return <Oauth />
+  return (
+    <Suspense fallback={null}>
+      <Oauth />
+    </Suspense>
+  )
 }

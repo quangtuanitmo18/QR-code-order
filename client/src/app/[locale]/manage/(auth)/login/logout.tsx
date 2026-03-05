@@ -1,9 +1,9 @@
 'use client'
 
-import { useAppStore } from '@/store/useAppStore'
-import { getAccessTokenFromLocalStorage, getRefreshTokenFromLocalStorage } from '@/lib/utils'
 import { useRouter } from '@/i18n/routing'
+import { getAccessTokenFromLocalStorage, getRefreshTokenFromLocalStorage } from '@/lib/utils'
 import { useLogoutMutation } from '@/queries/useAuth'
+import { useAppStore } from '@/store/useAppStore'
 import { useSearchParams } from 'next/navigation'
 import { memo, Suspense, useEffect, useRef } from 'react'
 
@@ -39,7 +39,7 @@ function LogoutComponent() {
 
 const Logout = memo(function LogoutInner() {
   return (
-    <Suspense>
+    <Suspense fallback={null}>
       <LogoutComponent />
     </Suspense>
   )

@@ -51,7 +51,7 @@ import {
 } from '@tanstack/react-table'
 import DOMPurify from 'dompurify'
 import { useSearchParams } from 'next/navigation'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { Suspense, createContext, useContext, useEffect, useState } from 'react'
 
 type DishItem = DishListResType['data'][0]
 
@@ -202,6 +202,14 @@ function AlertDialogDeleteDish({
 // Số lượng item trên 1 trang
 const PAGE_SIZE = 10
 export default function DishTable() {
+  return (
+    <Suspense fallback={null}>
+      <DishTableInner />
+    </Suspense>
+  )
+}
+
+function DishTableInner() {
   const searchParam = useSearchParams()
   const page = searchParam.get('page') ? Number(searchParam.get('page')) : 1
   const pageIndex = page - 1
