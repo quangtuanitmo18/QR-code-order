@@ -1,39 +1,39 @@
 import { ManagerRoom, Role } from '@/constants/type'
 import {
-    guestCreateOrdersController,
-    guestGetOrdersController,
-    guestLoginController,
-    guestLogoutController,
-    guestRefreshTokenController
+  guestCreateOrdersController,
+  guestGetOrdersController,
+  guestLoginController,
+  guestLogoutController,
+  guestRefreshTokenController
 } from '@/controllers/guest.controller'
 import { createPaymentController } from '@/controllers/payment.controller'
 import { requireGuestHook, requireLoginedHook } from '@/hooks/auth.hooks'
 import {
-    LogoutBody,
-    LogoutBodyType,
-    RefreshTokenBody,
-    RefreshTokenBodyType,
-    RefreshTokenRes,
-    RefreshTokenResType
+  LogoutBody,
+  LogoutBodyType,
+  RefreshTokenBody,
+  RefreshTokenBodyType,
+  RefreshTokenRes,
+  RefreshTokenResType
 } from '@/schemaValidations/auth.schema'
 import { MessageRes, MessageResType } from '@/schemaValidations/common.schema'
 import {
-    GuestCreateOrdersBody,
-    GuestCreateOrdersBodyType,
-    GuestCreateOrdersRes,
-    GuestCreateOrdersResType,
-    GuestGetOrdersRes,
-    GuestGetOrdersResType,
-    GuestLoginBody,
-    GuestLoginBodyType,
-    GuestLoginRes,
-    GuestLoginResType
+  GuestCreateOrdersBody,
+  GuestCreateOrdersBodyType,
+  GuestCreateOrdersRes,
+  GuestCreateOrdersResType,
+  GuestGetOrdersRes,
+  GuestGetOrdersResType,
+  GuestLoginBody,
+  GuestLoginBodyType,
+  GuestLoginRes,
+  GuestLoginResType
 } from '@/schemaValidations/guest.schema'
 import {
-    CreatePaymentBody,
-    CreatePaymentBodyType,
-    CreatePaymentRes,
-    CreatePaymentResType
+  CreatePaymentBody,
+  CreatePaymentBodyType,
+  CreatePaymentRes,
+  CreatePaymentResType
 } from '@/schemaValidations/payment.schema'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 

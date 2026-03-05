@@ -28,7 +28,7 @@ export const createSpinRewardController = async (body: CreateSpinRewardBodyType)
     isActive: body.isActive,
     order: body.order,
     maxQuantity: body.maxQuantity,
-    eventId: body.eventId,
+    eventId: body.eventId
   })
 }
 

@@ -107,6 +107,11 @@ export const columns: ColumnDef<DishItem>[] = [
     ),
   },
   {
+    accessorKey: 'category',
+    header: 'Category',
+    cell: ({ row }) => <div>{row.getValue('category')}</div>,
+  },
+  {
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => <div>{getDishStatus(row.getValue('status'))}</div>,

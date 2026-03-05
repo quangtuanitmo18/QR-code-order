@@ -91,10 +91,7 @@ export const spinRewardService = {
    * Update reward
    * @throws {EntityError} if not found
    */
-  async updateReward(
-    id: number,
-    data: UpdateSpinRewardBodyType
-  ) {
+  async updateReward(id: number, data: UpdateSpinRewardBodyType) {
     const existing = await spinRewardRepository.findById(id)
     if (!existing) {
       throw new EntityError([{ field: 'id', message: 'Reward not found' }])

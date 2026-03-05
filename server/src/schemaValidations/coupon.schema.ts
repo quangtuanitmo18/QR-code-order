@@ -95,13 +95,17 @@ export type CouponParamType = z.TypeOf<typeof CouponParam>
 
 export const GetCouponsRes = z.object({
   message: z.string(),
-  data: z.array(CouponSchema.extend({
-    createdBy: z.object({
-      id: z.number(),
-      name: z.string(),
-      email: z.string()
-    }).optional()
-  }))
+  data: z.array(
+    CouponSchema.extend({
+      createdBy: z
+        .object({
+          id: z.number(),
+          name: z.string(),
+          email: z.string()
+        })
+        .optional()
+    })
+  )
 })
 
 export type GetCouponsResType = z.TypeOf<typeof GetCouponsRes>
@@ -109,11 +113,13 @@ export type GetCouponsResType = z.TypeOf<typeof GetCouponsRes>
 export const GetCouponRes = z.object({
   message: z.string(),
   data: CouponSchema.extend({
-    createdBy: z.object({
-      id: z.number(),
-      name: z.string(),
-      email: z.string()
-    }).optional()
+    createdBy: z
+      .object({
+        id: z.number(),
+        name: z.string(),
+        email: z.string()
+      })
+      .optional()
   })
 })
 
@@ -139,5 +145,3 @@ export const DeleteCouponRes = z.object({
 })
 
 export type DeleteCouponResType = z.TypeOf<typeof DeleteCouponRes>
-
-

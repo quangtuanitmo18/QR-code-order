@@ -42,14 +42,24 @@ export const dishRepository = {
   },
 
   // Create dish
-  async create(data: { name: string; price: number; description: string; image: string; status?: string }) {
+  async create(data: {
+    name: string
+    price: number
+    description: string
+    image: string
+    category: string
+    status?: string
+  }) {
     return await prisma.dish.create({
       data
     })
   },
 
   // Update dish
-  async update(id: number, data: { name: string; price: number; description: string; image: string; status?: string }) {
+  async update(
+    id: number,
+    data: { name: string; price: number; description: string; image: string; category: string; status?: string }
+  ) {
     return await prisma.dish.update({
       where: { id },
       data
@@ -76,6 +86,7 @@ export const dishRepository = {
     price: number
     description: string
     image: string
+    category: string
     status: string
     dishId: number
   }) {

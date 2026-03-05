@@ -118,13 +118,13 @@ class CallService extends EventEmitter {
       enableUdp: mediasoupConfig.webRtcTransport.enableUdp,
       enableTcp: mediasoupConfig.webRtcTransport.enableTcp,
       preferUdp: mediasoupConfig.webRtcTransport.preferUdp,
-      initialAvailableOutgoingBitrate: mediasoupConfig.webRtcTransport.initialAvailableOutgoingBitrate,
+      initialAvailableOutgoingBitrate: mediasoupConfig.webRtcTransport.initialAvailableOutgoingBitrate
     })
 
     // Handle max bitrate limit
     await transport.setMaxIncomingBitrate(1500000) // 1.5 Mbps limit per transport for safety
 
-    transport.on('dtlsstatechange', dtlsState => {
+    transport.on('dtlsstatechange', (dtlsState) => {
       if (dtlsState === 'closed') {
         transport.close()
       }
@@ -144,13 +144,18 @@ class CallService extends EventEmitter {
   /**
    * Connect transport with DTLS paremeters derived from the client
    */
-  async connectTransport(conversationId: number, accountId: number, transportId: string, dtlsParameters: DtlsParameters) {
+  async connectTransport(
+    conversationId: number,
+    accountId: number,
+    transportId: string,
+    dtlsParameters: DtlsParameters
+  ) {
     const room = this.rooms.get(conversationId)
     if (!room) throw new Error('Room not found')
-    
+
     const peer = room.peers.get(accountId)
     if (!peer) throw new Error('Peer not found')
-    
+
     const transport = peer.transports.get(transportId)
     if (!transport) throw new Error('Transport not found')
 
@@ -170,10 +175,10 @@ class CallService extends EventEmitter {
   ) {
     const room = this.rooms.get(conversationId)
     if (!room) throw new Error('Room not found')
-    
+
     const peer = room.peers.get(accountId)
     if (!peer) throw new Error('Peer not found')
-    
+
     const transport = peer.transports.get(transportId)
     if (!transport) throw new Error('Transport not found')
 
@@ -209,7 +214,7 @@ class CallService extends EventEmitter {
   ) {
     const room = this.rooms.get(conversationId)
     if (!room) throw new Error('Room not found')
-    
+
     const peer = room.peers.get(accountId)
     if (!peer) throw new Error('Peer not found')
 
@@ -237,7 +242,7 @@ class CallService extends EventEmitter {
     consumer.on('producerclose', () => {
       consumer.close()
       peer.consumers.delete(consumer.id)
-       // we should ideally notify the client via socket when this happens organically
+      // we should ideally notify the client via socket when this happens organically
     })
 
     return {
@@ -271,7 +276,7 @@ class CallService extends EventEmitter {
     if (!peer) return
 
     // Find the producer matching the kind (audio/video)
-    const producer = Array.from(peer.producers.values()).find(p => p.kind === kind)
+    const producer = Array.from(peer.producers.values()).find((p) => p.kind === kind)
     if (producer) {
       await producer.pause()
     }
@@ -287,7 +292,7 @@ class CallService extends EventEmitter {
     const peer = room.peers.get(accountId)
     if (!peer) return
 
-    const producer = Array.from(peer.producers.values()).find(p => p.kind === kind)
+    const producer = Array.from(peer.producers.values()).find((p) => p.kind === kind)
     if (producer) {
       await producer.resume()
     }
@@ -302,7 +307,7 @@ class CallService extends EventEmitter {
 
     // Close all transports = closes all producers and consumers associated
     Array.from(room.peers.values()).forEach((peer) => {
-      Array.from(peer.transports.values()).forEach(t => t.close())
+      Array.from(peer.transports.values()).forEach((t) => t.close())
     })
 
     room.router.close()
@@ -319,7 +324,7 @@ class CallService extends EventEmitter {
     const peer = room.peers.get(accountId)
     if (!peer) return
 
-    Array.from(peer.transports.values()).forEach(t => t.close())
+    Array.from(peer.transports.values()).forEach((t) => t.close())
     room.peers.delete(accountId)
 
     // If room is empty, drop router

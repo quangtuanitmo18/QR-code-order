@@ -58,7 +58,13 @@ export default async function authRoutes(fastify: FastifyInstance, options: Fast
       reply.send({
         message: 'Login successful!',
         data: {
-          account: account as LoginResType['data']['account'],
+          account: {
+            id: account.id,
+            name: account.name,
+            email: account.email,
+            role: account.role as LoginResType['data']['account']['role'],
+            avatar: account.avatar ?? null
+          },
           accessToken,
           refreshToken
         }

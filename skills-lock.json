@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "skills": {
+    "frontend-testing": {
+      "source": "langgenius/dify",
+      "sourceType": "github",
+      "computedHash": "535be03e51f107346e360c67cb381bbf74e804531273ac60fc9ebc32a2f1130b"
+    },
+    "playwright-cli": {
+      "source": "microsoft/playwright-cli",
+      "sourceType": "github",
+      "computedHash": "7075ab30f588019197a2f1518bb4c9d33d69d33352af079b5f9c60303ad3886e"
+    },
+    "playwright-dev": {
+      "source": "microsoft/playwright",
+      "sourceType": "github",
+      "computedHash": "76bd2a4e6a25617693ec824e2acb4407856ae9b7f4fd8da3db5b2bceae14199f"
+    }
+  }
+}

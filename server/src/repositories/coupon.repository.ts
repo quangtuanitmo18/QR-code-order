@@ -105,4 +105,3 @@ export const couponRepository = {
     return result as number
   }
 }
-

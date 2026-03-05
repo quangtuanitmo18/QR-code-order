@@ -27,4 +27,7 @@ docs/
 .cursor/**/*.md
 .github/prompts
 
+.agents
+.agent
+
 shadcn-dashboard-landing-template/

@@ -1,33 +1,33 @@
 import {
-    createCalendarTypeController,
-    deleteCalendarTypeController,
-    getCalendarTypeByIdController,
-    getCalendarTypesController,
-    toggleVisibilityController,
-    updateCalendarTypeController
+  createCalendarTypeController,
+  deleteCalendarTypeController,
+  getCalendarTypeByIdController,
+  getCalendarTypesController,
+  toggleVisibilityController,
+  updateCalendarTypeController
 } from '@/controllers/calendar-type.controller'
 import { requireLoginedHook, requireOwnerHook } from '@/hooks/auth.hooks'
 import {
-    CalendarTypeIdParam,
-    CalendarTypeIdParamType,
-    CreateCalendarTypeBody,
-    CreateCalendarTypeBodyType,
-    CreateCalendarTypeRes,
-    CreateCalendarTypeResType,
-    DeleteCalendarTypeRes,
-    DeleteCalendarTypeResType,
-    GetCalendarTypeRes,
-    GetCalendarTypeResType,
-    GetCalendarTypesQueryParams,
-    GetCalendarTypesQueryParamsType,
-    GetCalendarTypesRes,
-    GetCalendarTypesResType,
-    ToggleVisibilityRes,
-    ToggleVisibilityResType,
-    UpdateCalendarTypeBody,
-    UpdateCalendarTypeBodyType,
-    UpdateCalendarTypeRes,
-    UpdateCalendarTypeResType
+  CalendarTypeIdParam,
+  CalendarTypeIdParamType,
+  CreateCalendarTypeBody,
+  CreateCalendarTypeBodyType,
+  CreateCalendarTypeRes,
+  CreateCalendarTypeResType,
+  DeleteCalendarTypeRes,
+  DeleteCalendarTypeResType,
+  GetCalendarTypeRes,
+  GetCalendarTypeResType,
+  GetCalendarTypesQueryParams,
+  GetCalendarTypesQueryParamsType,
+  GetCalendarTypesRes,
+  GetCalendarTypesResType,
+  ToggleVisibilityRes,
+  ToggleVisibilityResType,
+  UpdateCalendarTypeBody,
+  UpdateCalendarTypeBodyType,
+  UpdateCalendarTypeRes,
+  UpdateCalendarTypeResType
 } from '@/schemaValidations/calendar-type.schema'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 

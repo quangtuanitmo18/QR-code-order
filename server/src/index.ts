@@ -9,12 +9,14 @@ import { socketPlugin } from '@/plugins/socket.plugins'
 import validatorCompilerPlugin from '@/plugins/validatorCompiler.plugins'
 import accountRoutes from '@/routes/account.route'
 import adminSpinRoutes from '@/routes/admin-spin.route'
+import aiChatRoutes from '@/routes/ai-chat.route'
 import authRoutes from '@/routes/auth.route'
 import blogRoutes from '@/routes/blog.route'
 import calendarTypeRoutes from '@/routes/calendar-type.route'
 import calendarRoutes from '@/routes/calendar.route'
 import chatRoutes from '@/routes/chat.route'
 import couponRoutes from '@/routes/coupon.route'
+import dishCategoryRoutes from '@/routes/dish-category.route'
 import dishRoutes from '@/routes/dish.route'
 import employeeSpinRoutes from '@/routes/employee-spin.route'
 import fcmRoutes from '@/routes/fcm.route'
@@ -163,6 +165,9 @@ const start = async () => {
     fastify.register(dishRoutes, {
       prefix: '/dishes'
     })
+    fastify.register(dishCategoryRoutes, {
+      prefix: '/dish-categories'
+    })
     fastify.register(tablesRoutes, {
       prefix: '/tables'
     })
@@ -193,6 +198,7 @@ const start = async () => {
     fastify.register(taskAttachmentRoutes, { prefix: '/tasks' })
     fastify.register(chatRoutes, { prefix: '/chat' })
     fastify.register(fcmRoutes, { prefix: '/notifications' })
+    fastify.register(aiChatRoutes, { prefix: '/ai-chat' })
 
     // Initialize system data
     await initOwnerAccount()

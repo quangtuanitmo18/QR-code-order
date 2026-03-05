@@ -1,0 +1,812 @@
+import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcrypt'
+
+const prisma = new PrismaClient()
+
+async function main() {
+  if (process.env.NODE_ENV === 'production') {
+    console.warn('Seeding is not allowed in production environment.')
+    return
+  }
+
+  console.log('Seeding Database...')
+
+  // =========================================================================
+  // CLEAR EXISTING DATA
+  // We specify the order to maintain referential integrity (children first)
+  // =========================================================================
+  console.log('Clearing existing data...')
+
+  await prisma.couponUsage.deleteMany()
+  await prisma.orderItem.deleteMany()
+  await prisma.order.deleteMany()
+  await prisma.payment.deleteMany()
+
+  await prisma.taskComment.deleteMany()
+  await prisma.taskAttachment.deleteMany()
+  await prisma.task.deleteMany()
+
+  await prisma.messageReaction.deleteMany()
+  await prisma.messageReadReceipt.deleteMany()
+  await prisma.messageAttachment.deleteMany()
+  await prisma.message.deleteMany()
+  await prisma.conversationParticipant.deleteMany()
+  await prisma.conversationPin.deleteMany()
+  await prisma.conversation.deleteMany()
+
+  await prisma.calendarEventAssignment.deleteMany()
+  await prisma.calendarNotification.deleteMany()
+  await prisma.calendarEvent.deleteMany()
+  await prisma.calendarType.deleteMany()
+
+  await prisma.employeeSpin.deleteMany()
+  await prisma.spinReward.deleteMany()
+  await prisma.spinEvent.deleteMany()
+
+  await prisma.blogPost.deleteMany()
+
+  await prisma.coupon.deleteMany()
+  await prisma.review.deleteMany()
+  await prisma.fcmToken.deleteMany()
+  await prisma.socket.deleteMany()
+  await prisma.refreshToken.deleteMany()
+
+  await prisma.dishSnapshot.deleteMany()
+  await prisma.dish.deleteMany()
+
+  await prisma.guest.deleteMany()
+  await prisma.table.deleteMany()
+
+  await prisma.account.deleteMany()
+
+  // =========================================================================
+  // SEED DATA
+  // =========================================================================
+
+  console.log('Creating Accounts...')
+  const hashedPassword = await bcrypt.hash('password123', 10)
+
+  const admin = await prisma.account.create({
+    data: {
+      name: 'Admin User',
+      email: 'admin@example.com',
+      password: hashedPassword,
+      role: 'Owner'
+    }
+  })
+
+  const employee1 = await prisma.account.create({
+    data: {
+      name: 'Alice Employee',
+      email: 'alice@example.com',
+      password: hashedPassword,
+      role: 'Employee',
+      ownerId: admin.id
+    }
+  })
+
+  const employee2 = await prisma.account.create({
+    data: {
+      name: 'Bob Employee',
+      email: 'bob@example.com',
+      password: hashedPassword,
+      role: 'Employee',
+      ownerId: admin.id
+    }
+  })
+
+  console.log('Creating Tables...')
+  const table1 = await prisma.table.create({ data: { capacity: 2, token: 'tbl-token-1', number: 1 } })
+  const table2 = await prisma.table.create({ data: { capacity: 4, token: 'tbl-token-2', number: 2 } })
+  const table3 = await prisma.table.create({ data: { capacity: 6, token: 'tbl-token-3', number: 3 } })
+
+  console.log('Creating Dishes and Snapshots...')
+  const dishData = [
+    {
+      name: 'Spring Rolls',
+      price: 45000,
+      description: 'Crispy rolls with vegetables and pork',
+      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
+      category: 'Appetizers',
+      status: 'Available',
+      ingredients: 'Bánh tráng, thịt heo, cà rốt, mộc nhĩ, miến',
+      allergens: 'None',
+      tags: 'Chiên, Truyền thống'
+    },
+    {
+      name: 'Garlic Bread',
+      price: 35000,
+      description: 'Toasted baguette with garlic butter and herbs',
+      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
+      category: 'Appetizers',
+      status: 'Available',
+      ingredients: 'Bánh mì, bơ, tỏi, ngò tây',
+      allergens: 'Dairy, Gluten',
+      tags: 'Ăn nhẹ, Âu'
+    },
+    {
+      name: 'Chicken Wings',
+      price: 75000,
+      description: 'Spicy glazed chicken wings with ranch dip',
+      image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
+      category: 'Appetizers',
+      status: 'Available',
+      ingredients: 'Cánh gà, nước mắm, tỏi, ớt',
+      allergens: 'None',
+      tags: 'Cay nhẹ, Món nhậu'
+    },
+    {
+      name: 'Bruschetta',
+      price: 55000,
+      description: 'Grilled bread topped with tomatoes and basil',
+      image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
+      category: 'Appetizers',
+      status: 'Available'
+    },
+    {
+      name: 'Calamari Rings',
+      price: 85000,
+      description: 'Deep-fried squid rings with tartar sauce',
+      image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
+      category: 'Appetizers',
+      status: 'Available'
+    },
+    {
+      name: 'Cheese Sticks',
+      price: 60000,
+      description: 'Fried mozzarella sticks with marinara',
+      image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
+      category: 'Appetizers',
+      status: 'Available'
+    },
+    {
+      name: 'Nachos Supreme',
+      price: 90000,
+      description: 'Tortilla chips with cheese, jalapenos, and beef',
+      image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
+      category: 'Appetizers',
+      status: 'Available'
+    },
+    {
+      name: 'Shrimp Cocktail',
+      price: 110000,
+      description: 'Chilled shrimp with tangy cocktail sauce',
+      image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
+      category: 'Appetizers',
+      status: 'Available'
+    },
+    {
+      name: 'Onion Rings',
+      price: 40000,
+      description: 'Crispy battered onion rings',
+      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
+      category: 'Appetizers',
+      status: 'Available'
+    },
+    {
+      name: 'Stuffed Mushrooms',
+      price: 65000,
+      description: 'Mushrooms stuffed with cheese and herbs',
+      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
+      category: 'Appetizers',
+      status: 'Available'
+    },
+    {
+      name: 'Grilled Ribeye Steak',
+      price: 350000,
+      description: 'Premium beef steak with mashed potatoes',
+      image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available',
+      ingredients: 'Thịt bò Ribeye, khoai tây, bơ',
+      allergens: 'Dairy',
+      tags: 'Đắt tiền, Món nướng, Âu'
+    },
+    {
+      name: 'Salmon Fillet',
+      price: 280000,
+      description: 'Pan-seared salmon with asparagus and lemon butter',
+      image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available',
+      ingredients: 'Cá hồi, măng tây, bơ, chanh',
+      allergens: 'Seafood, Dairy',
+      tags: 'Healthy, Món cá'
+    },
+    {
+      name: 'Chicken Alfredo',
+      price: 150000,
+      description: 'Fettuccine pasta with creamy parmesan chicken',
+      image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available'
+    },
+    {
+      name: 'Margherita Pizza',
+      price: 120000,
+      description: 'Classic pizza with fresh mozzarella and basil',
+      image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available'
+    },
+    {
+      name: 'Beef Burger',
+      price: 130000,
+      description: 'Juicy beef patty with cheese, lettuce, and fries',
+      image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available'
+    },
+    {
+      name: 'BBQ Pork Ribs',
+      price: 250000,
+      description: 'Slow-cooked ribs with smoky BBQ sauce',
+      image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available'
+    },
+    {
+      name: 'Vegetarian Lasagna',
+      price: 140000,
+      description: 'Layered pasta with roasted vegetables and cheese',
+      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available',
+      ingredients: 'Mì Lasagna, cà tím, nấm, sốt cà chua, phô mai',
+      allergens: 'Gluten, Dairy',
+      tags: 'Chay, Truyền thống'
+    },
+    {
+      name: 'Pad Thai',
+      price: 110000,
+      description: 'Thai stir-fried rice noodles with shrimp and peanuts',
+      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available',
+      ingredients: 'Phở Thái, tôm tươi, đậu phộng rang, giá đỗ, me, trứng xào',
+      allergens: 'Peanuts, Seafood, Egg',
+      tags: 'Cay nhẹ, Ngoại lai'
+    },
+    {
+      name: 'Chicken Tikka Masala',
+      price: 160000,
+      description: 'Spicy Indian chicken curry with basmati rice',
+      image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available'
+    },
+    {
+      name: 'Fish and Chips',
+      price: 145000,
+      description: 'Crispy battered cod with thick-cut fries',
+      image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available'
+    },
+    {
+      name: 'Beef Noodle Soup',
+      price: 65000,
+      description: 'Traditional Vietnamese Pho with rare beef',
+      image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available',
+      ingredients: 'Bánh phở, thịt bò, nước hầm xương bò, thảo quả, quế, hồi, hành tây',
+      allergens: 'None',
+      tags: 'Đặc sản, Bán chạy'
+    },
+    {
+      name: 'Grilled Pork Rice',
+      price: 55000,
+      description: 'Broken rice with grilled pork chop and egg',
+      image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available'
+    },
+    {
+      name: 'Spaghetti Bolognese',
+      price: 135000,
+      description: 'Classic Italian meat sauce pasta',
+      image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available'
+    },
+    {
+      name: 'Mushroom Risotto',
+      price: 165000,
+      description: 'Creamy Arborio rice with wild mushrooms',
+      image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available'
+    },
+    {
+      name: 'Roast Duck',
+      price: 220000,
+      description: 'Crispy skin roast duck with hoisin sauce',
+      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
+      category: 'Main Courses',
+      status: 'Available'
+    },
+    {
+      name: 'Tiramisu',
+      price: 85000,
+      description: 'Classic Italian coffee-flavored dessert',
+      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
+      category: 'Desserts',
+      status: 'Available'
+    },
+    {
+      name: 'Cheesecake',
+      price: 90000,
+      description: 'New York style cheesecake with strawberry topping',
+      image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
+      category: 'Desserts',
+      status: 'Available'
+    },
+    {
+      name: 'Chocolate Lava Cake',
+      price: 95000,
+      description: 'Warm chocolate cake with molten center',
+      image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
+      category: 'Desserts',
+      status: 'Available'
+    },
+    {
+      name: 'Ice Cream Sundae',
+      price: 60000,
+      description: 'Vanilla ice cream with chocolate syrup and nuts',
+      image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
+      category: 'Desserts',
+      status: 'Available'
+    },
+    {
+      name: 'Panna Cotta',
+      price: 75000,
+      description: 'Creamy Italian dessert with mixed berries',
+      image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
+      category: 'Desserts',
+      status: 'Available'
+    },
+    {
+      name: 'Apple Pie',
+      price: 80000,
+      description: 'Traditional pie with cinnamon apples and crust',
+      image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
+      category: 'Desserts',
+      status: 'Available'
+    },
+    {
+      name: 'Matcha Mille Crepe',
+      price: 110000,
+      description: 'Layered green tea crepe cake',
+      image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
+      category: 'Desserts',
+      status: 'Available'
+    },
+    {
+      name: 'Creme Brulee',
+      price: 85000,
+      description: 'Rich custard base topped with hardened caramelized sugar',
+      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
+      category: 'Desserts',
+      status: 'Available'
+    },
+    {
+      name: 'Fruit Tart',
+      price: 70000,
+      description: 'Sweet pastry crust filled with custard and fresh fruits',
+      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
+      category: 'Desserts',
+      status: 'Available'
+    },
+    {
+      name: 'Coconut Flan',
+      price: 55000,
+      description: 'Caramel custard with a hint of coconut',
+      image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
+      category: 'Desserts',
+      status: 'Available'
+    },
+    {
+      name: 'Iced Milk Coffee',
+      price: 35000,
+      description: 'Traditional Vietnamese drip coffee with condensed milk',
+      image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
+      category: 'Beverages',
+      status: 'Available'
+    },
+    {
+      name: 'Peach Tea',
+      price: 40000,
+      description: 'Refreshing black tea with peach slices',
+      image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
+      category: 'Beverages',
+      status: 'Available'
+    },
+    {
+      name: 'Mango Smoothie',
+      price: 55000,
+      description: 'Blended fresh mango with milk',
+      image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
+      category: 'Beverages',
+      status: 'Available'
+    },
+    {
+      name: 'Fresh Orange Juice',
+      price: 45000,
+      description: 'Freshly squeezed oranges',
+      image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
+      category: 'Beverages',
+      status: 'Available'
+    },
+    {
+      name: 'Matcha Latte',
+      price: 50000,
+      description: 'Green tea powder with steamed milk',
+      image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
+      category: 'Beverages',
+      status: 'Available'
+    },
+    {
+      name: 'Coca Cola',
+      price: 25000,
+      description: 'Classic soda',
+      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
+      category: 'Beverages',
+      status: 'Available'
+    },
+    {
+      name: 'Lemonade',
+      price: 35000,
+      description: 'Freshly squeezed lemon with syrup and mint',
+      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
+      category: 'Beverages',
+      status: 'Available'
+    },
+    {
+      name: 'Craft Beer',
+      price: 85000,
+      description: 'Local pale ale beer',
+      image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
+      category: 'Beverages',
+      status: 'Available'
+    },
+    {
+      name: 'Red Wine Glass',
+      price: 120000,
+      description: 'House red wine',
+      image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
+      category: 'Beverages',
+      status: 'Available'
+    },
+    {
+      name: 'Mineral Water',
+      price: 20000,
+      description: 'Bottled natural spring water',
+      image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
+      category: 'Beverages',
+      status: 'Available'
+    },
+    {
+      name: 'French Fries',
+      price: 40000,
+      description: 'Crispy shoestring potatoes',
+      image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
+      category: 'Sides',
+      status: 'Available'
+    },
+    {
+      name: 'Mashed Potatoes',
+      price: 45000,
+      description: 'Creamy buttery potatoes',
+      image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
+      category: 'Sides',
+      status: 'Available'
+    },
+    {
+      name: 'Steamed Vegetables',
+      price: 50000,
+      description: 'Seasonal broccoli, carrots, and cauliflower',
+      image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
+      category: 'Sides',
+      status: 'Available'
+    },
+    {
+      name: 'Garlic Fried Rice',
+      price: 35000,
+      description: 'Wok-fried rice with crispy garlic',
+      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
+      category: 'Sides',
+      status: 'Available'
+    },
+    {
+      name: 'Side Salad',
+      price: 45000,
+      description: 'Mixed greens with balsamic vinaigrette',
+      image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
+      category: 'Sides',
+      status: 'Available'
+    }
+  ]
+
+  const dishes = []
+  const dishSnapshots = []
+  for (const data of dishData) {
+    const d = await prisma.dish.create({ data })
+    const snap = await prisma.dishSnapshot.create({
+      data: {
+        name: d.name,
+        price: d.price,
+        description: d.description,
+        image: d.image,
+        category: d.category,
+        status: d.status,
+        dishId: d.id
+      }
+    })
+    dishes.push(d)
+    dishSnapshots.push(snap)
+  }
+
+  console.log('Creating Guests...')
+  const guest1 = await prisma.guest.create({
+    data: {
+      name: 'John Doe',
+      tableNumber: table1.number
+    }
+  })
+
+  const guest2 = await prisma.guest.create({
+    data: {
+      name: 'Jane Smith',
+      tableNumber: table2.number
+    }
+  })
+
+  console.log('Creating Coupons...')
+  const couponFixed = await prisma.coupon.create({
+    data: {
+      code: 'DISCOUNT50',
+      discountType: 'FIXED_AMOUNT',
+      discountValue: 50000,
+      minOrderAmount: 100000,
+      startDate: new Date(),
+      endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+      status: 'ACTIVE',
+      createdById: admin.id,
+      maxTotalUsage: 100,
+      usageCount: 0
+    }
+  })
+
+  const couponPercent = await prisma.coupon.create({
+    data: {
+      code: 'SUMMER20',
+      discountType: 'PERCENTAGE',
+      discountValue: 20,
+      startDate: new Date(),
+      endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+      status: 'ACTIVE',
+      createdById: admin.id,
+      maxTotalUsage: 50,
+      usageCount: 0
+    }
+  })
+
+  console.log('Creating Orders and Order Items...')
+  const order1 = await prisma.order.create({
+    data: {
+      guestId: guest1.id,
+      tableNumber: table1.number,
+      totalAmount: 70000, // 50000 + 20000
+      status: 'Paid',
+      orderHandlerId: employee1.id,
+      items: {
+        create: [
+          { dishSnapshotId: dishSnapshots[0].id, quantity: 1, unitPrice: 50000, totalPrice: 50000 },
+          { dishSnapshotId: dishSnapshots[2].id, quantity: 1, unitPrice: 20000, totalPrice: 20000 }
+        ]
+      }
+    }
+  })
+
+  const order2 = await prisma.order.create({
+    data: {
+      guestId: guest2.id,
+      tableNumber: table2.number,
+      totalAmount: 70000, // (45000 + 25000) - 14000 discount
+      status: 'Pending',
+      orderHandlerId: employee2.id,
+      couponId: couponPercent.id,
+      discountAmount: 14000,
+      items: {
+        create: [
+          { dishSnapshotId: dishSnapshots[1].id, quantity: 1, unitPrice: 45000, totalPrice: 45000 },
+          { dishSnapshotId: dishSnapshots[3].id, quantity: 1, unitPrice: 25000, totalPrice: 25000 }
+        ]
+      }
+    }
+  })
+
+  console.log('Creating Payments...')
+  await prisma.payment.create({
+    data: {
+      guestId: guest1.id,
+      amount: 70000,
+      paymentMethod: 'Cash',
+      status: 'Paid',
+      transactionRef: 'TRX-' + Date.now(),
+      paymentHandlerId: employee1.id,
+      tableNumber: table1.number,
+      orders: {
+        connect: [{ id: order1.id }]
+      }
+    }
+  })
+
+  // Update order1 with the payment via relation update
+  const payment1 = await prisma.payment.findFirst({ where: { orders: { some: { id: order1.id } } } })
+  if (payment1) {
+    await prisma.order.update({
+      where: { id: order1.id },
+      data: { paymentId: payment1.id }
+    })
+  }
+
+  console.log('Creating Reviews...')
+  await prisma.review.create({
+    data: {
+      guestId: guest1.id,
+      overallRating: 5,
+      foodQuality: 5,
+      serviceQuality: 5,
+      ambiance: 4,
+      priceValue: 5,
+      comment: 'Excellent, the food is very delicious',
+      status: 'VISIBLE',
+      approvedBy: admin.id,
+      approvedAt: new Date()
+    }
+  })
+
+  console.log('Creating Blog Posts...')
+  await prisma.blogPost.create({
+    data: {
+      title: 'Grand opening of new branch',
+      slug: 'grand-opening-new-branch',
+      excerpt: 'We are very excited to announce the opening of a new branch...',
+      content: '# Grand opening of new branch \n\n In District 1, HCMC...',
+      status: 'PUBLISHED',
+      authorId: admin.id,
+      publishedAt: new Date()
+    }
+  })
+
+  await prisma.blogPost.create({
+    data: {
+      title: 'New dishes this summer',
+      slug: 'new-dishes-this-summer',
+      excerpt: 'What is hot this summer?',
+      content: '# New dishes this summer \n\n Try our super cool Bun Cha now...',
+      status: 'PUBLISHED',
+      authorId: admin.id,
+      publishedAt: new Date()
+    }
+  })
+
+  console.log('Creating Calendars and Events...')
+  const shiftCalendar = await prisma.calendarType.create({
+    data: {
+      name: 'work_shift',
+      label: 'Work Schedule',
+      category: 'work',
+      createdById: admin.id
+    }
+  })
+
+  const event1 = await prisma.calendarEvent.create({
+    data: {
+      title: 'Morning Shift',
+      typeId: shiftCalendar.id,
+      startDate: new Date(new Date().setHours(8, 0, 0, 0)),
+      endDate: new Date(new Date().setHours(16, 0, 0, 0)),
+      createdById: admin.id,
+      assignments: {
+        create: [{ employeeId: employee1.id }]
+      }
+    }
+  })
+
+  console.log('Creating Tasks...')
+  const task1 = await prisma.task.create({
+    data: {
+      title: 'Clean up table area 2',
+      description: 'The customers just left, please clean table 2.',
+      category: 'Improvement',
+      status: 'todo',
+      priority: 'normal',
+      assignedToId: employee2.id,
+      createdById: admin.id
+    }
+  })
+
+  console.log('Creating Conversations & Messages...')
+  const convo = await prisma.conversation.create({
+    data: {
+      type: 'group',
+      name: 'Full Time Employees',
+      createdById: admin.id,
+      participants: {
+        create: [{ accountId: admin.id }, { accountId: employee1.id }, { accountId: employee2.id }]
+      }
+    }
+  })
+
+  await prisma.message.create({
+    data: {
+      conversationId: convo.id,
+      senderId: admin.id,
+      content: 'Good morning everyone!'
+    }
+  })
+
+  await prisma.message.create({
+    data: {
+      conversationId: convo.id,
+      senderId: employee1.id,
+      content: 'Hello boss!'
+    }
+  })
+
+  console.log('Creating Spin Events and Rewards...')
+  const spinEvent = await prisma.spinEvent.create({
+    data: {
+      name: 'Lunar New Year Spin',
+      description: 'For all employees',
+      startDate: new Date(),
+      endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+      createdById: admin.id
+    }
+  })
+
+  const reward1 = await prisma.spinReward.create({
+    data: {
+      name: '1 Extra Day Off',
+      type: 'LEAVE',
+      probability: 0.1,
+      eventId: spinEvent.id,
+      maxQuantity: 5,
+      currentQuantity: 0
+    }
+  })
+
+  const reward2 = await prisma.spinReward.create({
+    data: {
+      name: 'Voucher 500k',
+      type: 'VOUCHER',
+      probability: 0.3,
+      eventId: spinEvent.id,
+      maxQuantity: 20,
+      currentQuantity: 0
+    }
+  })
+
+  await prisma.employeeSpin.create({
+    data: {
+      employeeId: employee1.id,
+      eventId: spinEvent.id,
+      createdById: admin.id,
+      status: 'PENDING'
+    }
+  })
+
+  console.log('✅ Seeding completely finished.')
+}
+
+main()
+  .catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
+  .finally(async () => {
+    await prisma.$disconnect()
+  })

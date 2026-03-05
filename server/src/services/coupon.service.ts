@@ -12,7 +12,12 @@ export type ValidateCouponParams = {
 }
 
 export type ValidateCouponResult =
-  | { valid: true; coupon: { id: number; code: string; discountType: string; discountValue: number }; discountAmount: number; finalAmount: number }
+  | {
+      valid: true
+      coupon: { id: number; code: string; discountType: string; discountValue: number }
+      discountAmount: number
+      finalAmount: number
+    }
   | { valid: false; message: string }
 
 export const couponService = {
@@ -172,4 +177,3 @@ export const couponService = {
     return await couponRepository.delete(id)
   }
 }
-

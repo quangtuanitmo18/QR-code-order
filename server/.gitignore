@@ -10,3 +10,6 @@ dist/
 /prisma/dev.db
 
 /uploads
+# Test database
+prisma/test.db
+prisma/test.db-journal

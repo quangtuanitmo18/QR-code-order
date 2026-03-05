@@ -1,8 +1,8 @@
 import {
-    EmployeeSpinIdParamType,
-    GetAllSpinsQueryParamsType,
-    GrantSpinBodyType,
-    UpdateSpinBodyType
+  EmployeeSpinIdParamType,
+  GetAllSpinsQueryParamsType,
+  GrantSpinBodyType,
+  UpdateSpinBodyType
 } from '@/schemaValidations/employee-spin.schema'
 import { adminSpinService } from '@/services/admin-spin.service'
 
