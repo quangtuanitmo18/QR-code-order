@@ -19,7 +19,7 @@ export default async function globalSetup() {
   try {
     execSync('npx prisma db push --skip-generate --accept-data-loss', {
       cwd: path.resolve(__dirname, '../..'),
-      env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL },
+      env: { ...process.env, DATABASE_URL: process.env.DATABASE_URL } as NodeJS.ProcessEnv,
       stdio: 'pipe'
     })
     console.log('✅ [Test Setup] Database schema pushed successfully')

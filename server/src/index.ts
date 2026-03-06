@@ -153,6 +153,11 @@ const start = async () => {
       loggerStorage.run(request.log, done)
     })
 
+    // Cleanup background jobs on shutdown
+    fastify.addHook('onClose', async (instance) => {
+      aiMemoryService.stopCleanupJob()
+    })
+
     fastify.register(authRoutes, {
       prefix: '/auth'
     })

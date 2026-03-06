@@ -17,14 +17,16 @@ export async function aiChatController(fastify: FastifyInstance) {
           timeWindow: '1 minute'
         }
       },
-      preValidation: fastify.auth([requireLoginedHook, requireGuestHook])
+      preValidation: fastify.auth([requireLoginedHook, requireGuestHook], { relation: 'or' })
     },
     async (request, reply) => {
       const { messages, sessionId } = request.body as ChatRequestBody
-      const userId = request.decodedAccessToken?.userId?.toString() || 'guest'
+      const guestId = (request as any).decodedAccessToken?.guestId as number | undefined
+      // Only use userId as accountId when it's a real account (not a guest)
+      const userId = guestId ? 'guest' : request.decodedAccessToken?.userId?.toString() || 'guest'
 
       // Handle streaming response — reply.hijack() is called inside the service
-      await aiChatService.handleChat(messages, userId, sessionId, reply)
+      await aiChatService.handleChat(messages, userId, sessionId, reply, guestId)
     }
   )
 

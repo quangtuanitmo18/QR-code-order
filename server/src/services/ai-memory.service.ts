@@ -1,4 +1,5 @@
 import prisma from '@/database'
+import { getContextLogger } from '@/utils/logger'
 
 class AiMemoryService {
   private readonly cleanupIntervalMs = 12 * 60 * 60 * 1000 // 12 hours
@@ -28,10 +29,12 @@ class AiMemoryService {
           }
         })
         if (result.count > 0) {
-          console.log(`[AI Memory] Auto-cleanup: Deleted ${result.count} old chat sessions.`)
+          const log = getContextLogger()
+          log?.info(`[AI Memory] Auto-cleanup: Deleted ${result.count} old chat sessions.`)
         }
       } catch (error) {
-        console.error('[AI Memory] Error during auto-cleanup:', error)
+        const log = getContextLogger()
+        log?.error({ err: error }, '[AI Memory] Error during auto-cleanup')
       }
     }, this.cleanupIntervalMs)
   }
@@ -61,7 +64,8 @@ class AiMemoryService {
 
       return JSON.parse(session.messages)
     } catch (error) {
-      console.error(`[AI Memory] Error getting session ${sessionId}:`, error)
+      const log = getContextLogger()
+      log?.error({ err: error }, `[AI Memory] Error getting session ${sessionId}`)
       return [] // Return empty array on error to gracefully fallback
     }
   }
@@ -76,12 +80,24 @@ class AiMemoryService {
     usage?: { promptTokens: number; completionTokens: number; totalTokens: number }
   ) {
     try {
+      // Build user connection data — only include if IDs actually exist
+      const userUpdateData: Record<string, any> = {}
+      const userCreateData: Record<string, any> = {}
+
+      if (userId?.guestId) {
+        userUpdateData.guestId = userId.guestId
+        userCreateData.guestId = userId.guestId
+      }
+      if (userId?.accountId) {
+        userUpdateData.accountId = userId.accountId
+        userCreateData.accountId = userId.accountId
+      }
+
       await prisma.aiChatSession.upsert({
         where: { id: sessionId },
         update: {
           messages: JSON.stringify(messages),
-          ...(userId?.guestId && { guestId: userId.guestId }),
-          ...(userId?.accountId && { accountId: userId.accountId }),
+          ...userUpdateData,
           ...(usage && {
             promptTokens: { increment: usage.promptTokens },
             completionTokens: { increment: usage.completionTokens },
@@ -91,15 +107,60 @@ class AiMemoryService {
         create: {
           id: sessionId,
           messages: JSON.stringify(messages),
-          guestId: userId?.guestId,
-          accountId: userId?.accountId,
+          ...userCreateData,
           promptTokens: usage?.promptTokens || 0,
           completionTokens: usage?.completionTokens || 0,
           totalTokens: usage?.totalTokens || 0
         }
       })
-    } catch (error) {
-      console.error(`[AI Memory] Error saving session ${sessionId}:`, error)
+    } catch (error: any) {
+      // FK constraint failed (P2003) — guest/account ID doesn't exist in DB
+      // Retry without user link so we still persist messages + token usage
+      if (error?.code === 'P2003') {
+        const log = getContextLogger()
+        log?.warn(`[AI Memory] FK constraint failed for session ${sessionId}, saving without user link`)
+        try {
+          await prisma.aiChatSession.upsert({
+            where: { id: sessionId },
+            update: {
+              messages: JSON.stringify(messages),
+              ...(usage && {
+                promptTokens: { increment: usage.promptTokens },
+                completionTokens: { increment: usage.completionTokens },
+                totalTokens: { increment: usage.totalTokens }
+              })
+            },
+            create: {
+              id: sessionId,
+              messages: JSON.stringify(messages),
+              promptTokens: usage?.promptTokens || 0,
+              completionTokens: usage?.completionTokens || 0,
+              totalTokens: usage?.totalTokens || 0
+            }
+          })
+        } catch (retryError) {
+          const log2 = getContextLogger()
+          log2?.error({ err: retryError }, `[AI Memory] Retry also failed for session ${sessionId}`)
+        }
+      } else {
+        const log = getContextLogger()
+        log?.error({ err: error }, `[AI Memory] Error saving session ${sessionId}`)
+      }
+    }
+  }
+
+  /**
+   * Get total tokens consumed by a session.
+   */
+  async getSessionTokens(sessionId: string): Promise<number> {
+    try {
+      const session = await prisma.aiChatSession.findUnique({
+        where: { id: sessionId },
+        select: { totalTokens: true }
+      })
+      return session?.totalTokens || 0
+    } catch {
+      return 0
     }
   }
 

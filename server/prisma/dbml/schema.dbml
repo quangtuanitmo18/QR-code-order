@@ -552,7 +552,8 @@ Table FcmToken {
 Table RestaurantSetting {
   key String [pk]
   value String [not null]
-  description String
+  label String [not null, default: '']
+  group String [not null, default: 'general']
   updatedAt DateTime [not null]
 }
 
@@ -560,6 +561,8 @@ Table FAQ {
   id Int [pk, increment]
   question String [not null]
   answer String [not null]
+  category String [not null, default: 'general']
+  sortOrder Int [not null, default: 0]
   isActive Boolean [not null, default: true]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
@@ -570,6 +573,9 @@ Table AiChatSession {
   guestId Int
   accountId Int
   messages String [not null]
+  promptTokens Int [not null, default: 0]
+  completionTokens Int [not null, default: 0]
+  totalTokens Int [not null, default: 0]
   createdAt DateTime [default: `now()`, not null]
   updatedAt DateTime [not null]
   guest Guest

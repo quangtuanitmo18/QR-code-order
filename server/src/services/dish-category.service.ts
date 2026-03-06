@@ -8,13 +8,13 @@ export const dishCategoryService = {
 
   async getCategoryById(id: number) {
     const category = await dishCategoryRepository.findById(id)
-    if (!category) throw new StatusError(404, 'Dish category not found')
+    if (!category) throw new StatusError({ status: 404, message: 'Dish category not found' })
     return category
   },
 
   async createCategory(data: { name: string; description?: string | null }) {
     const existing = await dishCategoryRepository.findByName(data.name)
-    if (existing) throw new StatusError(409, `Category '${data.name}' already exists`)
+    if (existing) throw new StatusError({ status: 409, message: `Category '${data.name}' already exists` })
     return await dishCategoryRepository.create(data)
   },
 
@@ -23,7 +23,7 @@ export const dishCategoryService = {
     if (data.name) {
       const existing = await dishCategoryRepository.findByName(data.name)
       if (existing && existing.id !== id) {
-        throw new StatusError(409, `Category '${data.name}' already exists`)
+        throw new StatusError({ status: 409, message: `Category '${data.name}' already exists` })
       }
     }
     return await dishCategoryRepository.update(id, data)

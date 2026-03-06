@@ -53,6 +53,7 @@ async function main() {
 
   await prisma.dishSnapshot.deleteMany()
   await prisma.dish.deleteMany()
+  await prisma.dishCategory.deleteMany()
 
   await prisma.guest.deleteMany()
   await prisma.table.deleteMany()
@@ -100,6 +101,18 @@ async function main() {
   const table2 = await prisma.table.create({ data: { capacity: 4, token: 'tbl-token-2', number: 2 } })
   const table3 = await prisma.table.create({ data: { capacity: 6, token: 'tbl-token-3', number: 3 } })
 
+  console.log('Creating Dish Categories...')
+  const categories = [
+    { name: 'Appetizers', description: 'Delicious appetizer dishes' },
+    { name: 'Main Courses', description: 'Hearty main course dishes' },
+    { name: 'Desserts', description: 'Sweet dessert treats' },
+    { name: 'Beverages', description: 'Refreshing drinks' },
+    { name: 'Sides', description: 'Variety of side dishes' }
+  ]
+  for (const c of categories) {
+    await prisma.dishCategory.create({ data: c })
+  }
+
   console.log('Creating Dishes and Snapshots...')
   const dishData = [
     {
@@ -109,9 +122,9 @@ async function main() {
       image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
       status: 'Available',
-      ingredients: 'Bánh tráng, thịt heo, cà rốt, mộc nhĩ, miến',
+      ingredients: 'Rice paper, pork, carrots, wood ear mushrooms, glass noodles',
       allergens: 'None',
-      tags: 'Chiên, Truyền thống'
+      tags: 'Fried, Traditional'
     },
     {
       name: 'Garlic Bread',
@@ -120,9 +133,9 @@ async function main() {
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
       status: 'Available',
-      ingredients: 'Bánh mì, bơ, tỏi, ngò tây',
+      ingredients: 'Baguette, butter, garlic, parsley',
       allergens: 'Dairy, Gluten',
-      tags: 'Ăn nhẹ, Âu'
+      tags: 'Snack, Western'
     },
     {
       name: 'Chicken Wings',
@@ -131,9 +144,9 @@ async function main() {
       image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
       status: 'Available',
-      ingredients: 'Cánh gà, nước mắm, tỏi, ớt',
+      ingredients: 'Chicken wings, fish sauce, garlic, chili',
       allergens: 'None',
-      tags: 'Cay nhẹ, Món nhậu'
+      tags: 'Spicy, Finger Food'
     },
     {
       name: 'Bruschetta',
@@ -141,7 +154,10 @@ async function main() {
       description: 'Grilled bread topped with tomatoes and basil',
       image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Toasted bread, tomatoes, basil, olive oil, garlic',
+      allergens: 'Gluten',
+      tags: 'Snack, Italian Appetizer, Vegetarian'
     },
     {
       name: 'Calamari Rings',
@@ -149,7 +165,10 @@ async function main() {
       description: 'Deep-fried squid rings with tartar sauce',
       image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Squid, crispy batter, pepper, tartar sauce',
+      allergens: 'Seafood, Gluten, Egg',
+      tags: 'Seafood, Deep Fried'
     },
     {
       name: 'Cheese Sticks',
@@ -157,7 +176,10 @@ async function main() {
       description: 'Fried mozzarella sticks with marinara',
       image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Mozzarella cheese, breadcrumbs, marinara sauce',
+      allergens: 'Dairy, Gluten',
+      tags: 'Cheese, Snack'
     },
     {
       name: 'Nachos Supreme',
@@ -165,7 +187,10 @@ async function main() {
       description: 'Tortilla chips with cheese, jalapenos, and beef',
       image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Tortilla chips, minced beef, cheddar cheese, jalapenos, salsa',
+      allergens: 'Dairy, Gluten',
+      tags: 'Mexican, Mildly Spicy, Sharable'
     },
     {
       name: 'Shrimp Cocktail',
@@ -173,7 +198,10 @@ async function main() {
       description: 'Chilled shrimp with tangy cocktail sauce',
       image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Fresh shrimp, lemon, tangy cocktail sauce',
+      allergens: 'Seafood',
+      tags: 'Seafood, Refreshing'
     },
     {
       name: 'Onion Rings',
@@ -181,7 +209,10 @@ async function main() {
       description: 'Crispy battered onion rings',
       image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Onions, crispy batter, spices',
+      allergens: 'Gluten',
+      tags: 'Fried, Vegetarian, Snack'
     },
     {
       name: 'Stuffed Mushrooms',
@@ -189,7 +220,10 @@ async function main() {
       description: 'Mushrooms stuffed with cheese and herbs',
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Button mushrooms, parmesan cheese, garlic, parsley, breadcrumbs',
+      allergens: 'Dairy, Gluten',
+      tags: 'Vegetarian, Healthy, Baked'
     },
     {
       name: 'Grilled Ribeye Steak',
@@ -198,9 +232,9 @@ async function main() {
       image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
       status: 'Available',
-      ingredients: 'Thịt bò Ribeye, khoai tây, bơ',
+      ingredients: 'Ribeye beef, potatoes, butter, salt and pepper, garlic',
       allergens: 'Dairy',
-      tags: 'Đắt tiền, Món nướng, Âu'
+      tags: 'Premium, Grilled, Western'
     },
     {
       name: 'Salmon Fillet',
@@ -209,9 +243,9 @@ async function main() {
       image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
       status: 'Available',
-      ingredients: 'Cá hồi, măng tây, bơ, chanh',
+      ingredients: 'Salmon, asparagus, butter, lemon, dill',
       allergens: 'Seafood, Dairy',
-      tags: 'Healthy, Món cá'
+      tags: 'Healthy, Fish'
     },
     {
       name: 'Chicken Alfredo',
@@ -219,7 +253,10 @@ async function main() {
       description: 'Fettuccine pasta with creamy parmesan chicken',
       image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Fettuccine pasta, chicken breast, heavy cream, parmesan cheese, garlic',
+      allergens: 'Dairy, Gluten',
+      tags: 'Pasta, Creamy'
     },
     {
       name: 'Margherita Pizza',
@@ -227,7 +264,10 @@ async function main() {
       description: 'Classic pizza with fresh mozzarella and basil',
       image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Pizza crust, tomato sauce, fresh mozzarella cheese, basil',
+      allergens: 'Dairy, Gluten',
+      tags: 'Pizza, Traditional Italian, Vegetarian'
     },
     {
       name: 'Beef Burger',
@@ -235,7 +275,10 @@ async function main() {
       description: 'Juicy beef patty with cheese, lettuce, and fries',
       image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Burger bun, ground beef, cheddar cheese, lettuce, tomatoes, french fries',
+      allergens: 'Dairy, Gluten',
+      tags: 'Burger, Savory'
     },
     {
       name: 'BBQ Pork Ribs',
@@ -243,7 +286,10 @@ async function main() {
       description: 'Slow-cooked ribs with smoky BBQ sauce',
       image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Pork ribs, BBQ sauce, honey, black pepper',
+      allergens: 'None',
+      tags: 'Grilled Meat, Main'
     },
     {
       name: 'Vegetarian Lasagna',
@@ -252,9 +298,9 @@ async function main() {
       image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
       status: 'Available',
-      ingredients: 'Mì Lasagna, cà tím, nấm, sốt cà chua, phô mai',
+      ingredients: 'Lasagna sheets, eggplant, mushrooms, tomato sauce, mozzarella cheese',
       allergens: 'Gluten, Dairy',
-      tags: 'Chay, Truyền thống'
+      tags: 'Vegetarian, Traditional, Oven Baked'
     },
     {
       name: 'Pad Thai',
@@ -263,9 +309,9 @@ async function main() {
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
       status: 'Available',
-      ingredients: 'Phở Thái, tôm tươi, đậu phộng rang, giá đỗ, me, trứng xào',
-      allergens: 'Peanuts, Seafood, Egg',
-      tags: 'Cay nhẹ, Ngoại lai'
+      ingredients: 'Thai rice noodles, fresh shrimp, roasted peanuts, bean sprouts, tamarind, stir-fried egg',
+      allergens: 'Peanuts, Seafood, Egg, Gluten',
+      tags: 'Mildly Spicy, Exotic, Best Seller'
     },
     {
       name: 'Chicken Tikka Masala',
@@ -273,7 +319,10 @@ async function main() {
       description: 'Spicy Indian chicken curry with basmati rice',
       image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Chicken, spicy tomato sauce, masala spices, basmati rice, yogurt',
+      allergens: 'Dairy',
+      tags: 'Indian, Spicy, Curry'
     },
     {
       name: 'Fish and Chips',
@@ -281,7 +330,10 @@ async function main() {
       description: 'Crispy battered cod with thick-cut fries',
       image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Cod fish, crispy batter, potatoes, tartar sauce',
+      allergens: 'Seafood, Gluten, Egg',
+      tags: 'British, Deep Fried'
     },
     {
       name: 'Beef Noodle Soup',
@@ -290,9 +342,9 @@ async function main() {
       image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
       status: 'Available',
-      ingredients: 'Bánh phở, thịt bò, nước hầm xương bò, thảo quả, quế, hồi, hành tây',
+      ingredients: 'Pho noodles, rare beef, beef bone broth, cardamom, cinnamon, star anise, scallions',
       allergens: 'None',
-      tags: 'Đặc sản, Bán chạy'
+      tags: 'Vietnamese Specialty, Best Seller, Breakfast'
     },
     {
       name: 'Grilled Pork Rice',
@@ -300,7 +352,10 @@ async function main() {
       description: 'Broken rice with grilled pork chop and egg',
       image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Broken rice, grilled pork chop, sunny-side-up egg, scallion oil, fish sauce',
+      allergens: 'Egg, Soy',
+      tags: 'Saigon Specialty, Casual, Tasty'
     },
     {
       name: 'Spaghetti Bolognese',
@@ -308,7 +363,10 @@ async function main() {
       description: 'Classic Italian meat sauce pasta',
       image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Spaghetti, ground beef, tomato sauce, onions, herbs, cheese',
+      allergens: 'Gluten, Dairy',
+      tags: 'Pasta, Traditional, Kid Friendly'
     },
     {
       name: 'Mushroom Risotto',
@@ -316,7 +374,10 @@ async function main() {
       description: 'Creamy Arborio rice with wild mushrooms',
       image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Arborio rice, wild mushrooms, vegetable broth, heavy cream, parmesan cheese',
+      allergens: 'Dairy',
+      tags: 'Italian, Creamy, Vegetarian'
     },
     {
       name: 'Roast Duck',
@@ -324,7 +385,10 @@ async function main() {
       description: 'Crispy skin roast duck with hoisin sauce',
       image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Roasted duck with mac mat leaves, crispy skin, hoisin sauce, ginger',
+      allergens: 'Soy',
+      tags: 'Roasted, Savory, Delicacy'
     },
     {
       name: 'Tiramisu',
@@ -332,7 +396,10 @@ async function main() {
       description: 'Classic Italian coffee-flavored dessert',
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Ladyfingers, espresso coffee, mascarpone cheese, cocoa powder, rum',
+      allergens: 'Dairy, Gluten, Egg',
+      tags: 'Dessert, Italian, Coffee Flavor'
     },
     {
       name: 'Cheesecake',
@@ -340,7 +407,10 @@ async function main() {
       description: 'New York style cheesecake with strawberry topping',
       image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Cream cheese, butter cookie crust, eggs, lemon juice, strawberry jam',
+      allergens: 'Dairy, Gluten, Egg',
+      tags: 'Rich, Sweet, New York'
     },
     {
       name: 'Chocolate Lava Cake',
@@ -348,7 +418,10 @@ async function main() {
       description: 'Warm chocolate cake with molten center',
       image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Dark chocolate, butter, eggs, sugar, flour, vanilla ice cream',
+      allergens: 'Dairy, Gluten, Egg',
+      tags: 'Chocolate, Molten, Sweet'
     },
     {
       name: 'Ice Cream Sundae',
@@ -356,7 +429,10 @@ async function main() {
       description: 'Vanilla ice cream with chocolate syrup and nuts',
       image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Vanilla ice cream, chocolate syrup, crushed roasted peanuts, cherries',
+      allergens: 'Dairy, Peanuts',
+      tags: 'Ice Cream, Cold, Kid Friendly'
     },
     {
       name: 'Panna Cotta',
@@ -364,7 +440,10 @@ async function main() {
       description: 'Creamy Italian dessert with mixed berries',
       image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Heavy cream, fresh milk, gelatin, sugar, mixed berry jam',
+      allergens: 'Dairy',
+      tags: 'Soft Dessert, Italian, Fruity'
     },
     {
       name: 'Apple Pie',
@@ -372,7 +451,10 @@ async function main() {
       description: 'Traditional pie with cinnamon apples and crust',
       image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Fresh apples, cinnamon powder, brown sugar, buttery puff pastry',
+      allergens: 'Gluten, Dairy',
+      tags: 'Traditional Western, Baked, Warm'
     },
     {
       name: 'Matcha Mille Crepe',
@@ -380,7 +462,10 @@ async function main() {
       description: 'Layered green tea crepe cake',
       image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Japanese matcha powder, flour, milk, eggs, whipped cream',
+      allergens: 'Gluten, Dairy, Egg',
+      tags: 'Japanese, Green Tea, Cake'
     },
     {
       name: 'Creme Brulee',
@@ -388,7 +473,10 @@ async function main() {
       description: 'Rich custard base topped with hardened caramelized sugar',
       image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Egg yolks, heavy cream, vanilla, torched caramelized sugar crust',
+      allergens: 'Dairy, Egg',
+      tags: 'Luxurious, French, Rich'
     },
     {
       name: 'Fruit Tart',
@@ -396,7 +484,10 @@ async function main() {
       description: 'Sweet pastry crust filled with custard and fresh fruits',
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Sweet tart crust, custard cream, strawberries, kiwi, fresh grapes',
+      allergens: 'Gluten, Dairy, Egg',
+      tags: 'Tropical Fruit, Refreshing'
     },
     {
       name: 'Coconut Flan',
@@ -404,7 +495,10 @@ async function main() {
       description: 'Caramel custard with a hint of coconut',
       image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Eggs, condensed milk, coconut milk, caramel sugar',
+      allergens: 'Egg, Dairy',
+      tags: 'Flan, Sweet, Casual'
     },
     {
       name: 'Iced Milk Coffee',
@@ -412,7 +506,10 @@ async function main() {
       description: 'Traditional Vietnamese drip coffee with condensed milk',
       image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Pure coffee, drip filter, sweetened condensed milk, ice cubes',
+      allergens: 'Dairy',
+      tags: 'Vietnamese Coffee, Energizing, Best Seller'
     },
     {
       name: 'Peach Tea',
@@ -420,7 +517,10 @@ async function main() {
       description: 'Refreshing black tea with peach slices',
       image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Black tea, peach syrup, sliced peaches, ice, lemongrass',
+      allergens: 'None',
+      tags: 'Fruit Tea, Refreshing, Cold'
     },
     {
       name: 'Mango Smoothie',
@@ -428,7 +528,10 @@ async function main() {
       description: 'Blended fresh mango with milk',
       image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Fresh ripe mango, fresh milk, condensed milk, blended ice',
+      allergens: 'Dairy',
+      tags: 'Smoothie, Sweet, Nutritious'
     },
     {
       name: 'Fresh Orange Juice',
@@ -436,7 +539,10 @@ async function main() {
       description: 'Freshly squeezed oranges',
       image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Pure squeezed oranges, sugar (optional), ice',
+      allergens: 'None',
+      tags: 'Juice, Fruit, Healthy'
     },
     {
       name: 'Matcha Latte',
@@ -444,7 +550,10 @@ async function main() {
       description: 'Green tea powder with steamed milk',
       image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Japanese Matcha powder, pasteurized fresh milk, sugar',
+      allergens: 'Dairy',
+      tags: 'Green Tea, Warm/Cold, Milky'
     },
     {
       name: 'Coca Cola',
@@ -452,7 +561,10 @@ async function main() {
       description: 'Classic soda',
       image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Cola-flavored carbonated soft drink',
+      allergens: 'None',
+      tags: 'Soft Drink, Refreshing'
     },
     {
       name: 'Lemonade',
@@ -460,7 +572,10 @@ async function main() {
       description: 'Freshly squeezed lemon with syrup and mint',
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Lemon juice, sugar syrup, mint leaves, ice, soda',
+      allergens: 'None',
+      tags: 'Sweet and Sour, Cool, Refresher'
     },
     {
       name: 'Craft Beer',
@@ -468,7 +583,10 @@ async function main() {
       description: 'Local pale ale beer',
       image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Pale Ale craft beer, golden barley',
+      allergens: 'Gluten',
+      tags: 'Beer, Alcoholic, Social'
     },
     {
       name: 'Red Wine Glass',
@@ -476,7 +594,10 @@ async function main() {
       description: 'House red wine',
       image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Cabernet Sauvignon red wine by the glass',
+      allergens: 'None',
+      tags: 'Alcoholic, Red Wine, Premium'
     },
     {
       name: 'Mineral Water',
@@ -484,7 +605,10 @@ async function main() {
       description: 'Bottled natural spring water',
       image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Purified spring water',
+      allergens: 'None',
+      tags: 'Water, Basic'
     },
     {
       name: 'French Fries',
@@ -492,7 +616,10 @@ async function main() {
       description: 'Crispy shoestring potatoes',
       image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
       category: 'Sides',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Shoestring potatoes, vegetable oil, sea salt, ketchup',
+      allergens: 'None',
+      tags: 'Side, Fried, Kid Friendly'
     },
     {
       name: 'Mashed Potatoes',
@@ -500,7 +627,10 @@ async function main() {
       description: 'Creamy buttery potatoes',
       image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
       category: 'Sides',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Mashed potatoes, unsalted butter, fresh milk, black pepper',
+      allergens: 'Dairy',
+      tags: 'Side, Creamy, Smooth'
     },
     {
       name: 'Steamed Vegetables',
@@ -508,7 +638,10 @@ async function main() {
       description: 'Seasonal broccoli, carrots, and cauliflower',
       image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
       category: 'Sides',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Broccoli, carved carrots, cauliflower, steamed with sesame salt',
+      allergens: 'None',
+      tags: 'Vegetarian, Nutritious, Healthy'
     },
     {
       name: 'Garlic Fried Rice',
@@ -516,7 +649,10 @@ async function main() {
       description: 'Wok-fried rice with crispy garlic',
       image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
       category: 'Sides',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Wok-fried white rice, crispy fried garlic, scrambled egg, scallions',
+      allergens: 'Egg',
+      tags: 'Filling, Traditional, Oily'
     },
     {
       name: 'Side Salad',
@@ -524,7 +660,10 @@ async function main() {
       description: 'Mixed greens with balsamic vinaigrette',
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
       category: 'Sides',
-      status: 'Available'
+      status: 'Available',
+      ingredients: 'Mixed green and purple lollo rosso lettuce, cherry tomatoes, cucumber, balsamic vinegar dressing',
+      allergens: 'None',
+      tags: 'Salad, Refreshing, Diet'
     }
   ]
 
@@ -540,6 +679,9 @@ async function main() {
         image: d.image,
         category: d.category,
         status: d.status,
+        ingredients: d.ingredients || '',
+        allergens: d.allergens || 'None',
+        tags: d.tags || '',
         dishId: d.id
       }
     })
@@ -597,13 +739,13 @@ async function main() {
     data: {
       guestId: guest1.id,
       tableNumber: table1.number,
-      totalAmount: 70000, // 50000 + 20000
+      totalAmount: 120000, // 45000 + 75000
       status: 'Paid',
       orderHandlerId: employee1.id,
       items: {
         create: [
-          { dishSnapshotId: dishSnapshots[0].id, quantity: 1, unitPrice: 50000, totalPrice: 50000 },
-          { dishSnapshotId: dishSnapshots[2].id, quantity: 1, unitPrice: 20000, totalPrice: 20000 }
+          { dishSnapshotId: dishSnapshots[0].id, quantity: 1, unitPrice: 45000, totalPrice: 45000 },
+          { dishSnapshotId: dishSnapshots[2].id, quantity: 1, unitPrice: 75000, totalPrice: 75000 }
         ]
       }
     }
@@ -613,15 +755,15 @@ async function main() {
     data: {
       guestId: guest2.id,
       tableNumber: table2.number,
-      totalAmount: 70000, // (45000 + 25000) - 14000 discount
+      totalAmount: 72000, // (35000 + 55000) - 18000 discount
       status: 'Pending',
       orderHandlerId: employee2.id,
       couponId: couponPercent.id,
-      discountAmount: 14000,
+      discountAmount: 18000,
       items: {
         create: [
-          { dishSnapshotId: dishSnapshots[1].id, quantity: 1, unitPrice: 45000, totalPrice: 45000 },
-          { dishSnapshotId: dishSnapshots[3].id, quantity: 1, unitPrice: 25000, totalPrice: 25000 }
+          { dishSnapshotId: dishSnapshots[1].id, quantity: 1, unitPrice: 35000, totalPrice: 35000 },
+          { dishSnapshotId: dishSnapshots[3].id, quantity: 1, unitPrice: 55000, totalPrice: 55000 }
         ]
       }
     }
@@ -631,7 +773,7 @@ async function main() {
   await prisma.payment.create({
     data: {
       guestId: guest1.id,
-      amount: 70000,
+      amount: 120000,
       paymentMethod: 'Cash',
       status: 'Paid',
       transactionRef: 'TRX-' + Date.now(),
@@ -798,6 +940,180 @@ async function main() {
       status: 'PENDING'
     }
   })
+
+  // ── Restaurant Settings ──────────────────────────────────────
+  console.log('Creating Restaurant Settings...')
+  await prisma.restaurantSetting.deleteMany()
+  const settings = [
+    { key: 'restaurant_name', value: 'QR Order Restaurant', label: 'Restaurant Name', group: 'general' },
+    {
+      key: 'opening_hours',
+      value: 'Mon-Fri: 10:00 AM – 10:00 PM, Sat-Sun: 9:00 AM – 11:00 PM',
+      label: 'Opening Hours',
+      group: 'general'
+    },
+    {
+      key: 'description',
+      value:
+        'A modern restaurant offering Vietnamese and Asian fusion cuisine with QR code ordering for a seamless dining experience.',
+      label: 'Description',
+      group: 'general'
+    },
+    { key: 'cuisine_type', value: 'Vietnamese & Asian Fusion', label: 'Cuisine Type', group: 'general' },
+    { key: 'seating_capacity', value: '120 seats', label: 'Seating Capacity', group: 'general' },
+    { key: 'wifi_password', value: 'QROrder2025', label: 'WiFi Password', group: 'general' },
+    { key: 'phone', value: '+84 28 1234 5678', label: 'Phone Number', group: 'contact' },
+    { key: 'email', value: 'contact@qrorder.vn', label: 'Email', group: 'contact' },
+    {
+      key: 'address',
+      value: '123 Nguyen Hue Boulevard, District 1, Ho Chi Minh City, Vietnam',
+      label: 'Address',
+      group: 'contact'
+    },
+    { key: 'website', value: 'https://qrorder.vn', label: 'Website', group: 'contact' },
+    {
+      key: 'reservation_policy',
+      value: 'Reservations accepted up to 7 days in advance. Walk-ins welcome based on availability.',
+      label: 'Reservation Policy',
+      group: 'policies'
+    },
+    {
+      key: 'cancellation_policy',
+      value: 'Free cancellation up to 2 hours before your reservation time.',
+      label: 'Cancellation Policy',
+      group: 'policies'
+    },
+    {
+      key: 'payment_methods',
+      value: 'Cash, Visa, Mastercard, Momo, ZaloPay, Bank Transfer',
+      label: 'Payment Methods',
+      group: 'policies'
+    },
+    {
+      key: 'dress_code',
+      value: 'Smart casual. No swimwear or sleeveless shirts for gentlemen.',
+      label: 'Dress Code',
+      group: 'policies'
+    }
+  ]
+  for (const s of settings) {
+    await prisma.restaurantSetting.create({ data: s })
+  }
+
+  // ── FAQ ──────────────────────────────────────────────────────
+  console.log('Creating FAQs...')
+  await prisma.fAQ.deleteMany()
+  const faqs = [
+    {
+      question: 'What are your opening hours?',
+      answer:
+        'We are open Monday to Friday from 10:00 AM to 10:00 PM, and Saturday to Sunday from 9:00 AM to 11:00 PM.',
+      category: 'general',
+      sortOrder: 1
+    },
+    {
+      question: 'Where are you located?',
+      answer: 'We are located at 123 Nguyen Hue Boulevard, District 1, Ho Chi Minh City, Vietnam.',
+      category: 'general',
+      sortOrder: 2
+    },
+    {
+      question: 'Do you have parking?',
+      answer:
+        'Yes, we have a dedicated parking lot behind the restaurant. Valet parking is also available on weekends.',
+      category: 'general',
+      sortOrder: 3
+    },
+    {
+      question: 'Is there a dress code?',
+      answer: 'We have a smart casual dress code. We kindly ask gentlemen to avoid swimwear or sleeveless shirts.',
+      category: 'general',
+      sortOrder: 4
+    },
+    {
+      question: 'What is the WiFi password?',
+      answer: 'Our WiFi password is QROrder2025. Connect to the "QR Order Guest" network.',
+      category: 'general',
+      sortOrder: 5
+    },
+    {
+      question: 'Do you have vegetarian options?',
+      answer:
+        'Yes! We have a wide selection of vegetarian and vegan dishes. Look for items tagged as "Vegetarian" in our menu, or ask our AI assistant to search for vegetarian dishes.',
+      category: 'menu',
+      sortOrder: 1
+    },
+    {
+      question: 'Do you cater to food allergies?',
+      answer:
+        'Yes, all our menu items list allergen information. Please inform your server or check the dish details in the app for specific allergens.',
+      category: 'menu',
+      sortOrder: 2
+    },
+    {
+      question: 'Can I customize my order?',
+      answer:
+        'Absolutely! You can add special instructions when placing your order through the QR code system. For complex modifications, please speak with your server directly.',
+      category: 'menu',
+      sortOrder: 3
+    },
+    {
+      question: 'Do you offer delivery?',
+      answer:
+        'Yes, we offer delivery through GrabFood, ShopeeFood, and our direct ordering system within a 10km radius.',
+      category: 'delivery',
+      sortOrder: 1
+    },
+    {
+      question: 'What is the delivery fee?',
+      answer:
+        'Delivery fees vary by distance, typically between 15,000 – 30,000 VND. Orders over 500,000 VND enjoy free delivery.',
+      category: 'delivery',
+      sortOrder: 2
+    },
+    {
+      question: 'How long does delivery take?',
+      answer: 'Delivery typically takes 30 – 45 minutes depending on your location and order complexity.',
+      category: 'delivery',
+      sortOrder: 3
+    },
+    {
+      question: 'What payment methods do you accept?',
+      answer: 'We accept Cash, Visa, Mastercard, Momo, ZaloPay, and Bank Transfer.',
+      category: 'payment',
+      sortOrder: 1
+    },
+    {
+      question: 'Can I split the bill?',
+      answer: 'Yes! Each person can scan the QR code and pay for their own items.',
+      category: 'payment',
+      sortOrder: 2
+    },
+    {
+      question: 'How do I make a reservation?',
+      answer:
+        'You can make a reservation by calling us at +84 28 1234 5678, visiting our website, or using the reservation feature in our app.',
+      category: 'reservation',
+      sortOrder: 1
+    },
+    {
+      question: 'Do you accept walk-ins?',
+      answer:
+        'Yes, walk-ins are welcome! During peak hours (12:00 – 1:30 PM and 6:30 – 8:30 PM), we recommend making a reservation.',
+      category: 'reservation',
+      sortOrder: 2
+    },
+    {
+      question: 'Can I book for a large group?',
+      answer:
+        'Yes, we can accommodate groups up to 30 people. For groups larger than 10, please contact us at least 48 hours in advance.',
+      category: 'reservation',
+      sortOrder: 3
+    }
+  ]
+  for (const f of faqs) {
+    await prisma.fAQ.create({ data: f })
+  }
 
   console.log('✅ Seeding completely finished.')
 }

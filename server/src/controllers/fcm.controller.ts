@@ -23,6 +23,16 @@ export const fcmController = {
         })
       }
 
+      // Verify the account actually exists before trying to link the FCM token
+      const account = await prisma.account.findUnique({ where: { id: accountId } })
+      if (!account) {
+        return reply.status(400).send({
+          status: 400,
+          message: 'Cannot register push notifications: account not found',
+          payload: { data: null }
+        })
+      }
+
       // Upsert the token to ensure we don't have duplicates, but keep it linked to the account
       const fcmToken = await prisma.fcmToken.upsert({
         where: { token },

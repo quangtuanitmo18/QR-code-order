@@ -1,8 +1,42 @@
 import prisma from '@/database'
 import { chromaService } from '@/services/chroma.service'
 import { embeddingService } from '@/services/embedding.service'
+import { getContextLogger } from '@/utils/logger'
 import { tool } from 'ai'
 import { z } from 'zod'
+
+/**
+ * Shared SQL search logic — reusable by both searchMenu and searchMenuSemantic (fallback).
+ */
+async function sqlSearchDishes(query: string, take = 5) {
+  const lowerQuery = query.toLowerCase()
+  const dishes = await prisma.dish.findMany({
+    where: {
+      OR: [
+        { name: { contains: lowerQuery } },
+        { category: { contains: lowerQuery } },
+        { tags: { contains: lowerQuery } }
+      ],
+      status: 'Available'
+    },
+    take
+  })
+
+  if (dishes.length === 0) {
+    return { message: `No dishes found matching "${query}". Try a different keyword.` }
+  }
+
+  return dishes.map((d) => ({
+    id: d.id,
+    name: d.name,
+    price: d.price,
+    description: d.description,
+    category: d.category,
+    ingredients: d.ingredients || 'Not specified',
+    allergens: d.allergens || 'None',
+    tags: d.tags || 'None'
+  }))
+}
 
 export const aiTools = {
   /**
@@ -16,36 +50,11 @@ export const aiTools = {
       query: z.string().describe('The search query (e.g., "beef", "Appetizers", "spicy", "phở bò")')
     }),
     execute: async ({ query }: { query: string }) => {
+      const log = getContextLogger()
       try {
-        const lowerQuery = query.toLowerCase()
-        const dishes = await prisma.dish.findMany({
-          where: {
-            OR: [
-              { name: { contains: lowerQuery } },
-              { category: { contains: lowerQuery } },
-              { tags: { contains: lowerQuery } }
-            ],
-            status: 'Available'
-          },
-          take: 5
-        })
-
-        if (dishes.length === 0) {
-          return { message: `No dishes found matching "${query}". Try a different keyword.` }
-        }
-
-        return dishes.map((d) => ({
-          id: d.id,
-          name: d.name,
-          price: d.price,
-          description: d.description,
-          category: d.category,
-          ingredients: d.ingredients || 'Not specified',
-          allergens: d.allergens || 'None',
-          tags: d.tags || 'None'
-        }))
+        return await sqlSearchDishes(query)
       } catch (error) {
-        console.error('[AI Tool: searchMenu] Database error:', error)
+        log?.error({ err: error }, '[AI Tool: searchMenu] Database error')
         return { message: 'Failed to search menu. Please try again.' }
       }
     }
@@ -53,7 +62,7 @@ export const aiTools = {
 
   /**
    * RAG semantic search via ChromaDB (understands meaning, multilingual).
-   * Best for: vague queries, dietary preferences, multilingual questions.
+   * Falls back to SQL search if ChromaDB or embedding fails.
    */
   searchMenuSemantic: tool({
     description:
@@ -62,6 +71,7 @@ export const aiTools = {
       query: z.string().describe('Natural language food query in any language')
     }),
     execute: async ({ query }: { query: string }) => {
+      const log = getContextLogger()
       try {
         // 1. Create embedding for the user's query
         const queryEmbedding = await embeddingService.createQueryEmbedding(query)
@@ -70,7 +80,9 @@ export const aiTools = {
         const results = await chromaService.queryDocuments(queryEmbedding, 5)
 
         if (!results.documents?.[0]?.length) {
-          return { message: `No semantic matches found for "${query}". Try searchMenu for exact keywords.` }
+          // No semantic results → fallback to SQL
+          log?.info(`[AI Tool: searchMenuSemantic] No RAG results for "${query}", falling back to SQL`)
+          return await sqlSearchDishes(query)
         }
 
         // 3. Format results with metadata and similarity scores
@@ -80,8 +92,14 @@ export const aiTools = {
           distance: results.distances?.[0]?.[i] ?? null
         }))
       } catch (error) {
-        console.error('[AI Tool: searchMenuSemantic] Error:', error)
-        return { message: 'Semantic search failed. Trying regular search instead.' }
+        // RAG failed → graceful fallback to SQL search
+        log?.warn({ err: error }, '[AI Tool: searchMenuSemantic] RAG failed, falling back to SQL search')
+        try {
+          return await sqlSearchDishes(query)
+        } catch (fallbackError) {
+          log?.error({ err: fallbackError }, '[AI Tool: searchMenuSemantic] SQL fallback also failed')
+          return { message: 'Search is temporarily unavailable. Please try again later.' }
+        }
       }
     }
   }),
@@ -96,6 +114,7 @@ export const aiTools = {
       dishName: z.string().describe('The name of the dish to get details for')
     }),
     execute: async ({ dishName }: { dishName: string }) => {
+      const log = getContextLogger()
       try {
         const dish = await prisma.dish.findFirst({
           where: {
@@ -119,7 +138,7 @@ export const aiTools = {
           tags: dish.tags || 'None'
         }
       } catch (error) {
-        console.error('[AI Tool: getDishDetails] Database error:', error)
+        log?.error({ err: error }, '[AI Tool: getDishDetails] Database error')
         return { message: 'Failed to get dish details. Please try again.' }
       }
     }

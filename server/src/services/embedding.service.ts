@@ -1,24 +1,42 @@
 import envConfig, { API_URL } from '@/config'
+import { getContextLogger } from '@/utils/logger'
 
 /**
  * Embedding Service
  * Creates vector embeddings via OpenRouter API using text-embedding-3-large model.
- * Pattern from learn-ai-engineer/embeddings.service.ts
+ * Includes retry logic for resilience.
  */
 class EmbeddingService {
   private readonly baseURL = 'https://openrouter.ai/api/v1'
   private readonly model = 'text-embedding-3-large'
 
   /**
+   * Retry helper — retries a function once after a 1s delay.
+   */
+  private async withRetry<T>(fn: () => Promise<T>, retries = 1): Promise<T> {
+    const log = getContextLogger()
+    try {
+      return await fn()
+    } catch (error) {
+      if (retries > 0) {
+        log?.warn(`[Embedding] Retrying after error... (${retries} retries left)`)
+        await new Promise((r) => setTimeout(r, 1000))
+        return this.withRetry(fn, retries - 1)
+      }
+      throw error
+    }
+  }
+
+  /**
    * Create embeddings for an array of texts.
-   * @returns Array of embedding vectors (number[][])
+   * Includes 1 retry with 1s backoff for resilience.
    */
   async createEmbeddings(texts: string[]): Promise<number[][]> {
     if (!envConfig.OPENROUTER_API_KEY) {
       throw new Error('[Embedding] OPENROUTER_API_KEY is not configured')
     }
 
-    try {
+    return this.withRetry(async () => {
       const response = await fetch(`${this.baseURL}/embeddings`, {
         method: 'POST',
         headers: {
@@ -45,13 +63,11 @@ class EmbeddingService {
         data: Array<{ embedding: number[] }>
       }
 
-      console.log(`[Embedding] Created ${data.data.length} embeddings (model: ${this.model})`)
+      const log = getContextLogger()
+      log?.info(`[Embedding] Created ${data.data.length} embeddings (model: ${this.model})`)
 
       return data.data.map((item) => item.embedding)
-    } catch (error) {
-      console.error('[Embedding] Error creating embeddings:', error)
-      throw error
-    }
+    })
   }
 
   /**

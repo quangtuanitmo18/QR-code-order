@@ -1,49 +1,49 @@
 import envConfig from '@/config'
-import { ChromaClient } from 'chromadb'
+import { getContextLogger } from '@/utils/logger'
+import { CloudClient } from 'chromadb'
 
 /**
  * ChromaDB Service
  * Manages vector storage and semantic search using ChromaDB Cloud.
- * Pattern from learn-ai-engineer/vector-db.service.ts
+ * Supports multiple collections: restaurant_menu, restaurant_faq
  */
+
+export type CollectionName = 'restaurant_menu' | 'restaurant_faq'
+
 class ChromaService {
-  private client: ChromaClient
-  private readonly collectionName = 'restaurant_menu'
-  private collection: any = null // Cache the collection instance
+  private client: CloudClient
+  private collections: Map<string, any> = new Map()
 
   constructor() {
-    this.client = new ChromaClient({
-      host: `https://${envConfig.CHROMA_HOST}`,
-      headers: {
-        'x-chroma-token': envConfig.CHROMA_API_KEY
-      },
+    this.client = new CloudClient({
+      apiKey: envConfig.CHROMA_API_KEY,
       tenant: envConfig.CHROMA_TENANT,
       database: envConfig.CHROMA_DATABASE
     })
   }
 
   /**
-   * Get or create the restaurant menu collection.
+   * Get or create a collection by name.
    */
-  async getCollection() {
-    if (!this.collection) {
-      this.collection = await this.client.getOrCreateCollection({
-        name: this.collectionName
-      })
+  async getCollection(name: CollectionName = 'restaurant_menu') {
+    if (!this.collections.has(name)) {
+      const collection = await this.client.getOrCreateCollection({ name })
+      this.collections.set(name, collection)
     }
-    return this.collection
+    return this.collections.get(name)
   }
 
   /**
-   * Upsert documents (dishes) into ChromaDB with their embeddings.
+   * Upsert documents into a ChromaDB collection with their embeddings.
    */
   async upsertDocuments(
     ids: string[],
     embeddings: number[][],
     documents: string[],
-    metadatas: Array<Record<string, string>>
+    metadatas: Array<Record<string, string>>,
+    collectionName: CollectionName = 'restaurant_menu'
   ) {
-    const collection = await this.getCollection()
+    const collection = await this.getCollection(collectionName)
 
     await collection.upsert({
       ids,
@@ -52,15 +52,16 @@ class ChromaService {
       metadatas
     })
 
-    console.log(`[ChromaDB] Upserted ${ids.length} documents into "${this.collectionName}"`)
+    const log = getContextLogger()
+    log?.info(`[ChromaDB] Upserted ${ids.length} documents into "${collectionName}"`)
   }
 
   /**
    * Semantic search — query ChromaDB with an embedding vector.
    * Returns top K most similar documents.
    */
-  async queryDocuments(queryEmbedding: number[], topK = 5) {
-    const collection = await this.getCollection()
+  async queryDocuments(queryEmbedding: number[], topK = 5, collectionName: CollectionName = 'restaurant_menu') {
+    const collection = await this.getCollection(collectionName)
 
     const results = await collection.query({
       queryEmbeddings: [queryEmbedding],
@@ -74,8 +75,8 @@ class ChromaService {
    * Query using raw text — ChromaDB will use its default embedding function.
    * Useful as a fallback if custom embedding fails.
    */
-  async queryByText(queryText: string, topK = 5) {
-    const collection = await this.getCollection()
+  async queryByText(queryText: string, topK = 5, collectionName: CollectionName = 'restaurant_menu') {
+    const collection = await this.getCollection(collectionName)
 
     const results = await collection.query({
       queryTexts: [queryText],
@@ -86,22 +87,25 @@ class ChromaService {
   }
 
   /**
-   * Get the total count of documents in the collection.
+   * Get the total count of documents in a collection.
    */
-  async getDocumentCount(): Promise<number> {
-    const collection = await this.getCollection()
+  async getDocumentCount(collectionName: CollectionName = 'restaurant_menu'): Promise<number> {
+    const collection = await this.getCollection(collectionName)
     return collection.count()
   }
 
   /**
-   * Delete all documents from the collection (for re-seeding).
+   * Delete a collection (for re-seeding).
    */
-  async clearCollection() {
+  async clearCollection(collectionName: CollectionName = 'restaurant_menu') {
     try {
-      await this.client.deleteCollection({ name: this.collectionName })
-      console.log(`[ChromaDB] Deleted collection "${this.collectionName}"`)
+      await this.client.deleteCollection({ name: collectionName })
+      this.collections.delete(collectionName)
+      const log = getContextLogger()
+      log?.info(`[ChromaDB] Deleted collection "${collectionName}"`)
     } catch {
-      console.log(`[ChromaDB] Collection "${this.collectionName}" does not exist, skipping delete`)
+      const log = getContextLogger()
+      log?.info(`[ChromaDB] Collection "${collectionName}" does not exist, skipping delete`)
     }
   }
 }

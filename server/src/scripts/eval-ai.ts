@@ -1,8 +1,9 @@
 import { openrouter } from '@openrouter/ai-sdk-provider'
-import { generateText } from 'ai'
-import chalk from 'chalk'
+import { generateText, stepCountIs } from 'ai'
 import 'dotenv/config'
 import { aiTools } from '../services/ai-tools'
+// chalk is ESM-only, use dynamic import
+let chalk: any
 
 /**
  * AI Assistant V2 - Automated Evaluation Suite
@@ -40,6 +41,7 @@ const testCases = [
 ]
 
 async function runEvaluations() {
+  chalk = (await import('chalk')).default
   console.log(chalk.blue.bold('\n🚀 Starting AI Assistant Evaluation Suite\n'))
 
   const systemPrompt = `Bạn là nhân viên AI chăm sóc khách hàng tại nhà hàng QR Order. 

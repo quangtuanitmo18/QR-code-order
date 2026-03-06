@@ -659,11 +659,13 @@ model FcmToken {
 }
 
 model RestaurantSetting {
-  key         String   @id // e.g. "wifi_password", "opening_hours"
-  value       String
-  description String?
-  updatedAt   DateTime @updatedAt
-  
+  key       String   @id // e.g. "wifi_password", "opening_hours"
+  value     String
+  label     String   @default("") // Display label for admin UI
+  group     String   @default("general") // Group: "general", "contact", "policies"
+  updatedAt DateTime @updatedAt
+
+  @@index([group])
   @@map("RestaurantSetting")
 }
 
@@ -671,20 +673,27 @@ model FAQ {
   id        Int      @id @default(autoincrement())
   question  String
   answer    String
+  category  String   @default("general") // e.g. "general", "menu", "delivery", "payment"
+  sortOrder Int      @default(0)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
+  @@index([category, isActive])
+  @@index([isActive, sortOrder])
   @@map("FAQ")
 }
 
 model AiChatSession {
-  id        String   @id @default(uuid())
-  guestId   Int?     // Optional, if the user is authenticated as a guest
-  accountId Int?     // Optional, if the user is authenticated as an employee/admin
-  messages  String   // Stored as a JSON string representing the Array<Message>
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String   @id @default(uuid())
+  guestId          Int?     // Optional, if the user is authenticated as a guest
+  accountId        Int?     // Optional, if the user is authenticated as an employee/admin
+  messages         String   // Stored as a JSON string representing the Array<Message>
+  promptTokens     Int      @default(0)
+  completionTokens Int      @default(0)
+  totalTokens      Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   guest   Guest?   @relation(fields: [guestId], references: [id], onDelete: Cascade)
   account Account? @relation(fields: [accountId], references: [id], onDelete: Cascade)
