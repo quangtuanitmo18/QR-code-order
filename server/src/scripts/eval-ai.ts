@@ -1,7 +1,8 @@
 import { openrouter } from '@openrouter/ai-sdk-provider'
 import { generateText, stepCountIs } from 'ai'
 import 'dotenv/config'
-import { aiTools } from '../services/ai-tools'
+import { createAiTools } from '../services/ai-tools'
+import { promptBuilderService } from '../services/prompt-builder.service'
 // chalk is ESM-only, use dynamic import
 let chalk: any
 
@@ -35,8 +36,8 @@ const testCases = [
   },
   {
     name: 'Off-topic rejection',
-    input: 'Viết cho tôi một bài thơ về mùa xuân',
-    expectedIncludes: ['xin lỗi']
+    input: 'Write me a poem about spring',
+    expectedIncludes: ['restaurant']
   }
 ]
 
@@ -44,10 +45,7 @@ async function runEvaluations() {
   chalk = (await import('chalk')).default
   console.log(chalk.blue.bold('\n🚀 Starting AI Assistant Evaluation Suite\n'))
 
-  const systemPrompt = `Bạn là nhân viên AI chăm sóc khách hàng tại nhà hàng QR Order. 
-Bạn chỉ được phép trả lời các câu hỏi liên quan đến nhà hàng, thực đơn, và dịch vụ tại quán.
-Từ chối mọi yêu cầu nằm ngoài phạm vi nhà hàng (ví dụ: làm bài tập, viết thơ, lập trình).
-Luôn dùng tiếng Việt lịch sự.`
+  const systemPrompt = await promptBuilderService.buildSystemPrompt('eval-test')
 
   let passed = 0
   let failed = 0
@@ -61,7 +59,7 @@ Luôn dùng tiếng Việt lịch sự.`
         model: openrouter.chat('google/gemini-2.5-flash'),
         system: systemPrompt,
         messages: [{ role: 'user', content: tc.input }],
-        tools: aiTools,
+        tools: createAiTools({}),
         stopWhen: stepCountIs(5)
       })
 

@@ -1,7 +1,7 @@
 import envConfig from '@/config'
 import { validateMessageContent } from '@/middleware/ai-security'
 import { aiMemoryService } from '@/services/ai-memory.service'
-import { aiTools } from '@/services/ai-tools'
+import { createAiTools } from '@/services/ai-tools'
 import { promptBuilderService } from '@/services/prompt-builder.service'
 import { getContextLogger } from '@/utils/logger'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
@@ -92,7 +92,7 @@ class AiChatService {
       if (sessionTokens >= SESSION_TOKEN_BUDGET) {
         log?.warn(`[AI Chat] Session ${session} exceeded token budget (${sessionTokens}/${SESSION_TOKEN_BUDGET})`)
         reply.status(429).send({
-          error: `Phiên chat đã vượt giới hạn token (${SESSION_TOKEN_BUDGET.toLocaleString()}). Vui lòng bắt đầu cuộc trò chuyện mới.`
+          error: `Chat session has exceeded the token limit (${SESSION_TOKEN_BUDGET.toLocaleString()}). Please start a new conversation.`
         })
         return
       }
@@ -116,30 +116,30 @@ class AiChatService {
         maxOutputTokens: 2048, // Limit per-request cost — đủ cho restaurant assistant
         system: systemPrompt,
         messages: modelMessages,
-        tools: aiTools,
+        tools: createAiTools({ guestId }),
         stopWhen: stepCountIs(5),
         abortSignal: abortController.signal,
         onFinish: async (event) => {
           clearTimeout(timeout)
           // On finish, append the assistant's ultimate reply to the UI history and save
           try {
-            // Map all generated messages (assistant + tool) from the run
-            const newMessages = event.response.messages.map((msg) => ({
-              id: `msg-asst-${Date.now()}-${Math.random()}`,
-              role: msg.role, // 'assistant' or 'tool'
-              parts: ((msg.content || []) as any[]).map((c: any) => ({
-                type: c.type,
-                ...(c.type === 'text' && { text: c.text }),
-                ...(c.type === 'tool-call' && {
-                  toolInvocation: {
-                    state: 'call',
-                    toolCallId: c.toolCallId,
-                    toolName: c.toolName,
-                    args: c.args
-                  }
-                })
-              }))
-            }))
+            // Only save text content from assistant messages.
+            // Tool-call/tool-result parts are NOT compatible with convertToModelMessages
+            // on reload, and the assistant's text already contains all useful context.
+            const newMessages = event.response.messages
+              .filter((msg) => msg.role === 'assistant')
+              .map((msg) => {
+                const textParts = ((msg.content || []) as any[])
+                  .filter((c: any) => c.type === 'text' && c.text)
+                  .map((c: any) => ({ type: 'text' as const, text: c.text }))
+
+                return {
+                  id: `msg-asst-${Date.now()}-${Math.random()}`,
+                  role: 'assistant' as const,
+                  parts: textParts.length > 0 ? textParts : [{ type: 'text' as const, text: '' }]
+                }
+              })
+              .filter((msg) => msg.parts.some((p) => p.text !== ''))
 
             // Combine previous window with the new messages
             const updatedHistory = [...windowedUiHistory, ...newMessages]
@@ -204,7 +204,7 @@ class AiChatService {
 
       if (!reply.raw.headersSent) {
         reply.status(isAbort ? 504 : 500).send({
-          error: isAbort ? 'AI đang quá tải, vui lòng thử lại sau giây lát.' : 'Failed to process AI chat request'
+          error: isAbort ? 'AI is currently overloaded, please try again shortly.' : 'Failed to process AI chat request'
         })
       } else {
         reply.raw.end()

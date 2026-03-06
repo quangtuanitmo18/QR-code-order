@@ -205,5 +205,39 @@ export const guestService = {
   // Get guest orders
   async getOrders(guestId: number) {
     return await guestRepository.findOrdersByGuestId(guestId)
+  },
+
+  /**
+   * Cancel a pending order for a guest.
+   * Validates ownership and ensures only Pending orders can be cancelled.
+   */
+  async cancelOrder(orderId: number, guestId: number) {
+    const order = await prisma.order.findFirst({
+      where: { id: orderId, guestId },
+      include: {
+        items: { include: { dishSnapshot: true } }
+      }
+    })
+
+    if (!order) {
+      throw new Error(`Order #${orderId} not found or does not belong to you.`)
+    }
+
+    if (order.status !== OrderStatus.Pending) {
+      throw new Error(
+        `Order #${orderId} cannot be cancelled because its status is "${order.status}". Only pending orders can be cancelled.`
+      )
+    }
+
+    await prisma.order.delete({ where: { id: orderId } })
+
+    return {
+      orderId,
+      cancelledItems: order.items.map((item) => ({
+        name: item.dishSnapshot.name,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice
+      }))
+    }
   }
 }

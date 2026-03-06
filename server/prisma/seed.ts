@@ -117,7 +117,7 @@ async function main() {
   const dishData = [
     {
       name: 'Spring Rolls',
-      price: 45000,
+      price: 2,
       description: 'Crispy rolls with vegetables and pork',
       image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
@@ -128,7 +128,7 @@ async function main() {
     },
     {
       name: 'Garlic Bread',
-      price: 35000,
+      price: 1.5,
       description: 'Toasted baguette with garlic butter and herbs',
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
@@ -139,7 +139,7 @@ async function main() {
     },
     {
       name: 'Chicken Wings',
-      price: 75000,
+      price: 3,
       description: 'Spicy glazed chicken wings with ranch dip',
       image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
@@ -150,7 +150,7 @@ async function main() {
     },
     {
       name: 'Bruschetta',
-      price: 55000,
+      price: 2.5,
       description: 'Grilled bread topped with tomatoes and basil',
       image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
@@ -161,7 +161,7 @@ async function main() {
     },
     {
       name: 'Calamari Rings',
-      price: 85000,
+      price: 3.5,
       description: 'Deep-fried squid rings with tartar sauce',
       image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
@@ -172,7 +172,7 @@ async function main() {
     },
     {
       name: 'Cheese Sticks',
-      price: 60000,
+      price: 2.5,
       description: 'Fried mozzarella sticks with marinara',
       image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
@@ -183,7 +183,7 @@ async function main() {
     },
     {
       name: 'Nachos Supreme',
-      price: 90000,
+      price: 4,
       description: 'Tortilla chips with cheese, jalapenos, and beef',
       image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
@@ -194,7 +194,7 @@ async function main() {
     },
     {
       name: 'Shrimp Cocktail',
-      price: 110000,
+      price: 4.5,
       description: 'Chilled shrimp with tangy cocktail sauce',
       image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
@@ -205,7 +205,7 @@ async function main() {
     },
     {
       name: 'Onion Rings',
-      price: 40000,
+      price: 2,
       description: 'Crispy battered onion rings',
       image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
@@ -216,7 +216,7 @@ async function main() {
     },
     {
       name: 'Stuffed Mushrooms',
-      price: 65000,
+      price: 3,
       description: 'Mushrooms stuffed with cheese and herbs',
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
       category: 'Appetizers',
@@ -227,7 +227,7 @@ async function main() {
     },
     {
       name: 'Grilled Ribeye Steak',
-      price: 350000,
+      price: 14,
       description: 'Premium beef steak with mashed potatoes',
       image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -238,7 +238,7 @@ async function main() {
     },
     {
       name: 'Salmon Fillet',
-      price: 280000,
+      price: 12,
       description: 'Pan-seared salmon with asparagus and lemon butter',
       image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -249,7 +249,7 @@ async function main() {
     },
     {
       name: 'Chicken Alfredo',
-      price: 150000,
+      price: 6,
       description: 'Fettuccine pasta with creamy parmesan chicken',
       image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -260,7 +260,7 @@ async function main() {
     },
     {
       name: 'Margherita Pizza',
-      price: 120000,
+      price: 5,
       description: 'Classic pizza with fresh mozzarella and basil',
       image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -271,7 +271,7 @@ async function main() {
     },
     {
       name: 'Beef Burger',
-      price: 130000,
+      price: 5.5,
       description: 'Juicy beef patty with cheese, lettuce, and fries',
       image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -282,7 +282,7 @@ async function main() {
     },
     {
       name: 'BBQ Pork Ribs',
-      price: 250000,
+      price: 10,
       description: 'Slow-cooked ribs with smoky BBQ sauce',
       image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -293,7 +293,7 @@ async function main() {
     },
     {
       name: 'Vegetarian Lasagna',
-      price: 140000,
+      price: 6,
       description: 'Layered pasta with roasted vegetables and cheese',
       image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -304,7 +304,7 @@ async function main() {
     },
     {
       name: 'Pad Thai',
-      price: 110000,
+      price: 4.5,
       description: 'Thai stir-fried rice noodles with shrimp and peanuts',
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -315,7 +315,7 @@ async function main() {
     },
     {
       name: 'Chicken Tikka Masala',
-      price: 160000,
+      price: 7,
       description: 'Spicy Indian chicken curry with basmati rice',
       image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -326,7 +326,7 @@ async function main() {
     },
     {
       name: 'Fish and Chips',
-      price: 145000,
+      price: 6,
       description: 'Crispy battered cod with thick-cut fries',
       image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -337,7 +337,7 @@ async function main() {
     },
     {
       name: 'Beef Noodle Soup',
-      price: 65000,
+      price: 3,
       description: 'Traditional Vietnamese Pho with rare beef',
       image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -348,7 +348,7 @@ async function main() {
     },
     {
       name: 'Grilled Pork Rice',
-      price: 55000,
+      price: 2.5,
       description: 'Broken rice with grilled pork chop and egg',
       image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -359,7 +359,7 @@ async function main() {
     },
     {
       name: 'Spaghetti Bolognese',
-      price: 135000,
+      price: 5.5,
       description: 'Classic Italian meat sauce pasta',
       image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -370,7 +370,7 @@ async function main() {
     },
     {
       name: 'Mushroom Risotto',
-      price: 165000,
+      price: 7,
       description: 'Creamy Arborio rice with wild mushrooms',
       image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -381,7 +381,7 @@ async function main() {
     },
     {
       name: 'Roast Duck',
-      price: 220000,
+      price: 9,
       description: 'Crispy skin roast duck with hoisin sauce',
       image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
       category: 'Main Courses',
@@ -392,7 +392,7 @@ async function main() {
     },
     {
       name: 'Tiramisu',
-      price: 85000,
+      price: 3.5,
       description: 'Classic Italian coffee-flavored dessert',
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
@@ -403,7 +403,7 @@ async function main() {
     },
     {
       name: 'Cheesecake',
-      price: 90000,
+      price: 4,
       description: 'New York style cheesecake with strawberry topping',
       image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
@@ -414,7 +414,7 @@ async function main() {
     },
     {
       name: 'Chocolate Lava Cake',
-      price: 95000,
+      price: 4,
       description: 'Warm chocolate cake with molten center',
       image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
@@ -425,7 +425,7 @@ async function main() {
     },
     {
       name: 'Ice Cream Sundae',
-      price: 60000,
+      price: 2.5,
       description: 'Vanilla ice cream with chocolate syrup and nuts',
       image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
@@ -436,7 +436,7 @@ async function main() {
     },
     {
       name: 'Panna Cotta',
-      price: 75000,
+      price: 3,
       description: 'Creamy Italian dessert with mixed berries',
       image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
@@ -447,7 +447,7 @@ async function main() {
     },
     {
       name: 'Apple Pie',
-      price: 80000,
+      price: 3.5,
       description: 'Traditional pie with cinnamon apples and crust',
       image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
@@ -458,7 +458,7 @@ async function main() {
     },
     {
       name: 'Matcha Mille Crepe',
-      price: 110000,
+      price: 4.5,
       description: 'Layered green tea crepe cake',
       image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
@@ -469,7 +469,7 @@ async function main() {
     },
     {
       name: 'Creme Brulee',
-      price: 85000,
+      price: 3.5,
       description: 'Rich custard base topped with hardened caramelized sugar',
       image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
@@ -480,7 +480,7 @@ async function main() {
     },
     {
       name: 'Fruit Tart',
-      price: 70000,
+      price: 3,
       description: 'Sweet pastry crust filled with custard and fresh fruits',
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
@@ -491,7 +491,7 @@ async function main() {
     },
     {
       name: 'Coconut Flan',
-      price: 55000,
+      price: 2.5,
       description: 'Caramel custard with a hint of coconut',
       image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
       category: 'Desserts',
@@ -502,7 +502,7 @@ async function main() {
     },
     {
       name: 'Iced Milk Coffee',
-      price: 35000,
+      price: 1.5,
       description: 'Traditional Vietnamese drip coffee with condensed milk',
       image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
@@ -513,7 +513,7 @@ async function main() {
     },
     {
       name: 'Peach Tea',
-      price: 40000,
+      price: 2,
       description: 'Refreshing black tea with peach slices',
       image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
@@ -524,7 +524,7 @@ async function main() {
     },
     {
       name: 'Mango Smoothie',
-      price: 55000,
+      price: 2.5,
       description: 'Blended fresh mango with milk',
       image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
@@ -535,7 +535,7 @@ async function main() {
     },
     {
       name: 'Fresh Orange Juice',
-      price: 45000,
+      price: 2,
       description: 'Freshly squeezed oranges',
       image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
@@ -546,7 +546,7 @@ async function main() {
     },
     {
       name: 'Matcha Latte',
-      price: 50000,
+      price: 2,
       description: 'Green tea powder with steamed milk',
       image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
@@ -557,7 +557,7 @@ async function main() {
     },
     {
       name: 'Coca Cola',
-      price: 25000,
+      price: 1,
       description: 'Classic soda',
       image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
@@ -568,7 +568,7 @@ async function main() {
     },
     {
       name: 'Lemonade',
-      price: 35000,
+      price: 1.5,
       description: 'Freshly squeezed lemon with syrup and mint',
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
@@ -579,7 +579,7 @@ async function main() {
     },
     {
       name: 'Craft Beer',
-      price: 85000,
+      price: 3.5,
       description: 'Local pale ale beer',
       image: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
@@ -590,7 +590,7 @@ async function main() {
     },
     {
       name: 'Red Wine Glass',
-      price: 120000,
+      price: 5,
       description: 'House red wine',
       image: 'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
@@ -601,7 +601,7 @@ async function main() {
     },
     {
       name: 'Mineral Water',
-      price: 20000,
+      price: 1,
       description: 'Bottled natural spring water',
       image: 'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=400&q=80',
       category: 'Beverages',
@@ -612,7 +612,7 @@ async function main() {
     },
     {
       name: 'French Fries',
-      price: 40000,
+      price: 2,
       description: 'Crispy shoestring potatoes',
       image: 'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=400&q=80',
       category: 'Sides',
@@ -623,7 +623,7 @@ async function main() {
     },
     {
       name: 'Mashed Potatoes',
-      price: 45000,
+      price: 2,
       description: 'Creamy buttery potatoes',
       image: 'https://images.unsplash.com/photo-1432139555190-58524dae6a55?auto=format&fit=crop&w=400&q=80',
       category: 'Sides',
@@ -634,7 +634,7 @@ async function main() {
     },
     {
       name: 'Steamed Vegetables',
-      price: 50000,
+      price: 2,
       description: 'Seasonal broccoli, carrots, and cauliflower',
       image: 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=400&q=80',
       category: 'Sides',
@@ -645,7 +645,7 @@ async function main() {
     },
     {
       name: 'Garlic Fried Rice',
-      price: 35000,
+      price: 1.5,
       description: 'Wok-fried rice with crispy garlic',
       image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80',
       category: 'Sides',
@@ -656,7 +656,7 @@ async function main() {
     },
     {
       name: 'Side Salad',
-      price: 45000,
+      price: 2,
       description: 'Mixed greens with balsamic vinaigrette',
       image: 'https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?auto=format&fit=crop&w=400&q=80',
       category: 'Sides',
@@ -709,8 +709,8 @@ async function main() {
     data: {
       code: 'DISCOUNT50',
       discountType: 'FIXED_AMOUNT',
-      discountValue: 50000,
-      minOrderAmount: 100000,
+      discountValue: 2,
+      minOrderAmount: 5,
       startDate: new Date(),
       endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
       status: 'ACTIVE',
@@ -739,13 +739,13 @@ async function main() {
     data: {
       guestId: guest1.id,
       tableNumber: table1.number,
-      totalAmount: 120000, // 45000 + 75000
+      totalAmount: 5, // $2 + $3
       status: 'Paid',
       orderHandlerId: employee1.id,
       items: {
         create: [
-          { dishSnapshotId: dishSnapshots[0].id, quantity: 1, unitPrice: 45000, totalPrice: 45000 },
-          { dishSnapshotId: dishSnapshots[2].id, quantity: 1, unitPrice: 75000, totalPrice: 75000 }
+          { dishSnapshotId: dishSnapshots[0].id, quantity: 1, unitPrice: 2, totalPrice: 2 },
+          { dishSnapshotId: dishSnapshots[2].id, quantity: 1, unitPrice: 3, totalPrice: 3 }
         ]
       }
     }
@@ -755,15 +755,15 @@ async function main() {
     data: {
       guestId: guest2.id,
       tableNumber: table2.number,
-      totalAmount: 72000, // (35000 + 55000) - 18000 discount
+      totalAmount: 3.2, // ($1.5 + $2.5) - $0.8 discount (20%)
       status: 'Pending',
       orderHandlerId: employee2.id,
       couponId: couponPercent.id,
-      discountAmount: 18000,
+      discountAmount: 0.8,
       items: {
         create: [
-          { dishSnapshotId: dishSnapshots[1].id, quantity: 1, unitPrice: 35000, totalPrice: 35000 },
-          { dishSnapshotId: dishSnapshots[3].id, quantity: 1, unitPrice: 55000, totalPrice: 55000 }
+          { dishSnapshotId: dishSnapshots[1].id, quantity: 1, unitPrice: 1.5, totalPrice: 1.5 },
+          { dishSnapshotId: dishSnapshots[3].id, quantity: 1, unitPrice: 2.5, totalPrice: 2.5 }
         ]
       }
     }
@@ -773,7 +773,7 @@ async function main() {
   await prisma.payment.create({
     data: {
       guestId: guest1.id,
-      amount: 120000,
+      amount: 5,
       paymentMethod: 'Cash',
       status: 'Paid',
       transactionRef: 'TRX-' + Date.now(),

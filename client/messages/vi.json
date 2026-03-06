@@ -160,5 +160,22 @@
   "Spin": {
     "title": "Quản lý quay thưởng",
     "description": "Quản lý sự kiện và phần thưởng quay thưởng"
+  },
+  "AiChat": {
+    "title": "Trợ lý AI",
+    "welcomeLine1": "Xin chào! Em là trợ lý AI của nhà hàng.",
+    "welcomeLine2": "Anh/chị cần tư vấn món ăn hay thông tin gì ạ?",
+    "quickPrompt1": "Thực đơn hôm nay có gì?",
+    "quickPrompt2": "Có món nào ăn nhẹ không?",
+    "quickPrompt3": "Review giúp tôi vài món",
+    "quickPrompt4": "Món nào hợp uống với bia?",
+    "toolSearchMenu": "Đang tra cứu thực đơn (từ khoá)...",
+    "toolSearchSemantic": "Đang tra cứu thực đơn (ngữ nghĩa)...",
+    "toolDishDetails": "Đang xem chi tiết món ăn...",
+    "toolDefault": "Đang tra cứu thông tin...",
+    "loading": "Đang phân tích...",
+    "errorDefault": "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.",
+    "stopButton": "Dừng trả lời",
+    "inputPlaceholder": "Nhập câu hỏi của bạn..."
   }
 }

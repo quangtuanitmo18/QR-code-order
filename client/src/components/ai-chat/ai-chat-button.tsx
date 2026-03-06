@@ -5,18 +5,15 @@ import { Input } from '@/components/ui/input'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import { Loader2, MessagesSquare, Send, StopCircle, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
-const QUICK_PROMPTS = [
-  'Thực đơn hôm nay có gì?',
-  'Có món nào ăn nhẹ không?',
-  'Review giúp tôi vài món',
-  'Món nào hợp uống với bia?',
-]
+const QUICK_PROMPT_KEYS = ['quickPrompt1', 'quickPrompt2', 'quickPrompt3', 'quickPrompt4'] as const
 
 export default function AiChatButton() {
+  const t = useTranslations('AiChat')
   const [isOpen, setIsOpen] = useState(false)
   const [input, setInput] = useState('')
   const [sessionId, setSessionId] = useState<string | undefined>(undefined)
@@ -73,13 +70,13 @@ export default function AiChatButton() {
   const getToolDisplayName = (toolName: string) => {
     switch (toolName) {
       case 'searchMenu':
-        return 'Đang tra cứu thực đơn (từ khoá)...'
+        return t('toolSearchMenu')
       case 'searchMenuSemantic':
-        return 'Đang tra cứu thực đơn (ngữ nghĩa)...'
+        return t('toolSearchSemantic')
       case 'getDishDetails':
-        return 'Đang xem chi tiết món ăn...'
+        return t('toolDishDetails')
       default:
-        return 'Đang tra cứu thông tin...'
+        return t('toolDefault')
     }
   }
 
@@ -103,7 +100,7 @@ export default function AiChatButton() {
           <div className="flex items-center justify-between bg-primary p-4 text-primary-foreground">
             <div className="flex items-center gap-2">
               <MessagesSquare className="h-5 w-5" />
-              <h3 className="font-semibold">AI Assistant</h3>
+              <h3 className="font-semibold">{t('title')}</h3>
             </div>
             <Button
               variant="ghost"
@@ -121,19 +118,19 @@ export default function AiChatButton() {
               {messages.length === 0 && (
                 <div className="mt-8 text-center">
                   <div className="mb-6 text-sm text-muted-foreground">
-                    <p>Xin chào! Em là trợ lý AI của nhà hàng.</p>
-                    <p>Anh/chị cần tư vấn món ăn hay thông tin gì ạ?</p>
+                    <p>{t('welcomeLine1')}</p>
+                    <p>{t('welcomeLine2')}</p>
                   </div>
 
                   <div className="flex flex-col gap-2">
-                    {QUICK_PROMPTS.map((prompt, idx) => (
+                    {QUICK_PROMPT_KEYS.map((key, idx) => (
                       <button
                         key={idx}
-                        onClick={() => handleSubmit(undefined, prompt)}
+                        onClick={() => handleSubmit(undefined, t(key))}
                         className="rounded-lg border bg-card px-4 py-2 text-sm text-card-foreground transition-colors hover:bg-accent"
                         type="button"
                       >
-                        {prompt}
+                        {t(key)}
                       </button>
                     ))}
                   </div>
@@ -188,7 +185,11 @@ export default function AiChatButton() {
                           }
                           // Show tool states for transparency
                           if (part.type === 'tool-invocation') {
-                            if (part.state === 'result') {
+                            if (
+                              part.state === 'output-available' ||
+                              part.state === 'output-error' ||
+                              part.state === 'output-denied'
+                            ) {
                               return null // Tool completed, text response will show the result
                             }
                             return (
@@ -227,7 +228,7 @@ export default function AiChatButton() {
                     <div className="max-w-[85%] rounded-2xl bg-muted px-4 py-2 text-sm">
                       <span className="flex items-center gap-2">
                         <Loader2 className="h-3 w-3 animate-spin" />
-                        Đang phân tích...
+                        {t('loading')}
                       </span>
                     </div>
                   </div>
@@ -237,7 +238,7 @@ export default function AiChatButton() {
               {error && (
                 <div className="flex justify-start">
                   <div className="max-w-[85%] rounded-2xl bg-destructive/10 px-4 py-2 text-sm text-destructive">
-                    {error.message || 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.'}
+                    {error.message || t('errorDefault')}
                   </div>
                 </div>
               )}
@@ -257,7 +258,7 @@ export default function AiChatButton() {
                   type="button"
                 >
                   <StopCircle className="h-3 w-3" />
-                  Dừng trả lời
+                  {t('stopButton')}
                 </Button>
               </div>
             )}
@@ -265,7 +266,7 @@ export default function AiChatButton() {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Nhập câu hỏi của bạn..."
+                placeholder={t('inputPlaceholder')}
                 className="flex-1"
                 disabled={isLoading}
               />

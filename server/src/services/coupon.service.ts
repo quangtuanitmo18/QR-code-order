@@ -1,5 +1,6 @@
 import { PrismaErrorCode } from '@/constants/error-reference'
 import { CouponDiscountType, CouponStatus } from '@/constants/type'
+import prisma from '@/database'
 import { couponUsageRepository } from '@/repositories/coupon-usage.repository'
 import { couponRepository } from '@/repositories/coupon.repository'
 import { EntityError, isPrismaClientKnownRequestError } from '@/utils/errors'
@@ -175,5 +176,137 @@ export const couponService = {
       throw new EntityError([{ field: 'id', message: 'Mã giảm giá không tồn tại' }])
     }
     return await couponRepository.delete(id)
+  },
+
+  /**
+   * Get all active coupons available for a specific guest.
+   * Filters out coupons exceeding maxTotalUsage or maxUsagePerGuest.
+   */
+  async getAvailableForGuest(guestId?: number) {
+    const now = new Date()
+    const coupons = await prisma.coupon.findMany({
+      where: {
+        status: CouponStatus.Active,
+        startDate: { lte: now },
+        endDate: { gte: now }
+      }
+    })
+
+    const available: Array<{
+      code: string
+      discountType: string
+      discountValue: number
+      minOrderAmount: number | null
+      endDate: string
+      remainingUses: number | null
+      description: string
+    }> = []
+
+    for (const c of coupons) {
+      // Skip if global usage exhausted
+      if (c.maxTotalUsage !== null && c.usageCount >= c.maxTotalUsage) continue
+
+      // Check per-guest usage limit
+      let remainingUses: number | null = null
+      if (guestId && c.maxUsagePerGuest !== null) {
+        const usageCount = await prisma.couponUsage.count({
+          where: { couponId: c.id, guestId }
+        })
+        if (usageCount >= c.maxUsagePerGuest) continue
+        remainingUses = c.maxUsagePerGuest - usageCount
+      }
+
+      available.push({
+        code: c.code,
+        discountType: c.discountType,
+        discountValue: c.discountValue,
+        minOrderAmount: c.minOrderAmount,
+        endDate: c.endDate.toISOString(),
+        remainingUses,
+        description:
+          c.discountType === CouponDiscountType.Percentage
+            ? `${c.discountValue}% off${c.minOrderAmount ? ` on orders over ${c.minOrderAmount.toLocaleString()} VND` : ''}`
+            : `${c.discountValue.toLocaleString()} VND off${c.minOrderAmount ? ` on orders over ${c.minOrderAmount.toLocaleString()} VND` : ''}`
+      })
+    }
+
+    return available
+  },
+
+  /**
+   * Apply a coupon code to an existing pending order.
+   * Validates, increments usage atomically, and creates CouponUsage record.
+   */
+  async applyToOrder(code: string, orderId: number, guestId: number) {
+    // Find the order and verify ownership + status
+    const order = await prisma.order.findFirst({
+      where: { id: orderId, guestId, status: 'Pending' },
+      include: { items: { include: { dishSnapshot: true } } }
+    })
+
+    if (!order) {
+      throw new Error(`Order #${orderId} not found, does not belong to you, or is not pending.`)
+    }
+
+    if (order.couponId) {
+      throw new Error(`Order #${orderId} already has a coupon applied.`)
+    }
+
+    // Gather dish IDs for validation
+    const dishIds = order.items.map((item) => item.dishSnapshot.dishId).filter((id): id is number => id !== null)
+
+    // Validate coupon
+    const validation = await this.validate({
+      code,
+      orderTotal: order.totalAmount,
+      dishIds,
+      guestId
+    })
+
+    if (!validation.valid) {
+      throw new Error(validation.message)
+    }
+
+    // Apply in atomic transaction
+    await prisma.$transaction(async (tx) => {
+      // Atomic increment usageCount with race-condition safety
+      const rowsAffected = (await tx.$executeRaw`
+        UPDATE Coupon
+        SET usageCount = usageCount + 1
+        WHERE code = ${code}
+          AND status = 'ACTIVE'
+          AND (maxTotalUsage IS NULL OR usageCount < maxTotalUsage)
+      `) as number
+
+      if (rowsAffected === 0) {
+        throw new Error('Coupon is no longer available.')
+      }
+
+      await tx.order.update({
+        where: { id: orderId },
+        data: {
+          couponId: validation.coupon.id,
+          discountAmount: validation.discountAmount
+        }
+      })
+
+      await tx.couponUsage.create({
+        data: {
+          couponId: validation.coupon.id,
+          guestId,
+          orderId,
+          discountAmount: validation.discountAmount
+        }
+      })
+    })
+
+    return {
+      couponCode: code,
+      discountType: validation.coupon.discountType,
+      discountValue: validation.coupon.discountValue,
+      discountAmount: validation.discountAmount,
+      originalTotal: order.totalAmount,
+      finalAmount: validation.finalAmount
+    }
   }
 }

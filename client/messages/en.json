@@ -160,5 +160,22 @@
   "Spin": {
     "title": "Spin Management",
     "description": "Manage spin events and rewards"
+  },
+  "AiChat": {
+    "title": "AI Assistant",
+    "welcomeLine1": "Hello! I'm the restaurant's AI assistant.",
+    "welcomeLine2": "How can I help you with the menu or any questions?",
+    "quickPrompt1": "What's on the menu today?",
+    "quickPrompt2": "Any light dishes?",
+    "quickPrompt3": "Recommend me some dishes",
+    "quickPrompt4": "What goes well with beer?",
+    "toolSearchMenu": "Searching the menu (keyword)...",
+    "toolSearchSemantic": "Searching the menu (semantic)...",
+    "toolDishDetails": "Looking up dish details...",
+    "toolDefault": "Looking up information...",
+    "loading": "Analyzing...",
+    "errorDefault": "Sorry, an error occurred. Please try again.",
+    "stopButton": "Stop response",
+    "inputPlaceholder": "Type your question..."
   }
 }

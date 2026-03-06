@@ -3,6 +3,8 @@
  * Detects prompt injection attacks and validates message content.
  */
 
+import { getContextLogger } from '@/utils/logger'
+
 // Common prompt injection patterns (case-insensitive)
 const INJECTION_PATTERNS: RegExp[] = [
   /ignore\s+(all\s+)?(previous|above|prior)\s+(instructions|prompts|rules)/i,
@@ -50,7 +52,8 @@ export function validateMessageContent(messages: Array<{ role: string; content: 
 
     // Prompt injection detection
     if (detectPromptInjection(msg.content)) {
-      console.warn('[AI Security] Prompt injection detected:', msg.content.substring(0, 100))
+      const log = getContextLogger()
+      log?.warn(`[AI Security] Prompt injection detected: ${msg.content.substring(0, 100)}`)
       return { valid: false, error: 'Your message contains content that is not allowed.' }
     }
   }

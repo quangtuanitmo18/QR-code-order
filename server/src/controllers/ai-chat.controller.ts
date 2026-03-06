@@ -21,9 +21,11 @@ export async function aiChatController(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { messages, sessionId } = request.body as ChatRequestBody
-      const guestId = (request as any).decodedAccessToken?.guestId as number | undefined
-      // Only use userId as accountId when it's a real account (not a guest)
-      const userId = guestId ? 'guest' : request.decodedAccessToken?.userId?.toString() || 'guest'
+      const token = request.decodedAccessToken
+      // For guests, the guest ID is stored in userId with role='Guest'
+      const isGuest = token?.role === 'Guest'
+      const guestId = isGuest ? token?.userId : undefined
+      const userId = isGuest ? 'guest' : token?.userId?.toString() || 'guest'
 
       // Handle streaming response — reply.hijack() is called inside the service
       await aiChatService.handleChat(messages, userId, sessionId, reply, guestId)
