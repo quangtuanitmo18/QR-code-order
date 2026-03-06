@@ -40,6 +40,7 @@ Table Account {
   messageReactions MessageReaction [not null]
   messageReadReceipts MessageReadReceipt [not null]
   fcmTokens FcmToken [not null]
+  aiChatSessions AiChatSession [not null]
 }
 
 Table Dish {
@@ -151,6 +152,7 @@ Table Guest {
   sockets Socket
   reviews Review [not null]
   couponUsages CouponUsage [not null]
+  aiChatSessions AiChatSession [not null]
 }
 
 Table Payment {
@@ -563,6 +565,17 @@ Table FAQ {
   updatedAt DateTime [not null]
 }
 
+Table AiChatSession {
+  id String [pk]
+  guestId Int
+  accountId Int
+  messages String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [not null]
+  guest Guest
+  account Account
+}
+
 Ref: Account.ownerId - Account.id
 
 Ref: DishSnapshot.dishId > Dish.id
@@ -678,3 +691,7 @@ Ref: MessageReadReceipt.messageId > Message.id [delete: Cascade]
 Ref: MessageReadReceipt.accountId > Account.id [delete: Cascade]
 
 Ref: FcmToken.accountId > Account.id [delete: Cascade]
+
+Ref: AiChatSession.guestId > Guest.id [delete: Cascade]
+
+Ref: AiChatSession.accountId > Account.id [delete: Cascade]

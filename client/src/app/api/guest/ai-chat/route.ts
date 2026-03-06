@@ -7,8 +7,6 @@ export async function POST(req: Request) {
     const cookieStore = await cookies()
     const accessToken = cookieStore.get('accessToken')?.value
 
-    console.log('[AI Chat Proxy] Request body:', JSON.stringify(body).substring(0, 200))
-
     const response = await fetch(`${envConfig.NEXT_PUBLIC_API_ENDPOINT}/ai-chat`, {
       method: 'POST',
       headers: {
@@ -18,24 +16,28 @@ export async function POST(req: Request) {
       body: JSON.stringify(body),
     })
 
-    console.log('[AI Chat Proxy] Backend response status:', response.status)
-
     if (!response.ok) {
       const errorText = await response.text()
-      console.log('[AI Chat Proxy] Backend error:', errorText.substring(0, 200))
       return new Response(errorText, { status: response.status })
     }
 
-    // Read the full text response first to debug
-    const responseText = await response.text()
-    console.log('[AI Chat Proxy] Backend response body:', responseText.substring(0, 300))
+    // Stream the response body directly through (don't buffer with .text())
+    // This preserves the AI SDK UIMessageStream format from the backend
+    const headers: Record<string, string> = {}
+    response.headers.forEach((value, key) => {
+      if (
+        key === 'content-type' ||
+        key === 'x-vercel-ai-data-stream' ||
+        key === 'x-vercel-ai-ui-message-stream' ||
+        key === 'x-ai-session-id'
+      ) {
+        headers[key] = value
+      }
+    })
 
-    // Return as AI SDK Data Stream Protocol
-    return new Response(responseText, {
-      headers: {
-        'Content-Type': 'text/plain; charset=utf-8',
-        'X-Vercel-AI-Data-Stream': 'v1',
-      },
+    return new Response(response.body, {
+      status: response.status,
+      headers,
     })
   } catch (error) {
     console.error('[AI Chat Proxy] Error:', error)

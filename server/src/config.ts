@@ -57,7 +57,11 @@ const configSchema = z.object({
   FIREBASE_PROJECT_ID: z.string(),
   FIREBASE_CLIENT_EMAIL: z.string(),
   FIREBASE_PRIVATE_KEY: z.string(),
-  OPENROUTER_API_KEY: z.string().optional().default('')
+  OPENROUTER_API_KEY: z.string().optional().default(''),
+  CHROMA_HOST: z.string().optional().default('api.trychroma.com'),
+  CHROMA_API_KEY: z.string().optional().default(''),
+  CHROMA_TENANT: z.string().optional().default('default_tenant'),
+  CHROMA_DATABASE: z.string().optional().default('default_database')
 })
 
 const configServer = configSchema.safeParse(process.env)

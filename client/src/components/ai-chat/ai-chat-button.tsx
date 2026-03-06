@@ -2,105 +2,52 @@
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { MessagesSquare, Send, X } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import { useChat } from '@ai-sdk/react'
+import { Loader2, MessagesSquare, Send, X } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
-
-interface ChatMessage {
-  id: string
-  role: 'user' | 'assistant'
-  content: string
-}
 
 export default function AiChatButton() {
   const [isOpen, setIsOpen] = useState(false)
   const [input, setInput] = useState('')
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [sessionId, setSessionId] = useState<string | undefined>(undefined)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  // AI SDK v6 useChat hook — manages messages, streaming, tool states
+  const { messages, sendMessage, status, error } = useChat({
+    api: '/api/guest/ai-chat',
+    body: { sessionId },
+    onResponse: (res) => {
+      const id = res.headers.get('x-ai-session-id')
+      if (id && !sessionId) {
+        setSessionId(id)
+      }
+    },
+  })
+
+  const isLoading = status === 'streaming' || status === 'submitted'
 
   const scrollToBottom = useCallback(() => {
     setTimeout(() => {
       if (scrollRef.current) {
         scrollRef.current.scrollTop = scrollRef.current.scrollHeight
       }
-    }, 100)
+    }, 50)
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // Auto-scroll on new messages or streaming content
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages, scrollToBottom])
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const text = input.trim()
     if (!text || isLoading) return
 
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: text,
-    }
-
-    const updatedMessages = [...messages, userMessage]
-    setMessages(updatedMessages)
+    sendMessage({ text })
     setInput('')
-    setIsLoading(true)
-    scrollToBottom()
-
-    try {
-      const response = await fetch('/api/guest/ai-chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: updatedMessages.map((m) => ({
-            role: m.role,
-            content: m.content,
-          })),
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`)
-      }
-
-      const data = await response.text()
-
-      // Parse AI SDK Data Stream Protocol or plain text
-      let assistantText = ''
-      const lines = data.split('\n')
-      for (const line of lines) {
-        if (line.startsWith('0:')) {
-          // Text delta in Data Stream Protocol
-          try {
-            assistantText += JSON.parse(line.slice(2))
-          } catch {
-            assistantText += line.slice(2)
-          }
-        }
-      }
-
-      // Fallback: if no protocol lines found, use raw text
-      if (!assistantText) {
-        assistantText = data
-      }
-
-      const assistantMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: assistantText,
-      }
-
-      setMessages((prev) => [...prev, assistantMessage])
-      scrollToBottom()
-    } catch (error) {
-      console.error('[AI Chat] Error:', error)
-      const errorMessage: ChatMessage = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.',
-      }
-      setMessages((prev) => [...prev, errorMessage])
-    } finally {
-      setIsLoading(false)
-    }
   }
 
   return (
@@ -157,17 +104,63 @@ export default function AiChatButton() {
                     }`}
                   >
                     {m.role === 'assistant' ? (
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{m.content}</ReactMarkdown>
+                      <div>
+                        {m.parts.map((part, i) => {
+                          if (part.type === 'text') {
+                            return (
+                              <ReactMarkdown key={`${m.id}-${i}`} remarkPlugins={[remarkGfm]}>
+                                {part.text}
+                              </ReactMarkdown>
+                            )
+                          }
+                          // Show tool states for transparency
+                          if (part.type === 'tool-invocation') {
+                            if (part.state === 'result') {
+                              return null // Tool completed, text response will show the result
+                            }
+                            return (
+                              <div
+                                key={`${m.id}-${i}`}
+                                className="my-1 flex items-center gap-1 text-xs text-muted-foreground"
+                              >
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                <span>Đang tra cứu thực đơn...</span>
+                              </div>
+                            )
+                          }
+                          return null
+                        })}
+                      </div>
                     ) : (
-                      m.content
+                      // Render user message text from parts
+                      m.parts
+                        .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+                        .map((p) => p.text)
+                        .join('')
                     )}
                   </div>
                 </div>
               ))}
-              {isLoading && (
+
+              {/* Loading indicator */}
+              {isLoading &&
+                messages.length > 0 &&
+                messages[messages.length - 1]?.role === 'user' && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[85%] rounded-2xl bg-muted px-4 py-2 text-sm">
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        Đang suy nghĩ...
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+              {/* Error display */}
+              {error && (
                 <div className="flex justify-start">
-                  <div className="max-w-[85%] rounded-2xl bg-muted px-4 py-2 text-sm">
-                    <span className="animate-pulse">Đang suy nghĩ...</span>
+                  <div className="max-w-[85%] rounded-2xl bg-destructive/10 px-4 py-2 text-sm text-destructive">
+                    Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.
                   </div>
                 </div>
               )}

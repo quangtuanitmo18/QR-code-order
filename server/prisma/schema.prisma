@@ -49,6 +49,7 @@ model Account {
   messageReactions         MessageReaction[]         @relation("MessageReactions")
   messageReadReceipts      MessageReadReceipt[]      @relation("MessageReadReceipts")
   fcmTokens                FcmToken[]                @relation("UserFcmTokens")
+  aiChatSessions           AiChatSession[]
 }
 
 model Dish {
@@ -160,6 +161,7 @@ model Guest {
   sockets               Socket?
   reviews               Review[]
   couponUsages          CouponUsage[]
+  aiChatSessions        AiChatSession[]
 }
 
 model Payment {
@@ -676,3 +678,18 @@ model FAQ {
   @@map("FAQ")
 }
 
+model AiChatSession {
+  id        String   @id @default(uuid())
+  guestId   Int?     // Optional, if the user is authenticated as a guest
+  accountId Int?     // Optional, if the user is authenticated as an employee/admin
+  messages  String   // Stored as a JSON string representing the Array<Message>
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  guest   Guest?   @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  account Account? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([guestId])
+  @@index([accountId])
+  @@index([updatedAt])
+}

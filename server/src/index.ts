@@ -34,6 +34,7 @@ import taskAttachmentRoutes from '@/routes/task-attachment.route'
 import taskCommentRoutes from '@/routes/task-comment.route'
 import taskRoutes from '@/routes/task.route'
 import testRoutes from '@/routes/test.route'
+import { aiMemoryService } from '@/services/ai-memory.service'
 import { calendarTypeService } from '@/services/calendar-type.service'
 import { createFolder } from '@/utils/helpers'
 import { loggerStorage } from '@/utils/logger'
@@ -86,8 +87,7 @@ fastify.get('/test-glitchtip', () => {
 })
 
 // Run the server!
-// Error handler
-fastify.register(errorHandlerPlugin)
+// Error handler registered inside start() below
 
 const start = async () => {
   try {
@@ -124,6 +124,9 @@ const start = async () => {
     fastify.register(fastifyCookie)
     fastify.register(validatorCompilerPlugin)
     fastify.register(errorHandlerPlugin)
+    fastify.register(import('@fastify/rate-limit'), {
+      global: false // We will apply it selectively
+    })
 
     fastify.register(fastifySocketIO, {
       cors: {
@@ -223,6 +226,9 @@ const start = async () => {
 async function shutdown(signal: NodeJS.Signals) {
   try {
     fastify.log.info({ signal }, 'Shutting down gracefully...')
+
+    // Stop AI memory cleanup job
+    aiMemoryService.stopCleanupJob()
 
     // Close Socket.IO connections
     if (fastify.io && typeof fastify.io.close === 'function') {
