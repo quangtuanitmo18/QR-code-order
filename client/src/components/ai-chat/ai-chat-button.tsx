@@ -75,6 +75,24 @@ export default function AiChatButton() {
         return t('toolSearchSemantic')
       case 'getDishDetails':
         return t('toolDishDetails')
+      case 'getOrderStatus':
+        return t('toolOrderStatus')
+      case 'getAvailableCoupons':
+        return t('toolAvailableCoupons')
+      case 'getRestaurantInfo':
+        return t('toolRestaurantInfo')
+      case 'getMenuCategories':
+        return t('toolMenuCategories')
+      case 'getPopularDishes':
+        return t('toolPopularDishes')
+      case 'searchFAQ':
+        return t('toolSearchFAQ')
+      case 'placeOrder':
+        return t('toolPlaceOrder')
+      case 'cancelOrder':
+        return t('toolCancelOrder')
+      case 'applyCoupon':
+        return t('toolApplyCoupon')
       default:
         return t('toolDefault')
     }

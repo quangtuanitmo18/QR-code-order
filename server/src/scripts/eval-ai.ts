@@ -78,9 +78,9 @@ async function runEvaluations() {
         }
       }
 
-      // Check tool usage
+      // Check tool usage across ALL steps (not just the last one)
       if (tc.expectedTool && isSuccess) {
-        const usedTools = response.toolCalls?.map((t: any) => t.toolName) || []
+        const usedTools = response.steps?.flatMap((s: any) => (s.toolCalls || []).map((t: any) => t.toolName)) || []
         if (!usedTools.includes(tc.expectedTool)) {
           isSuccess = false
           failureReason = `Expected tool "${tc.expectedTool}" wasn't called. Tools called: ${usedTools.join(', ')}`

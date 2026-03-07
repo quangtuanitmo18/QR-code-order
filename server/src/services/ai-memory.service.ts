@@ -1,6 +1,20 @@
 import prisma from '@/database'
 import { getContextLogger } from '@/utils/logger'
 
+/** Lightweight UIMessage-like shape stored in DB */
+export interface UIMessageLike {
+  id: string
+  role: 'user' | 'assistant' | 'system'
+  parts: Array<{ type: 'text'; text: string }>
+}
+
+/** Token usage info */
+interface TokenUsage {
+  promptTokens: number
+  completionTokens: number
+  totalTokens: number
+}
+
 class AiMemoryService {
   private readonly cleanupIntervalMs = 12 * 60 * 60 * 1000 // 12 hours
   private readonly sessionRetentionMs = 24 * 60 * 60 * 1000 // 24 hours
@@ -52,7 +66,7 @@ class AiMemoryService {
   /**
    * Get an existing session by ID.
    */
-  async getSession(sessionId: string): Promise<any[]> {
+  async getSession(sessionId: string): Promise<UIMessageLike[]> {
     try {
       const session = await prisma.aiChatSession.findUnique({
         where: { id: sessionId }
@@ -75,9 +89,9 @@ class AiMemoryService {
    */
   async saveSession(
     sessionId: string,
-    messages: any[],
+    messages: UIMessageLike[],
     userId?: { guestId?: number; accountId?: number },
-    usage?: { promptTokens: number; completionTokens: number; totalTokens: number }
+    usage?: TokenUsage
   ) {
     try {
       // Build user connection data — only include if IDs actually exist
@@ -168,7 +182,7 @@ class AiMemoryService {
    * Sliding window to preserve context size.
    * Ensures the system prompt (if present) is always kept at index 0.
    */
-  applySlidingWindow(messages: any[], maxMessages = 20): any[] {
+  applySlidingWindow(messages: UIMessageLike[], maxMessages = 20): UIMessageLike[] {
     if (messages.length <= maxMessages) {
       return messages
     }

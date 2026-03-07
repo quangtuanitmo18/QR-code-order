@@ -75,7 +75,7 @@ async function seedDishes() {
       d.ingredients ? `Ingredients: ${d.ingredients}` : '',
       d.allergens && d.allergens !== 'None' ? `Allergens: ${d.allergens}` : '',
       d.tags ? `Tags: ${d.tags}` : '',
-      `Price: ${d.price.toLocaleString('en-US')} VND`
+      `Price: $${d.price}`
     ].filter(Boolean)
     return parts.join(' — ')
   })

@@ -75,6 +75,7 @@ class AiChatService {
       return
     }
 
+    let timeout: ReturnType<typeof setTimeout> | undefined
     try {
       // 2. Build dynamic system prompt from DB (restaurant info + FAQs)
       const systemPrompt = await promptBuilderService.buildSystemPrompt(userId)
@@ -109,7 +110,7 @@ class AiChatService {
 
       // 4. Stream text with tool calling + 30s timeout
       const abortController = new AbortController()
-      const timeout = setTimeout(() => abortController.abort(), 30_000)
+      timeout = setTimeout(() => abortController.abort(), 30_000)
 
       const result = streamText({
         model: this.openrouter.chat('google/gemini-2.5-flash'),
@@ -195,6 +196,7 @@ class AiChatService {
         reply.raw.end()
       }
     } catch (error: unknown) {
+      clearTimeout(timeout)
       const isAbort = error instanceof Error && error.name === 'AbortError'
       if (isAbort) {
         log?.warn('[AI Chat] Request timed out after 30s')

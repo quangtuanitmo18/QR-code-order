@@ -430,17 +430,35 @@ export function createAiTools(context: { guestId?: number }) {
           const resolvedDishes: Array<{ name: string; price: number; quantity: number }> = []
 
           for (const item of items) {
-            const dish = await prisma.dish.findFirst({
+            // Try exact match first (case-insensitive via SQLite LIKE default behavior)
+            const exactMatches = await prisma.dish.findMany({
               where: {
                 name: { contains: item.dishName.toLowerCase() },
                 status: 'Available'
-              }
+              },
+              take: 10
             })
 
+            // Filter for exact name match (case-insensitive)
+            let dish = exactMatches.find((d) => d.name.toLowerCase() === item.dishName.toLowerCase()) || null
+
+            // Fallback to partial match if exact match fails
             if (!dish) {
-              return {
-                message: `Could not find dish "${item.dishName}". Please check the name and try again.`
+              const partialMatches = exactMatches
+
+              if (partialMatches.length === 0) {
+                return {
+                  message: `Could not find dish "${item.dishName}". Please check the name and try again.`
+                }
               }
+
+              if (partialMatches.length > 1) {
+                return {
+                  message: `Multiple dishes match "${item.dishName}": ${partialMatches.map((d) => `"${d.name}" ($${d.price})`).join(', ')}. Please specify the exact dish name.`
+                }
+              }
+
+              dish = partialMatches[0]
             }
 
             orderItems.push({ dishId: dish.id, quantity: item.quantity })

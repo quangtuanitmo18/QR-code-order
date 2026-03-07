@@ -1,7 +1,24 @@
 import prisma from '@/database'
 
+/**
+ * Cached system prompt data with TTL.
+ */
+interface CachedPrompt {
+  prompt: string
+  expiresAt: number
+}
+
 class PromptBuilderService {
+  /** Cache TTL: 5 minutes (restaurant info changes very rarely) */
+  private readonly CACHE_TTL_MS = 5 * 60 * 1000
+  private cache: CachedPrompt | null = null
+
   async buildSystemPrompt(userId: string): Promise<string> {
+    // Return cached prompt if still valid
+    if (this.cache && Date.now() < this.cache.expiresAt) {
+      return this.cache.prompt
+    }
+
     // 1. Fetch Restaurant Settings
     const settings = await prisma.restaurantSetting.findMany()
     const settingsMap = settings.reduce(
@@ -24,7 +41,7 @@ Wi-Fi Password: ${settingsMap['wifi_password'] || 'Unknown'}
     const faqContext = faqs.map((faq) => `Q: ${faq.question}\nA: ${faq.answer}`).join('\n\n')
 
     // 3. Build Final Prompt with tool usage instructions
-    return `You are a helpful and polite AI Customer Assistant for a restaurant.
+    const prompt = `You are a helpful and polite AI Customer Assistant for a restaurant.
 Your role is to help customers who have scanned the QR code at their table.
 
 --- RESTAURANT INFORMATION ---
@@ -66,6 +83,21 @@ ${faqContext}
 - If a tool returns no results, let the customer know politely and suggest alternatives.
 - When presenting dish results, format them nicely with name, price ($), and description.
 - You may call multiple tools in sequence if needed (e.g., semantic search first, then get details).`
+
+    // Cache the built prompt
+    this.cache = {
+      prompt,
+      expiresAt: Date.now() + this.CACHE_TTL_MS
+    }
+
+    return prompt
+  }
+
+  /**
+   * Invalidate the prompt cache (e.g., after admin updates restaurant settings or FAQs).
+   */
+  invalidateCache() {
+    this.cache = null
   }
 }
 
