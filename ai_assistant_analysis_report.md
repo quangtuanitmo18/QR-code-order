@@ -1,67 +1,115 @@
-# Phân tích Code AI Assistant dựa trên Best Practices
+# Comprehensive AI Assistant Architecture & Action Plan
 
-Dựa vào file `ai_assistant_best_practices.md` và mã nguồn hiện tại (`ai-chat.service.ts`, `ai-tools.ts`, `embedding.service.ts`), dưới đây là báo cáo phân tích chi tiết về những điểm hệ thống đã làm tốt và những lỗ hổng cần cải thiện.
-
----
-
-## 🟢 Những điểm đã làm rất tốt (Aligned with Best Practices)
-
-1. **Tool Engineering (Công cụ tốt hơn Prompt):**
-   - Các công cụ trong `ai-tools.ts` được định nghĩa rất rõ ràng với `zod` schema, mô tả (description) tường minh.
-   - Các hàm trả về dữ liệu có cấu trúc sạch sẽ thay vì text thô (Vídụ: `placeOrder` trả về `orderId`, `items`, `totalAmount`). Điều này giúp LLM ít bị ảo giác (hallucination) hơn rất nhiều.
-
-2. **Deterministic Logic in Code (Logic nằm ở Code):**
-   - Thay vì yêu cầu LLM "sắp xếp món ăn phổ biến", tool `getPopularDishes` tự động xử lý logic này bằng truy vấn SQL GroupBy và trả về kết quả đã được sort chuẩn xác.
-   - Việc tính toán tổng tiền, xử lý đơn hàng đều nằm ở tầng Service truyền thống.
-
-3. **Từ Wrapper sang Mindset Agentic:**
-   - Việc sử dụng `streamText` với `tools` và cấu hình cơ chế loop (`stopWhen: stepCountIs(5)`) chứng tỏ hệ thống đã vượt qua mức ứng dụng chat LLM thông thường để trở thành một Agent có khả năng suy luận và gọi Action.
+This document serves as the master blueprint and analysis report for the Restaurant AI Assistant. It details the current architecture, technologies, operational workflows, and the strategic roadmap for achieving a fully mature, production-ready Agentic AI.
 
 ---
 
-## 🔴 Những lỗ hổng lớn cần phải cải thiện (Gaps & Anti-patterns)
+## I. Current System Architecture & Capabilities
 
-Đây là những điểm mã nguồn hiện tại đang đi ngược lại so với Best Practices.
+The AI Assistant has evolved from a simple chatbot wrapper into a structured **Multi-Agent System** that acts as an intelligent waiter, order taker, and receptionist.
 
-### 1. Kiến trúc ReAct tự do thay vì Graph-Based Pipeline
+### 1. Technology Stack
 
-- **Hiện trạng:** Hệ thống đang hoạt động như một Single Agent sử dụng mẫu thiết kế ReAct tự do do Vercel AI SDK cung cấp với giới hạn cấu hình `maxSteps: 5`.
-- **Vấn đề:** Điều này tạo ra một "hộp đen". LLM tự động quyết định gọi tool nào, lúc nào trả lời. Điều này đi ngược lại với Best Practice **"Ditch the Free-Roam LLM"**.
-- **Cách cải thiện:** Cần chuyển đổi sang Multi-Agent/Graph-Based sử dụng các thư viện như `LangGraph` (hoặc tự code State Machine), chia nhỏ thành Supervisor -> Sales Sub-Agent -> Order Sub-Agent để kiểm soát luồng chạy thay vì giao phó toàn bộ sinh mạng vào LLM.
+- **AI Orchestration:** [Vercel AI SDK](https://sdk.vercel.ai/) (`generateObject`, `streamText`, `tool`).
+- **LLM Provider:** [OpenRouter](https://openrouter.ai/) (providing seamless model switching).
+- **Core Model:** Google Gemini 2.5 Flash (`google/gemini-2.5-flash`) - chosen for ultra-fast latency and high intelligence, enabling rapid routing and conversational generation.
+- **RAG & Vector Database:** [ChromaDB](https://www.trychroma.com/) (Cloud Client) for storing menus and FAQs.
+- **Embeddings:** `jina-embeddings-v3` (via Jina AI) for multilingual text representation.
+- **Data Validation:** Zod (for strict JSON schema definition of AI Tools and Routing outputs).
+- **Database:** Prisma ORM connected to PostgreSQL/SQLite for exact-match searching and order execution.
 
-### 2. Thiếu kiến trúc Multi-Agent
+### 2. The Multi-Agent Architecture
 
-- **Hiện trạng:** Toàn bộ công cụ (từ tìm kiếm menu, quản lý đơn hàng đến kiểm tra coupon) đều bị ném chung vào một Prompt tổng khổng lồ `createAiTools()`.
-- **Vấn đề:** Khi số lượng tools tăng lên, Context của LLM sẽ bị quá tải, dẫn đến LLM bị rối và chọn nhầm tool.
-- **Cách cải thiện:** Chia tách tools cho các Sub-Agent riêng biệt. Supervisor chỉ nhận nhiệm vụ Routing.
+The system employs a **Supervisor-Worker Pattern** to eliminate the cognitive overload of throwing 10+ tools into a single LLM prompt.
 
-### 3. Hạn chế của hệ thống Memory (Conversational Memory)
+#### A. The Supervisor (`ai-router.service.ts`)
 
-- **Hiện trạng:** Code đang dùng Sliding Window (giữ lại 20 tin nhắn gần nhất).
-- **Vấn đề:** Vi phạm Best Practice về Memory 3 tầng. Sau 20 tin nhắn, Agent sẽ quên sạch thông tin ban đầu.
-- **Cách cải thiện:**
-  - Áp dụng **Progressive Summary** (Tóm tắt các tin nhắn cũ vứt khỏi window).
-  - Áp dụng **Entity Memory** (Lưu lại thông tin như: khách này bị dị ứng đậu phộng lên Redis để luôn gắn vào System Prompt ở mọi vòng lặp).
+- **Role:** The entry point for all user messages.
+- **Mechanism:** It reads the last 4 messages and uses `generateObject` (with a strict `IntentSchema`) to classify the user's _Primary Intent_ within milliseconds.
+- **Intents Handled:** `SEARCH`, `ORDER`, `FAQ`, `GENERAL`.
 
-### 4. RAG còn quá sơ khai (Basic vs Advanced RAG)
+#### B. The Workers (Sub-Agents)
 
-- **Hiện trạng:** `searchMenuSemantic` chỉ đơn giản tìm vector. Nếu query thất bại, gọi SQL fallback (`searchMenu`).
-- **Vấn đề:**
-  - Không có **Query Expansion**: Nếu user dùng từ địa phương, RAG sẽ trượt.
-  - Không có **Hybrid Search / Reranking**: Điểm yếu chí mạng vì vector search rất tệ trong việc tìm chính xác tên riêng (Exact Match).
-- **Cách cải thiện:** Cần mở rộng câu query trước khi ném vào ChromaDB, và thực hiện Rerank lại kết quả trước khi đưa cho LLM. Tạm thời không cần CRAG vội nhưng Hybrid Search là bắt buộc cho E-commerce.
+Based on the Supervisor's decision, `ai-chat.service.ts` dynamically injects only the necessary tools into the `streamText` function.
 
-### 5. Multi-Intent và Cảnh giới Fallback chưa có
+1. **Search Agent (`search.agent.ts`)**
+   - **Purpose:** Handling menu discovery and dish inquiries.
+   - **Tools:**
+     - `searchMenu`: Fast SQL-based exact match search (using `ILIKE` on names, categories, tags).
+     - `searchMenuSemantic`: ChromaDB vector search for conceptual queries ("spicy vegan food"). Falls back to SQL if RAG fails.
+     - `getDishDetails`: Retrieves deep context (ingredients, allergens) for a specific dish.
+     - `getMenuCategories`: Lists available categories and dish counts.
+     - `getPopularDishes`: Deterministic SQL aggregation of past orders to return best-sellers.
 
-- Vẫn phụ thuộc vào LLM tự chạy song song các tool nếu user yêu cầu 2 tác vụ. Không có code cứng bảo vệ (Ví dụ: phải fetch giá thành công mới được add vào giỏ).
-- Chưa có cấu trúc chặn tính năng (Ví dụ: bắt buộc văng ra json `unsupportedReason` khi user yêu cầu tính năng ngoài luồng).
+2. **Order Agent (`order.agent.ts`)**
+   - **Purpose:** Handling shopping cart, checkout, and promotions (Requires a verified Guest Session via QR Code).
+   - **Tools:**
+     - `placeOrder`: Adds items to the cart/creates an order.
+     - `getOrderStatus`: Retrieves the current bill and items ordered.
+     - `cancelOrder`: Cancels pending orders.
+     - `getAvailableCoupons`: Lists active promotions for the guest.
+     - `applyCoupon`: Attaches a discount code to the cart.
+
+3. **FAQ Agent (`faq.agent.ts`)**
+   - **Purpose:** Acting as the restaurant receptionist.
+   - **Tools:**
+     - `getRestaurantInfo`: Fetches hardcoded UI strings/settings (WiFi password, address, opening hours).
+     - `searchFAQ`: Semantic vector search against the internal FAQ database.
+
+### 3. Memory Architecture
+
+The system implements a **2-Tier Memory System** (`ai-memory.service.ts`):
+
+1. **Tier 1 (Hot Window):** The exact raw text of the most recent N messages is sent to the LLM.
+2. **Tier 2 (Progressive Summary):** When older messages fall out of the Hot Window, a background LLM process summarizes them into a concise paragraph. This summary is injected directly into the `System Prompt`, ensuring the AI remembers the entire conversational arc without blowing up token budgets (The "Lost in the Middle" fix).
 
 ---
 
-## 💡 Đề xuất hành động tiếp theo (Next Actions)
+## II. GAPs Analysis vs. Best Practices
 
-Nếu bạn muốn nâng cấp hệ thống này, mình khuyên nên làm theo thứ tự ưu tiên sau:
+While the current architecture is leaps and bounds ahead of standard wrappers, it still falls short of "Production-Ready Agentic AI" in four critical areas:
 
-1. **(Medium Effort / High Impact): Tái cấu trúc RAG:** Thêm Hybrid Search (kết hợp SQL like/FTS với ChromaDB) và tự code một bộ Rerank nhẹ bằng code thuần để xếp điểm.
-2. **(High Effort / Highest Impact): Chuyển đổi sang Graph-Based / Multi-Agent:** Đập bỏ kiến trúc Single Agent hiện tại. Implement `LangGraph` (hoặc một phiên bản Node-router đơn giản tự viết) để chia luồng Router -> Search Agent -> Order Agent.
-3. **(Low Effort / High Impact): State Memory:** Trích xuất các sự thật tĩnh (User Info, Allergies) thành state và tiêm vào System Prompt thay vì chỉ dùng Sliding Window.
+### GAP 1: Basic RAG (Missing Query Expansion & Hybrid Search)
+
+- **Current State:** `searchMenuSemantic` takes the raw user query (e.g., "sữa hạt" - nut milk) and throws it directly into ChromaDB.
+- **The Flaw:** Vector search calculates mathematical distance. For exact brand names, unique compounds, or Vietnamese slang, vector distance can return wildly inaccurate ("hallucinated") results compared to simple keyword matching. If ChromaDB fails, SQL `searchMenu` is called as a separate fallback turn.
+- **The Fix:** Implement **Advanced RAG**.
+  1. _Query Expansion:_ intercept "sữa hạt" and expand it via a Synonym Dictionary `["sữa hạt", "sữa hạt macca", "sữa hạt điều"]`.
+  2. _Hybrid Search:_ Run ChromaDB and SQL Full-Text Search _concurrently_.
+  3. _Reranking:_ Merge the results and score them, ensuring exact keyword matches always outrank fuzzy semantic matches.
+
+### GAP 2: Single-Intent Bottleneck (Missing Parallel Execution)
+
+- **Current State:** The AI Router forces the selection of a _single_ primary intent.
+- **The Flaw:** Humans talk in multi-intents: _"Order a pizza and tell me the WiFi password."_ The current router will drop one of these requests.
+- **The Fix:** Update the `IntentSchema` to output an array: `['ORDER', 'FAQ']`. The orchestrator must then run the Order Agent and FAQ Agent tools in parallel.
+
+### GAP 3: Lacking Smart Response Synthesizer
+
+- **Current State:** The system streams text directly from whichever Agent was chosen.
+- **The Flaw:** If we fix GAP 2 (running multiple agents), streaming raw text from two different agents concurrently will result in chaotic, disjointed chat bubbles.
+- **The Fix:** Introduce a final **Synthesizer Node**. The parallel agents must return _raw JSON data_ instead of strings. A final LLM pass takes the data from both the Order and FAQ agents and streams a single, natural, blended response back to the user.
+
+### GAP 4: Missing Tier 3 Memory (Entity / State Storage)
+
+- **Current State:** We have Hot Memory and Progressive Summaries.
+- **The Flaw:** Progressive summaries are fluid. If a user states, _"I am deathly allergic to peanuts"_, that fact might eventually get summarized out or diluted over a long session.
+- **The Fix:** Implement an **Entity Extractor**. A background process that listens for concrete, unchangeable facts (allergies, preferences, dietary restrictions) and saves them exclusively to PostgreSQL/Redis. These generic facts are then injected at the very top of the system prompt for _every_ future conversation, permanently personalizing the AI.
+
+---
+
+## III. Execution Roadmap
+
+To eliminate the gaps above, development should proceed in the following order:
+
+1. **Phase 1: Advanced Hybrid RAG (Addresses GAP 1)**
+   - _Effort:_ Medium | _Impact:_ Massive (Solves 90% of user search frustration).
+   - _Action:_ Create a Synonym Dictionary module and update `search.agent.ts` to perform concurrent SQL + Chroma queries with basic array-merge reranking.
+
+2. **Phase 2: Entity State Memory (Addresses GAP 4)**
+   - _Effort:_ Low | _Impact:_ High (Permanent Personalization).
+   - _Action:_ Create an extractor tool that saves `{ allergies: [], preferences: [] }` to the session/guest DB profile and update `prompt-builder.service.ts`.
+
+3. **Phase 3: Multi-Intent & Synthesizer (Addresses GAPs 2 & 3)**
+   - _Effort:_ High | _Impact:_ High (True Human-Level Interaction).
+   - _Action:_ Re-architect `ai-router.service.ts` to output arrays, and overhaul the orchestration loop in `ai-chat.service.ts`.

@@ -61,10 +61,10 @@ Classify the intent:`
 
     try {
       const result = await generateObject({
-        // Using Gemini 2.5 Flash for fast routing
         model: openrouter.chat('google/gemini-2.5-flash'),
         schema: IntentSchema,
-        prompt
+        prompt,
+        maxOutputTokens: 2048
       })
 
       log?.info(
