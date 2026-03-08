@@ -13,35 +13,36 @@ class PromptBuilderService {
   private readonly CACHE_TTL_MS = 5 * 60 * 1000
   private cache: CachedPrompt | null = null
 
-  async buildSystemPrompt(userId: string): Promise<string> {
-    // Return cached prompt if still valid
+  async buildSystemPrompt(userId: string, memoryContext?: { summary?: string | null }): Promise<string> {
+    let basePrompt = ''
+
+    // Return cached prompt base if still valid
     if (this.cache && Date.now() < this.cache.expiresAt) {
-      return this.cache.prompt
-    }
+      basePrompt = this.cache.prompt
+    } else {
+      // 1. Fetch Restaurant Settings
+      const settings = await prisma.restaurantSetting.findMany()
+      const settingsMap = settings.reduce(
+        (acc, current) => {
+          acc[current.key] = current.value
+          return acc
+        },
+        {} as Record<string, string>
+      )
 
-    // 1. Fetch Restaurant Settings
-    const settings = await prisma.restaurantSetting.findMany()
-    const settingsMap = settings.reduce(
-      (acc, current) => {
-        acc[current.key] = current.value
-        return acc
-      },
-      {} as Record<string, string>
-    )
-
-    const restaurantInfo = `
+      const restaurantInfo = `
 Restaurant Name: ${settingsMap['company_name'] || 'Our Restaurant'}
 Opening Hours: ${settingsMap['opening_hours'] || 'Unknown'}
 Address: ${settingsMap['address'] || 'Unknown'}
 Wi-Fi Password: ${settingsMap['wifi_password'] || 'Unknown'}
 `.trim()
 
-    // 2. Fetch FAQs (limit to 20 for token efficiency)
-    const faqs = await prisma.fAQ.findMany({ take: 20 })
-    const faqContext = faqs.map((faq) => `Q: ${faq.question}\nA: ${faq.answer}`).join('\n\n')
+      // 2. Fetch FAQs (limit to 20 for token efficiency)
+      const faqs = await prisma.fAQ.findMany({ take: 20 })
+      const faqContext = faqs.map((faq) => `Q: ${faq.question}\nA: ${faq.answer}`).join('\n\n')
 
-    // 3. Build Final Prompt with tool usage instructions
-    const prompt = `You are a helpful and polite AI Customer Assistant for a restaurant.
+      // 3. Build Final Prompt with tool usage instructions
+      const prompt = `You are a helpful and polite AI Customer Assistant for a restaurant.
 Your role is to help customers who have scanned the QR code at their table.
 
 --- RESTAURANT INFORMATION ---
@@ -84,13 +85,22 @@ ${faqContext}
 - When presenting dish results, format them nicely with name, price ($), and description.
 - You may call multiple tools in sequence if needed (e.g., semantic search first, then get details).`
 
-    // Cache the built prompt
-    this.cache = {
-      prompt,
-      expiresAt: Date.now() + this.CACHE_TTL_MS
+      // Cache the built prompt
+      this.cache = {
+        prompt,
+        expiresAt: Date.now() + this.CACHE_TTL_MS
+      }
+      basePrompt = prompt
     }
 
-    return prompt
+    // Inject Memory Context at the TOP of the prompt if it exists
+    let finalPrompt = ''
+    if (memoryContext?.summary) {
+      finalPrompt += `--- MEMORY CONTEXT ---\nA summary of your past conversation with this user so far:\n${memoryContext.summary}\n\n`
+    }
+
+    finalPrompt += basePrompt
+    return finalPrompt
   }
 
   /**

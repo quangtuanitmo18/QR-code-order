@@ -689,6 +689,8 @@ model AiChatSession {
   guestId          Int?     // Optional, if the user is authenticated as a guest
   accountId        Int?     // Optional, if the user is authenticated as an employee/admin
   messages         String   // Stored as a JSON string representing the Array<Message>
+  summary          String?  // Rolling progressive summary of evicted messages (3-tier memory)
+  summaryVersion   Int      @default(0)  // Tracks how many summary regeneration cycles have occurred
   promptTokens     Int      @default(0)
   completionTokens Int      @default(0)
   totalTokens      Int      @default(0)

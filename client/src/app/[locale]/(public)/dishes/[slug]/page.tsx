@@ -7,6 +7,9 @@ import { baseOpenGraph } from '@/shared-metadata'
 import { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 import { cache } from 'react'
+// We use React's `cache` here instead of TanStack Query because this is a Server Component.
+// `cache` memoizes the request during a single server-side render lifecycle, preventing
+// duplicate API calls when the same data (like getDetail) is needed in both `generateMetadata` and the page component.
 const getDetail = cache((id: number) => wrapServerApi(() => dishApiRequest.getDish(id)))
 
 type Props = {

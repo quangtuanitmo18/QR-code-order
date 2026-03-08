@@ -1,5 +1,8 @@
+import envConfig from '@/config'
 import prisma from '@/database'
 import { getContextLogger } from '@/utils/logger'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
+import { generateText } from 'ai'
 
 /** Lightweight UIMessage-like shape stored in DB */
 export interface UIMessageLike {
@@ -66,21 +69,27 @@ class AiMemoryService {
   /**
    * Get an existing session by ID.
    */
-  async getSession(sessionId: string): Promise<UIMessageLike[]> {
+  async getSession(
+    sessionId: string
+  ): Promise<{ messages: UIMessageLike[]; summary: string | null; summaryVersion: number }> {
     try {
       const session = await prisma.aiChatSession.findUnique({
         where: { id: sessionId }
       })
 
       if (!session) {
-        return []
+        return { messages: [], summary: null, summaryVersion: 0 }
       }
 
-      return JSON.parse(session.messages)
+      return {
+        messages: JSON.parse(session.messages),
+        summary: session.summary,
+        summaryVersion: session.summaryVersion
+      }
     } catch (error) {
       const log = getContextLogger()
       log?.error({ err: error }, `[AI Memory] Error getting session ${sessionId}`)
-      return [] // Return empty array on error to gracefully fallback
+      return { messages: [], summary: null, summaryVersion: 0 } // Return empty gracefully
     }
   }
 
@@ -91,7 +100,9 @@ class AiMemoryService {
     sessionId: string,
     messages: UIMessageLike[],
     userId?: { guestId?: number; accountId?: number },
-    usage?: TokenUsage
+    usage?: TokenUsage,
+    summary?: string | null,
+    summaryVersion?: number
   ) {
     try {
       // Build user connection data — only include if IDs actually exist
@@ -111,6 +122,8 @@ class AiMemoryService {
         where: { id: sessionId },
         update: {
           messages: JSON.stringify(messages),
+          ...(summary !== undefined && { summary }),
+          ...(summaryVersion !== undefined && { summaryVersion }),
           ...userUpdateData,
           ...(usage && {
             promptTokens: { increment: usage.promptTokens },
@@ -121,6 +134,8 @@ class AiMemoryService {
         create: {
           id: sessionId,
           messages: JSON.stringify(messages),
+          summary: summary || null,
+          summaryVersion: summaryVersion || 0,
           ...userCreateData,
           promptTokens: usage?.promptTokens || 0,
           completionTokens: usage?.completionTokens || 0,
@@ -138,6 +153,8 @@ class AiMemoryService {
             where: { id: sessionId },
             update: {
               messages: JSON.stringify(messages),
+              ...(summary !== undefined && { summary }),
+              ...(summaryVersion !== undefined && { summaryVersion }),
               ...(usage && {
                 promptTokens: { increment: usage.promptTokens },
                 completionTokens: { increment: usage.completionTokens },
@@ -147,6 +164,8 @@ class AiMemoryService {
             create: {
               id: sessionId,
               messages: JSON.stringify(messages),
+              summary: summary || null,
+              summaryVersion: summaryVersion || 0,
               promptTokens: usage?.promptTokens || 0,
               completionTokens: usage?.completionTokens || 0,
               totalTokens: usage?.totalTokens || 0
@@ -179,23 +198,87 @@ class AiMemoryService {
   }
 
   /**
-   * Sliding window to preserve context size.
-   * Ensures the system prompt (if present) is always kept at index 0.
+   * Replace applySlidingWindow: Splits history into the hot window and the newly evicted messages.
+   * Ensures the system prompt (if present) is always kept at index 0 of hotMessages.
    */
-  applySlidingWindow(messages: UIMessageLike[], maxMessages = 20): UIMessageLike[] {
+  buildContextWithSummary(
+    messages: UIMessageLike[],
+    maxMessages = 8
+  ): {
+    hotMessages: UIMessageLike[]
+    evictedMessages: UIMessageLike[]
+  } {
     if (messages.length <= maxMessages) {
-      return messages
+      return { hotMessages: messages, evictedMessages: [] }
     }
 
     const hasSystemMessage = messages[0]?.role === 'system'
 
     if (hasSystemMessage) {
       // Keep system prompt, and take the last (maxMessages - 1) messages
-      return [messages[0], ...messages.slice(messages.length - (maxMessages - 1))]
+      const hotMessages = [messages[0], ...messages.slice(-(maxMessages - 1))]
+      // The evicted messages are everything between the system message and the hot window
+      const evictedMessages = messages.slice(1, -(maxMessages - 1))
+      return { hotMessages, evictedMessages }
     }
 
     // No system prompt, just take the last maxMessages
-    return messages.slice(messages.length - maxMessages)
+    const hotMessages = messages.slice(-maxMessages)
+    const evictedMessages = messages.slice(0, -maxMessages)
+    return { hotMessages, evictedMessages }
+  }
+
+  /**
+   * Generates a progressive summary summarizing evicted messages on top of the existing summary.
+   */
+  async generateProgressiveSummary(existingSummary: string | null, evictedMessages: UIMessageLike[]): Promise<string> {
+    if (evictedMessages.length === 0) {
+      return existingSummary || ''
+    }
+
+    const openrouter = createOpenRouter({
+      apiKey: envConfig.OPENROUTER_API_KEY
+    })
+
+    const evictedText = evictedMessages
+      .map((m) => {
+        // Omit system messages from summary
+        if (m.role === 'system') return null
+        const text = m.parts
+          .filter((p) => p.type === 'text')
+          .map((p) => p.text)
+          .join(' ')
+        return `${m.role.toUpperCase()}: ${text}`
+      })
+      .filter(Boolean)
+      .join('\n')
+
+    const prompt = `Summarize the following conversation segment concisely.
+Keep: Key facts, user preferences, decisions, order details, allergies, language spoken.
+Drop: Greetings, filler words, repeated information, generic statements.
+
+Previous Summary:
+${existingSummary || 'None.'}
+
+New Conversation Segment to INCORPORATE into the summary:
+${evictedText}
+
+Updated Comprehensive Summary (max 200 words, use clear and direct language):`
+
+    try {
+      const result = await generateText({
+        model: openrouter.chat('google/gemini-2.5-flash'),
+        prompt,
+        maxOutputTokens: 300 // Keep summary short
+      })
+
+      return result.text.trim()
+    } catch (error) {
+      const log = getContextLogger()
+      log?.error({ err: error }, '[AI Memory] Error generating progressive summary')
+      // Fallback: return existing summary so we don't lose the old context
+      return existingSummary || ''
+    }
   }
 }
 

@@ -573,6 +573,8 @@ Table AiChatSession {
   guestId Int
   accountId Int
   messages String [not null]
+  summary String
+  summaryVersion Int [not null, default: 0]
   promptTokens Int [not null, default: 0]
   completionTokens Int [not null, default: 0]
   totalTokens Int [not null, default: 0]

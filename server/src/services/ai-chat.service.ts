@@ -1,7 +1,10 @@
 import envConfig from '@/config'
 import { validateMessageContent } from '@/middleware/ai-security'
+import { createFaqAgentTools } from '@/services/agents/faq.agent'
+import { createOrderAgentTools } from '@/services/agents/order.agent'
+import { createSearchAgentTools } from '@/services/agents/search.agent'
 import { aiMemoryService } from '@/services/ai-memory.service'
-import { createAiTools } from '@/services/ai-tools'
+import { AgentIntent, aiRouterService } from '@/services/ai-router.service'
 import { promptBuilderService } from '@/services/prompt-builder.service'
 import { getContextLogger } from '@/utils/logger'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
@@ -77,16 +80,19 @@ class AiChatService {
 
     let timeout: ReturnType<typeof setTimeout> | undefined
     try {
-      // 2. Build dynamic system prompt from DB (restaurant info + FAQs)
-      const systemPrompt = await promptBuilderService.buildSystemPrompt(userId)
+      const session = sessionId || crypto.randomUUID()
+      // Retrieve session history and progressive summary
+      const memoryResult = await aiMemoryService.getSession(session)
+      let memorySummary = memoryResult.summary
+      let summaryVersion = memoryResult.summaryVersion
 
-      // 3. Convert to UIMessage format then to ModelMessages
+      // 2. Build dynamic system prompt from DB (restaurant info + FAQs) and inject memory summary
+      const systemPrompt = await promptBuilderService.buildSystemPrompt(userId, { summary: memorySummary })
+
+      // 3. Convert incoming messages to UIMessage format
       const newUiMessages = toUIMessages(
         messages as Array<{ role: string; content?: string; parts?: Array<{ type: string; text?: string }> }>
       )
-
-      const session = sessionId || crypto.randomUUID()
-      const previousMessages = await aiMemoryService.getSession(session)
 
       // 3.5. Token budget check — refuse if session exceeded limit
       const sessionTokens = await aiMemoryService.getSessionTokens(session)
@@ -99,13 +105,32 @@ class AiChatService {
       }
 
       // Combine previous messages with new incoming messages
-      const fullUiHistory = [...previousMessages, ...newUiMessages]
-      const windowedUiHistory = aiMemoryService.applySlidingWindow(fullUiHistory, 20)
+      const fullUiHistory = [...memoryResult.messages, ...newUiMessages]
 
-      const modelMessages = await convertToModelMessages(windowedUiHistory)
+      // Extract hot window (last N messages) and identify newly evicted messages
+      const { hotMessages, evictedMessages } = aiMemoryService.buildContextWithSummary(fullUiHistory)
+      const needsNewSummary = evictedMessages.length > 0
+
+      // 3.8. Route the Intent
+      // Grab the last 4 messages from hotMessages for faster classification
+      const recentMessages = hotMessages.slice(-4)
+      const intent: AgentIntent = await aiRouterService.classifyIntent(recentMessages)
+
+      // 3.9. Dynamically select tools based on intent
+      let agentTools: any = {}
+      if (intent === 'SEARCH') {
+        agentTools = createSearchAgentTools()
+      } else if (intent === 'ORDER') {
+        agentTools = createOrderAgentTools({ guestId })
+      } else if (intent === 'FAQ') {
+        agentTools = createFaqAgentTools()
+      }
+      // GENERAL intent gets no specific tools, just standard chat.
+
+      const modelMessages = await convertToModelMessages(hotMessages)
 
       log?.info(
-        `[AI Chat] Starting streamText (Session: ${session}, History: ${windowedUiHistory.length}, Tokens used: ${sessionTokens})`
+        `[AI Chat] Starting streamText (Session: ${session}, Intent: ${intent}, Hot History: ${hotMessages.length}, Tokens used: ${sessionTokens})`
       )
 
       // 4. Stream text with tool calling + 30s timeout
@@ -117,7 +142,7 @@ class AiChatService {
         maxOutputTokens: 2048, // Limit per-request cost — đủ cho restaurant assistant
         system: systemPrompt,
         messages: modelMessages,
-        tools: createAiTools({ guestId }),
+        tools: Object.keys(agentTools).length > 0 ? agentTools : undefined,
         stopWhen: stepCountIs(5),
         abortSignal: abortController.signal,
         onFinish: async (event) => {
@@ -142,8 +167,15 @@ class AiChatService {
               })
               .filter((msg) => msg.parts.some((p) => p.text !== ''))
 
-            // Combine previous window with the new messages
-            const updatedHistory = [...windowedUiHistory, ...newMessages]
+            // Combine previous hot window with the new messages
+            const updatedHistory = [...hotMessages, ...newMessages]
+
+            // If messages were evicted from the hot window, generate a new progressive summary asynchronously
+            if (needsNewSummary) {
+              log?.info(`[AI Memory] Generating progressive summary for ${evictedMessages.length} evicted messages`)
+              memorySummary = await aiMemoryService.generateProgressiveSummary(memorySummary, evictedMessages)
+              summaryVersion++
+            }
 
             const parsedUserId = userId !== 'guest' ? parseInt(userId) : undefined
             await aiMemoryService.saveSession(
@@ -156,7 +188,9 @@ class AiChatService {
                     completionTokens: event.usage.outputTokens || 0,
                     totalTokens: event.usage.totalTokens || 0
                   }
-                : undefined
+                : undefined,
+              memorySummary,
+              summaryVersion
             )
           } catch (e) {
             log?.error({ err: e }, '[AI Chat] Failed to save session on finish')
