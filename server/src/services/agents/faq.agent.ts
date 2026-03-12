@@ -1,6 +1,5 @@
 import prisma from '@/database'
-import { chromaService } from '@/services/chroma.service'
-import { embeddingService } from '@/services/embedding.service'
+import { hybridRagService } from '@/services/hybrid-rag.service'
 import { getContextLogger } from '@/utils/logger'
 import { tool } from 'ai'
 import { z } from 'zod'
@@ -37,35 +36,28 @@ export function createFaqAgentTools() {
     }),
 
     /**
-     * Semantic search FAQs via ChromaDB restaurant_faq collection.
+     * Hybrid FAQ search — 4-layer lightweight pipeline:
+     * Normalize → Light Expansion → [SQL + Vector] → Simple Rerank + Log
      */
     searchFAQ: tool({
       description:
-        'Search restaurant FAQs using semantic understanding. Use when a customer asks general questions about the restaurant like parking, reservations, delivery, payment methods, allergies, dress code, etc.',
+        'Search restaurant FAQs using hybrid keyword + semantic search. Use when a customer asks general questions about the restaurant like parking, reservations, delivery, payment methods, allergies, dress code, etc.',
       inputSchema: z.object({
         query: z.string().describe('The customer question about the restaurant')
       }),
       execute: async ({ query }: { query: string }) => {
         const log = getContextLogger()
         try {
-          const queryEmbedding = await embeddingService.createQueryEmbedding(query)
-          const results = await chromaService.queryDocuments(queryEmbedding, 3, 'restaurant_faq')
+          const results = await hybridRagService.searchFAQ(query)
 
-          if (!results.documents?.[0]?.length) {
-            // Fallback: try SQL search on FAQ table
-            const faqs = await prisma.fAQ.findMany({
-              where: {
-                OR: [{ question: { contains: query.toLowerCase() } }, { answer: { contains: query.toLowerCase() } }]
-              },
-              take: 3
-            })
-
+          if (results.length === 0) {
+            // Fallback: return all FAQs if hybrid found nothing
+            const faqs = await prisma.fAQ.findMany({ where: { isActive: true }, take: 5 })
             if (faqs.length === 0) {
               return {
                 message: "I couldn't find a specific answer to that question. Please ask our staff for more details."
               }
             }
-
             return faqs.map((f) => ({
               question: f.question,
               answer: f.answer,
@@ -73,19 +65,17 @@ export function createFaqAgentTools() {
             }))
           }
 
-          return results.documents[0].map((_doc: string | null, i: number) => {
-            const meta = results.metadatas?.[0]?.[i] || {}
-            return {
-              question: meta.question || '',
-              answer: meta.answer || '',
-              category: meta.category || '',
-              relevance: results.distances?.[0]?.[i] ?? null
-            }
-          })
+          return results.map((r) => ({
+            question: r.question,
+            answer: r.answer,
+            category: r.category,
+            score: r.score,
+            source: r.source
+          }))
         } catch (error) {
-          log?.warn({ err: error }, '[AI Tool: searchFAQ] Semantic search failed, trying SQL fallback')
+          log?.warn({ err: error }, '[AI Tool: searchFAQ] Hybrid search failed, trying SQL fallback')
           try {
-            const faqs = await prisma.fAQ.findMany({ take: 5 })
+            const faqs = await prisma.fAQ.findMany({ where: { isActive: true }, take: 5 })
             return faqs.map((f) => ({
               question: f.question,
               answer: f.answer,

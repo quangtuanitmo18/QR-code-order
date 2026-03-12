@@ -35,6 +35,7 @@ import taskCommentRoutes from '@/routes/task-comment.route'
 import taskRoutes from '@/routes/task.route'
 import testRoutes from '@/routes/test.route'
 import { aiMemoryService } from '@/services/ai-memory.service'
+import { hybridRagService } from '@/services/hybrid-rag.service'
 import { calendarTypeService } from '@/services/calendar-type.service'
 import { createFolder } from '@/utils/helpers'
 import { loggerStorage } from '@/utils/logger'
@@ -211,6 +212,10 @@ const start = async () => {
     // Initialize system data
     await initOwnerAccount()
     await calendarTypeService.initDefaultCalendarTypes()
+
+    // Initialize Hybrid RAG category cache
+    await hybridRagService.init()
+
     await fastify.listen({
       port: envConfig.PORT,
       // host: envConfig.DOCKER ? '0.0.0.0' : 'localhost'

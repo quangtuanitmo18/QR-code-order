@@ -5,6 +5,7 @@
     "target": "ES2022", // Target output of JavaScript
     "outDir": "dist", // Output directory for build files
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "strict": true /* Enable all strict type-checking options. */,
     "skipLibCheck": true /* Skip type checking all .d.ts files. */,
     "baseUrl": ".", // Base directory for imports

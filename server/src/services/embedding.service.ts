@@ -60,7 +60,16 @@ class EmbeddingService {
       }
 
       const data = (await response.json()) as {
-        data: Array<{ embedding: number[] }>
+        data?: Array<{ embedding: number[] }>
+      }
+
+      if (!data.data || !Array.isArray(data.data) || data.data.length === 0) {
+        const log = getContextLogger()
+        log?.error(
+          { responseBody: JSON.stringify(data).slice(0, 500) },
+          '[Embedding] Unexpected API response — no embeddings returned'
+        )
+        throw new Error('[Embedding] API returned no embeddings. Response may be rate-limited or malformed.')
       }
 
       const log = getContextLogger()

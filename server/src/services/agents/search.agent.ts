@@ -1,6 +1,5 @@
 import prisma from '@/database'
-import { chromaService } from '@/services/chroma.service'
-import { embeddingService } from '@/services/embedding.service'
+import { hybridRagService } from '@/services/hybrid-rag.service'
 import { getContextLogger } from '@/utils/logger'
 import { tool } from 'ai'
 import { z } from 'zod'
@@ -61,32 +60,39 @@ export function createSearchAgentTools() {
     }),
 
     /**
-     * RAG semantic search via ChromaDB (understands meaning, multilingual).
+     * Hybrid RAG search — 5-layer pipeline: Normalize → Entity Extract → Expand → Hybrid Retrieve → Rerank + Log.
+     * Uses synonym expansion, catalog expansion, SQL + Vector + structured filter concurrently.
      */
     searchMenuSemantic: tool({
       description:
-        'Semantic search for dishes using AI-powered understanding. Best for vague, descriptive, or multilingual queries like "something light", "vegetarian food", or "good with beer". Understands meaning, not just keywords.',
+        'Hybrid AI-powered menu search combining keyword, semantic, and entity-based search. Best for any food query — exact names like "Big Boy Burger", vague like "something light", multilingual, or category-based like "appetizers". Understands meaning, synonyms, ingredients, and allergens.',
       inputSchema: z.object({
         query: z.string().describe('Natural language food query in any language')
       }),
       execute: async ({ query }: { query: string }) => {
         const log = getContextLogger()
         try {
-          const queryEmbedding = await embeddingService.createQueryEmbedding(query)
-          const results = await chromaService.queryDocuments(queryEmbedding, 5, 'restaurant_menu')
+          const results = await hybridRagService.searchMenu(query)
 
-          if (!results.documents?.[0]?.length) {
-            log?.info(`[AI Tool: searchMenuSemantic] No RAG results for "${query}", falling back to SQL`)
+          if (results.length === 0) {
+            log?.info(`[AI Tool: searchMenuSemantic] No hybrid results for "${query}", falling back to SQL`)
             return await sqlSearchDishes(query)
           }
 
-          return results.documents[0].map((doc: string | null, i: number) => ({
-            text: doc,
-            metadata: results.metadatas?.[0]?.[i] || {},
-            distance: results.distances?.[0]?.[i] ?? null
+          return results.map((r) => ({
+            id: r.id,
+            name: r.name,
+            price: r.price,
+            description: r.description,
+            category: r.category,
+            ingredients: r.ingredients,
+            allergens: r.allergens,
+            tags: r.tags,
+            score: r.score,
+            source: r.source
           }))
         } catch (error) {
-          log?.warn({ err: error }, '[AI Tool: searchMenuSemantic] RAG failed, falling back to SQL search')
+          log?.warn({ err: error }, '[AI Tool: searchMenuSemantic] Hybrid RAG failed, falling back to SQL')
           try {
             return await sqlSearchDishes(query)
           } catch (fallbackError) {
