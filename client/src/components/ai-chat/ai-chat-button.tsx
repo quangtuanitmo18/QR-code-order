@@ -4,7 +4,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
-import { CheckCircle2, Loader2, MessagesSquare, Send, StopCircle, X, XCircle } from 'lucide-react'
+import {
+  CheckCircle2,
+  Loader2,
+  MessagesSquare,
+  Send,
+  ShieldAlert,
+  StopCircle,
+  X,
+  XCircle,
+} from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
@@ -164,304 +173,324 @@ export default function AiChatButton() {
         </Button>
       )}
 
-      {/* Chat Window */}
-      {isOpen && (
-        <div className="fixed bottom-4 right-4 z-50 flex h-[550px] w-[350px] flex-col overflow-hidden rounded-2xl border bg-background shadow-2xl sm:bottom-8 sm:right-8">
-          {/* Header */}
-          <div className="flex items-center justify-between bg-primary p-4 text-primary-foreground">
-            <div className="flex items-center gap-2">
-              <MessagesSquare className="h-5 w-5" />
-              <h3 className="font-semibold">{t('title')}</h3>
-            </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-primary-foreground hover:bg-primary/90"
-              onClick={() => setIsOpen(false)}
-            >
-              <X className="h-5 w-5" />
-            </Button>
+      {/* Chat Window — always mounted, hidden when closed to preserve messages */}
+      <div
+        className={`fixed bottom-4 right-4 z-50 flex h-[550px] w-[350px] flex-col overflow-hidden rounded-2xl border bg-background shadow-2xl sm:bottom-8 sm:right-8 ${isOpen ? '' : 'hidden'}`}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between bg-primary p-4 text-primary-foreground">
+          <div className="flex items-center gap-2">
+            <MessagesSquare className="h-5 w-5" />
+            <h3 className="font-semibold">{t('title')}</h3>
           </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-primary-foreground"
+            onClick={() => setIsOpen(false)}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
 
-          {/* Messages Area */}
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
-            <div className="space-y-4">
-              {messages.length === 0 && (
-                <div className="mt-8 text-center">
-                  <div className="mb-6 text-sm text-muted-foreground">
-                    <p>{t('welcomeLine1')}</p>
-                    <p>{t('welcomeLine2')}</p>
-                  </div>
-
-                  <div className="flex flex-col gap-2">
-                    {QUICK_PROMPT_KEYS.map((key, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleSubmit(undefined, t(key))}
-                        className="rounded-lg border bg-card px-4 py-2 text-sm text-card-foreground transition-colors hover:bg-accent"
-                        type="button"
-                      >
-                        {t(key)}
-                      </button>
-                    ))}
-                  </div>
+        {/* Messages Area */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
+          <div className="space-y-4">
+            {messages.length === 0 && (
+              <div className="mt-8 text-center">
+                <div className="mb-6 text-sm text-muted-foreground">
+                  <p>{t('welcomeLine1')}</p>
+                  <p>{t('welcomeLine2')}</p>
                 </div>
-              )}
-              {messages.map((m) => (
+
+                <div className="flex flex-col gap-2">
+                  {QUICK_PROMPT_KEYS.map((key, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSubmit(undefined, t(key))}
+                      className="rounded-lg border bg-card px-4 py-2 text-sm text-card-foreground transition-colors hover:bg-accent"
+                      type="button"
+                    >
+                      {t(key)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {messages.map((m) => (
+              <div
+                key={m.id}
+                className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
                 <div
-                  key={m.id}
-                  className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                  className={`flex max-w-[90%] flex-col gap-1 rounded-2xl px-4 py-3 text-sm ${
+                    m.role === 'user'
+                      ? 'bg-primary text-primary-foreground'
+                      : 'prose prose-sm bg-muted pr-6 leading-relaxed dark:prose-invert' // Added leading-relaxed and pr-6 for markdown readability
+                  }`}
                 >
-                  <div
-                    className={`flex max-w-[90%] flex-col gap-1 rounded-2xl px-4 py-3 text-sm ${
-                      m.role === 'user'
-                        ? 'bg-primary text-primary-foreground'
-                        : 'prose prose-sm bg-muted pr-6 leading-relaxed dark:prose-invert' // Added leading-relaxed and pr-6 for markdown readability
-                    }`}
-                  >
-                    {m.role === 'assistant' ? (
-                      <div>
-                        {m.parts.map((part, i) => {
-                          if (part.type === 'text') {
-                            return (
-                              <ReactMarkdown
-                                key={`${m.id}-${i}`}
-                                remarkPlugins={[remarkGfm]}
-                                components={{
-                                  table: ({ node, ...props }) => (
-                                    <div className="my-2 overflow-x-auto">
-                                      <table
-                                        className="w-full border-collapse border border-muted-foreground/20"
-                                        {...props}
-                                      />
-                                    </div>
-                                  ),
-                                  th: ({ node, ...props }) => (
-                                    <th
-                                      className="border border-muted-foreground/20 bg-muted-foreground/10 px-2 py-1 text-left"
+                  {m.role === 'assistant' ? (
+                    <div>
+                      {m.parts.map((part, i) => {
+                        if (part.type === 'text') {
+                          return (
+                            <ReactMarkdown
+                              key={`${m.id}-${i}`}
+                              remarkPlugins={[remarkGfm]}
+                              components={{
+                                table: ({ node, ...props }) => (
+                                  <div className="my-2 overflow-x-auto">
+                                    <table
+                                      className="w-full border-collapse border border-muted-foreground/20"
                                       {...props}
                                     />
-                                  ),
-                                  td: ({ node, ...props }) => (
-                                    <td
-                                      className="border border-muted-foreground/20 px-2 py-1"
-                                      {...props}
-                                    />
-                                  ),
-                                }}
-                              >
-                                {part.text}
-                              </ReactMarkdown>
-                            )
-                          }
-                          // AI SDK v6: tools without execute produce parts with type 'tool-invocation'
-                          // and state 'input-available'. Tools with execute produce 'output-available'.
-                          const isToolPart =
-                            part.type === 'tool-invocation' || part.type.startsWith('tool-')
-                          if (isToolPart) {
-                            const toolName =
-                              'toolName' in part
-                                ? (part as any).toolName
-                                : part.type.replace('tool-', '')
-                            const toolCallId = (part as any).toolCallId || `${m.id}-${i}`
-                            const hitlState = hitlResults[toolCallId]
+                                  </div>
+                                ),
+                                th: ({ node, ...props }) => (
+                                  <th
+                                    className="border border-muted-foreground/20 bg-muted-foreground/10 px-2 py-1 text-left"
+                                    {...props}
+                                  />
+                                ),
+                                td: ({ node, ...props }) => (
+                                  <td
+                                    className="border border-muted-foreground/20 px-2 py-1"
+                                    {...props}
+                                  />
+                                ),
+                              }}
+                            >
+                              {part.text}
+                            </ReactMarkdown>
+                          )
+                        }
+                        // AI SDK v6: tools without execute produce parts with type 'tool-invocation'
+                        // and state 'input-available'. Tools with execute produce 'output-available'.
+                        const isToolPart =
+                          part.type === 'tool-invocation' || part.type.startsWith('tool-')
+                        if (isToolPart) {
+                          const toolName =
+                            'toolName' in part
+                              ? (part as any).toolName
+                              : part.type.replace('tool-', '')
+                          const toolCallId = (part as any).toolCallId || `${m.id}-${i}`
+                          const hitlState = hitlResults[toolCallId]
 
-                            // HITL: Show confirmation card for mutation tools without execute
-                            const isMutationTool =
-                              toolName === 'placeOrder' ||
-                              toolName === 'cancelOrder' ||
-                              toolName === 'applyCoupon'
-                            const isInputReady = (part as any).state === 'input-available'
+                          // HITL: Show confirmation card for mutation tools without execute
+                          const isMutationTool =
+                            toolName === 'placeOrder' ||
+                            toolName === 'cancelOrder' ||
+                            toolName === 'applyCoupon'
+                          const isInputReady = (part as any).state === 'input-available'
 
-                            if (isMutationTool && (isInputReady || hitlState)) {
-                              // Already executed via REST — show result
-                              if (hitlState?.status === 'success') {
-                                return (
-                                  <div
-                                    key={toolCallId}
-                                    className="my-3 rounded-lg border border-green-500/30 bg-green-500/5 p-4 text-sm shadow-sm"
-                                  >
-                                    <h4 className="mb-1 flex items-center gap-2 font-semibold text-green-600">
-                                      <CheckCircle2 className="h-4 w-4" />
-                                      {t('actionSuccess')}
-                                    </h4>
-                                    <p className="whitespace-pre-wrap text-xs text-muted-foreground">
-                                      {hitlState.result?.message ||
-                                        JSON.stringify(hitlState.result)}
+                          if (isMutationTool && (isInputReady || hitlState)) {
+                            // Already executed via REST — show result
+                            if (hitlState?.status === 'success') {
+                              const resultData = hitlState.result?.result || hitlState.result
+                              const message = resultData?.message || hitlState.result?.message
+                              return (
+                                <div
+                                  key={toolCallId}
+                                  className="my-3 rounded-lg border border-green-500/30 bg-green-500/5 p-4 text-sm shadow-sm"
+                                >
+                                  <h4 className="mb-1 flex items-center gap-2 font-semibold text-green-600">
+                                    <CheckCircle2 className="h-4 w-4" />
+                                    {t('actionSuccess')}
+                                  </h4>
+                                  {message && (
+                                    <p className="mb-2 text-xs font-medium text-green-700">
+                                      {message}
                                     </p>
-                                  </div>
-                                )
-                              }
-                              if (hitlState?.status === 'error' || hitlState?.status === 'denied') {
-                                return (
-                                  <div
-                                    key={toolCallId}
-                                    className="my-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm shadow-sm"
-                                  >
-                                    <h4 className="mb-1 flex items-center gap-2 font-semibold text-destructive">
-                                      <XCircle className="h-4 w-4" />
-                                      {hitlState.status === 'denied'
-                                        ? t('actionDenied')
-                                        : t('actionFailed')}
-                                    </h4>
-                                    {hitlState.error && hitlState.status !== 'denied' && (
-                                      <p className="text-xs text-muted-foreground">
-                                        {hitlState.error}
-                                      </p>
-                                    )}
-                                  </div>
-                                )
-                              }
-                              if (hitlState?.status === 'loading') {
-                                return (
-                                  <div
-                                    key={toolCallId}
-                                    className="my-3 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm shadow-sm"
-                                  >
-                                    <div className="flex items-center gap-2 font-medium text-primary">
-                                      <Loader2 className="h-4 w-4 animate-spin" />
-                                      {t('actionExecuting')}
-                                    </div>
-                                  </div>
-                                )
-                              }
-
-                              // Pending confirmation — show card with Approve/Deny buttons
-                              const input = (part as any).input
+                                  )}
+                                  {resultData?.orderId && (
+                                    <p className="text-xs text-muted-foreground">
+                                      Order #{resultData.orderId} · {resultData.status || 'Pending'}
+                                    </p>
+                                  )}
+                                  {resultData?.items && Array.isArray(resultData.items) && (
+                                    <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">
+                                      {resultData.items.map((item: any, idx: number) => (
+                                        <li key={idx}>
+                                          {item.quantity}x {item.name} — $
+                                          {item.subtotal ?? item.unitPrice}
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  )}
+                                  {resultData?.totalPrice != null && (
+                                    <p className="mt-1 text-xs font-semibold text-green-700">
+                                      Total: ${resultData.totalPrice}
+                                    </p>
+                                  )}
+                                </div>
+                              )
+                            }
+                            if (hitlState?.status === 'error' || hitlState?.status === 'denied') {
                               return (
                                 <div
                                   key={toolCallId}
                                   className="my-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm shadow-sm"
                                 >
-                                  <h4 className="mb-2 flex items-center gap-2 font-semibold text-destructive">
+                                  <h4 className="mb-1 flex items-center gap-2 font-semibold text-destructive">
                                     <XCircle className="h-4 w-4" />
-                                    {t('confirmTitle')}
+                                    {hitlState.status === 'denied'
+                                      ? t('actionDenied')
+                                      : t('actionFailed')}
                                   </h4>
-                                  <p className="mb-4 text-muted-foreground">
-                                    {toolName === 'placeOrder' &&
-                                      t('confirmPlaceOrder', { count: input?.items?.length || 0 })}
-                                    {toolName === 'cancelOrder' &&
-                                      t('confirmCancelOrder', { orderId: input?.orderId })}
-                                    {toolName === 'applyCoupon' &&
-                                      t('confirmApplyCoupon', {
-                                        couponCode: input?.couponCode,
-                                        orderId: input?.orderId,
-                                      })}
-                                  </p>
-
-                                  <div className="flex gap-2">
-                                    <Button
-                                      size="sm"
-                                      variant="destructive"
-                                      className="w-full"
-                                      onClick={() => handleAction(toolCallId, toolName, input)}
-                                    >
-                                      {t('confirmApprove')}
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      className="w-full"
-                                      onClick={() => handleDeny(toolCallId)}
-                                    >
-                                      {t('confirmDeny')}
-                                    </Button>
+                                  {hitlState.error && hitlState.status !== 'denied' && (
+                                    <p className="text-xs text-muted-foreground">
+                                      {hitlState.error}
+                                    </p>
+                                  )}
+                                </div>
+                              )
+                            }
+                            if (hitlState?.status === 'loading') {
+                              return (
+                                <div
+                                  key={toolCallId}
+                                  className="my-3 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm shadow-sm"
+                                >
+                                  <div className="flex items-center gap-2 font-medium text-primary">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    {t('actionExecuting')}
                                   </div>
                                 </div>
                               )
                             }
 
-                            // Standard tools with execute() (like searchMenu, getDishDetails)
-                            // We ignore them here since the text output already contains the data we want to show
-                            // but we can show a loader while it's executing.
-                            if (
-                              (part as any).state === 'output-available' ||
-                              (part as any).state === 'output-error'
-                            ) {
-                              return null // Tool completed, text response will show the result
-                            }
-
+                            // Pending confirmation — show card with Approve/Deny buttons
+                            const input = (part as any).input
                             return (
                               <div
-                                key={`${m.id}-${i}`}
-                                className="my-2 flex items-center gap-2 rounded-md bg-background/50 p-2 text-xs text-muted-foreground"
+                                key={toolCallId}
+                                className="my-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-sm shadow-sm"
                               >
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                                <span>{getToolDisplayName(toolName)}</span>
+                                <h4 className="mb-2 flex items-center gap-2 font-semibold text-amber-600">
+                                  <ShieldAlert className="h-4 w-4" />
+                                  {t('confirmTitle')}
+                                </h4>
+                                <p className="mb-4 text-muted-foreground">
+                                  {toolName === 'placeOrder' &&
+                                    t('confirmPlaceOrder', { count: input?.items?.length || 0 })}
+                                  {toolName === 'cancelOrder' &&
+                                    t('confirmCancelOrder', { orderId: input?.orderId })}
+                                  {toolName === 'applyCoupon' &&
+                                    t('confirmApplyCoupon', {
+                                      couponCode: input?.couponCode,
+                                      orderId: input?.orderId,
+                                    })}
+                                </p>
+
+                                <div className="flex gap-2">
+                                  <Button
+                                    size="sm"
+                                    className="w-full bg-amber-600 text-white hover:bg-amber-700"
+                                    onClick={() => handleAction(toolCallId, toolName, input)}
+                                  >
+                                    {t('confirmApprove')}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="w-full"
+                                    onClick={() => handleDeny(toolCallId)}
+                                  >
+                                    {t('confirmDeny')}
+                                  </Button>
+                                </div>
                               </div>
                             )
                           }
-                          return null
-                        })}
-                      </div>
-                    ) : (
-                      // Render user message text from parts
-                      m.parts
-                        .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
-                        .map((p) => p.text)
-                        .join('')
-                    )}
-                  </div>
-                </div>
-              ))}
 
-              {/* Loading indicator */}
-              {isLoading &&
-                messages.length > 0 &&
-                messages[messages.length - 1]?.role === 'user' && (
-                  <div className="flex justify-start">
-                    <div className="max-w-[85%] rounded-2xl bg-muted px-4 py-2 text-sm">
-                      <span className="flex items-center gap-2">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        {t('loading')}
-                      </span>
+                          // Standard tools with execute() (like searchMenu, getDishDetails)
+                          // We ignore them here since the text output already contains the data we want to show
+                          // but we can show a loader while it's executing.
+                          if (
+                            (part as any).state === 'output-available' ||
+                            (part as any).state === 'output-error'
+                          ) {
+                            return null // Tool completed, text response will show the result
+                          }
+
+                          return (
+                            <div
+                              key={`${m.id}-${i}`}
+                              className="my-2 flex items-center gap-2 rounded-md bg-background/50 p-2 text-xs text-muted-foreground"
+                            >
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              <span>{getToolDisplayName(toolName)}</span>
+                            </div>
+                          )
+                        }
+                        return null
+                      })}
                     </div>
-                  </div>
-                )}
-
-              {/* Error display */}
-              {error && (
-                <div className="flex justify-start">
-                  <div className="max-w-[85%] rounded-2xl bg-destructive/10 px-4 py-2 text-sm text-destructive">
-                    {error.message || t('errorDefault')}
-                  </div>
+                  ) : (
+                    // Render user message text from parts
+                    m.parts
+                      .filter((p): p is { type: 'text'; text: string } => p.type === 'text')
+                      .map((p) => p.text)
+                      .join('')
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
+            ))}
 
-          {/* Input Area */}
-          <div className="flex flex-col gap-2 border-t p-4">
-            {/* Abort Streaming Button */}
-            {status === 'streaming' && (
-              <div className="mb-1 flex justify-center">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => stop()}
-                  className="flex h-7 items-center gap-1 rounded-full px-3 text-xs"
-                  type="button"
-                >
-                  <StopCircle className="h-3 w-3" />
-                  {t('stopButton')}
-                </Button>
+            {/* Loading indicator */}
+            {isLoading && messages.length > 0 && messages[messages.length - 1]?.role === 'user' && (
+              <div className="flex justify-start">
+                <div className="max-w-[85%] rounded-2xl bg-muted px-4 py-2 text-sm">
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    {t('loading')}
+                  </span>
+                </div>
               </div>
             )}
-            <form onSubmit={handleSubmit} className="flex items-center gap-2">
-              <Input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={t('inputPlaceholder')}
-                className="flex-1"
-                disabled={isLoading}
-              />
-              <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
-                <Send className="h-4 w-4" />
-              </Button>
-            </form>
+
+            {/* Error display */}
+            {error && (
+              <div className="flex justify-start">
+                <div className="max-w-[85%] rounded-2xl bg-destructive/10 px-4 py-2 text-sm text-destructive">
+                  {error.message || t('errorDefault')}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      )}
+
+        {/* Input Area */}
+        <div className="flex flex-col gap-2 border-t p-4">
+          {/* Abort Streaming Button */}
+          {status === 'streaming' && (
+            <div className="mb-1 flex justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => stop()}
+                className="flex h-7 items-center gap-1 rounded-full px-3 text-xs"
+                type="button"
+              >
+                <StopCircle className="h-3 w-3" />
+                {t('stopButton')}
+              </Button>
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="flex items-center gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={t('inputPlaceholder')}
+              className="flex-1"
+              disabled={isLoading}
+            />
+            <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+              <Send className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
+      </div>
     </>
   )
 }

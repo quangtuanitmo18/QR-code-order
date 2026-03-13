@@ -12,7 +12,13 @@ import { enrichTasks } from '@/services/task-policy'
 import { toUIMessages } from '@/utils/ai-message'
 import { getContextLogger } from '@/utils/logger'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
-import { convertToModelMessages, stepCountIs, streamText } from 'ai'
+import {
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  stepCountIs,
+  streamText
+} from 'ai'
 import crypto from 'crypto'
 import { FastifyReply } from 'fastify'
 
@@ -224,64 +230,71 @@ class AiChatService {
       const abortController = new AbortController()
       timeout = setTimeout(() => abortController.abort(), 30_000)
 
-      const result = streamText({
-        model: this.openrouter.chat('google/gemini-2.5-flash'),
-        maxOutputTokens: 2048,
-        system: effectiveSystemPrompt,
-        messages: modelMessages,
-        tools: Object.keys(agentTools).length > 0 ? agentTools : undefined,
-        stopWhen: stepCountIs(5),
-        abortSignal: abortController.signal,
-        onFinish: async (event) => {
-          clearTimeout(timeout)
-          try {
-            const newMessages = event.response.messages
-              .filter((msg) => msg.role === 'assistant')
-              .map((msg) => {
-                const textParts = ((msg.content || []) as any[])
-                  .filter((c: any) => c.type === 'text' && c.text)
-                  .map((c: any) => ({ type: 'text' as const, text: c.text }))
-                return {
-                  id: `msg-asst-${Date.now()}-${Math.random()}`,
-                  role: 'assistant' as const,
-                  parts: textParts.length > 0 ? textParts : [{ type: 'text' as const, text: '' }]
+      const stream = createUIMessageStream({
+        originalMessages: hotMessages,
+        execute: async ({ writer }) => {
+          const result = streamText({
+            model: this.openrouter.chat('google/gemini-2.5-flash'),
+            maxOutputTokens: 2048,
+            system: effectiveSystemPrompt,
+            messages: modelMessages,
+            tools: Object.keys(agentTools).length > 0 ? agentTools : undefined,
+            stopWhen: stepCountIs(5),
+            abortSignal: abortController.signal,
+            onFinish: async (event) => {
+              clearTimeout(timeout)
+              try {
+                const newMessages = event.response.messages
+                  .filter((msg) => msg.role === 'assistant')
+                  .map((msg) => {
+                    const textParts = ((msg.content || []) as any[])
+                      .filter((c: any) => c.type === 'text' && c.text)
+                      .map((c: any) => ({ type: 'text' as const, text: c.text }))
+                    return {
+                      id: `msg-asst-${Date.now()}-${Math.random()}`,
+                      role: 'assistant' as const,
+                      parts: textParts.length > 0 ? textParts : [{ type: 'text' as const, text: '' }]
+                    }
+                  })
+                  .filter((msg) => msg.parts.some((p) => p.text !== ''))
+
+                const updatedHistory = [...hotMessages, ...newMessages]
+
+                if (needsNewSummary) {
+                  log?.info(`[AI Memory] Generating progressive summary for ${evictedMessages.length} evicted messages`)
+                  memorySummary = await aiMemoryService.generateProgressiveSummary(memorySummary, evictedMessages)
+                  summaryVersion++
                 }
-              })
-              .filter((msg) => msg.parts.some((p) => p.text !== ''))
 
-            const updatedHistory = [...hotMessages, ...newMessages]
-
-            if (needsNewSummary) {
-              log?.info(`[AI Memory] Generating progressive summary for ${evictedMessages.length} evicted messages`)
-              memorySummary = await aiMemoryService.generateProgressiveSummary(memorySummary, evictedMessages)
-              summaryVersion++
+                const parsedUserId = userId !== 'guest' ? parseInt(userId) : undefined
+                await aiMemoryService.saveSession(
+                  session,
+                  updatedHistory,
+                  { accountId: parsedUserId, guestId },
+                  event.usage
+                    ? {
+                        promptTokens: event.usage.inputTokens || 0,
+                        completionTokens: event.usage.outputTokens || 0,
+                        totalTokens: event.usage.totalTokens || 0
+                      }
+                    : undefined,
+                  memorySummary,
+                  summaryVersion
+                )
+              } catch (e) {
+                log?.error({ err: e }, '[AI Chat] Failed to save session on finish')
+              }
             }
+          })
 
-            const parsedUserId = userId !== 'guest' ? parseInt(userId) : undefined
-            await aiMemoryService.saveSession(
-              session,
-              updatedHistory,
-              { accountId: parsedUserId, guestId },
-              event.usage
-                ? {
-                    promptTokens: event.usage.inputTokens || 0,
-                    completionTokens: event.usage.outputTokens || 0,
-                    totalTokens: event.usage.totalTokens || 0
-                  }
-                : undefined,
-              memorySummary,
-              summaryVersion
-            )
-          } catch (e) {
-            log?.error({ err: e }, '[AI Chat] Failed to save session on finish')
-          }
+          writer.merge(result.toUIMessageStream({ originalMessages: hotMessages }))
         }
       })
 
       // 5. Pipe the stream directly to Fastify's raw response
       reply.hijack()
 
-      const response = result.toUIMessageStreamResponse()
+      const response = createUIMessageStreamResponse({ stream })
       const headers: Record<string, string> = {
         'x-ai-session-id': session
       }

@@ -36,5 +36,9 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 }
 
 export default function TableNumberPage() {
-  return <GuestLoginForm />
+  return (
+    <div className="mx-auto w-full max-w-[400px] space-y-4 sm:max-w-2xl md:max-w-4xl lg:max-w-6xl">
+      <GuestLoginForm />
+    </div>
+  )
 }

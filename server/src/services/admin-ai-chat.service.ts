@@ -197,8 +197,6 @@ class AdminAiChatService {
         }
       }
 
-      const modelMessages = await convertToModelMessages(hotMessages)
-
       // If multi-intent, inject execution results as additional system context
       const effectiveSystemPrompt = multiIntentContext
         ? `${systemPrompt}\n\n--- TASK EXECUTION RESULTS ---\nThe following tasks were executed based on the owner's request. Present the findings professionally. For blocked tasks demanding confirmation, ask securely.\n\n${multiIntentContext}`
