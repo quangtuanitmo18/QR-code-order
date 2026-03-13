@@ -1,6 +1,7 @@
 import DropdownAvatar from '@/app/[locale]/manage/dropdown-avatar'
 import MobileNavLinks from '@/app/[locale]/manage/mobile-nav-links'
 import NavLinks from '@/app/[locale]/manage/nav-links'
+import AdminAiChatButton from '@/components/ai-chat/admin-ai-chat-button'
 import DarkModeToggle from '@/components/dark-mode-toggle'
 
 export default function Layout({
@@ -22,6 +23,7 @@ export default function Layout({
           <DropdownAvatar />
         </header>
         {children}
+        <AdminAiChatButton />
       </div>
     </div>
   )

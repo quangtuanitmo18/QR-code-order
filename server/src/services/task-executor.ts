@@ -1,18 +1,21 @@
 import prisma from '@/database'
+import { createAdminAnalyticsAgentTools } from '@/services/agents/admin-analytics.agent'
+import { createAdminMenuAgentTools } from '@/services/agents/admin-menu.agent'
+import { createAdminOrdersAgentTools } from '@/services/agents/admin-orders.agent'
 import { createFaqAgentTools } from '@/services/agents/faq.agent'
 import { createOrderAgentTools } from '@/services/agents/order.agent'
 import { createSearchAgentTools } from '@/services/agents/search.agent'
 import {
-  type DAGNode,
-  type EnrichedTask,
-  type ExecutionStage,
-  type GateResult,
-  type StateContext,
   cacheMutationResult,
   canExecuteMutationV2,
   checkDuplicate,
   getIdempotencyKey,
-  shouldRunParallel
+  shouldRunParallel,
+  type DAGNode,
+  type EnrichedTask,
+  type ExecutionStage,
+  type GateResult,
+  type StateContext
 } from '@/services/task-policy'
 import { getContextLogger } from '@/utils/logger'
 
@@ -29,6 +32,7 @@ export interface TaskResult {
 
 export interface ExecutorContext {
   guestId?: number
+  accountId?: number
   sessionId: string
   messageTs: number
 }
@@ -98,6 +102,27 @@ function getToolExecutor(
     }
     case 'general_chat':
       return async () => null
+    // ─── Admin Tools ─────────────────────────────────────────────────────
+    case 'admin_get_revenue_trends': {
+      const tools = createAdminAnalyticsAgentTools({ accountId: context.accountId })
+      return async (params) => (tools.admin_get_revenue_trends.execute as any)(params, { abortSignal: undefined })
+    }
+    case 'admin_get_dish_performance': {
+      const tools = createAdminAnalyticsAgentTools({ accountId: context.accountId })
+      return async (params) => (tools.admin_get_dish_performance.execute as any)(params, { abortSignal: undefined })
+    }
+    case 'admin_update_dish': {
+      const tools = createAdminMenuAgentTools({ accountId: context.accountId })
+      return async (params) => (tools.admin_update_dish.execute as any)(params, { abortSignal: undefined })
+    }
+    case 'admin_cancel_order': {
+      const tools = createAdminOrdersAgentTools({ accountId: context.accountId })
+      return async (params) => (tools.admin_cancel_order.execute as any)(params, { abortSignal: undefined })
+    }
+    case 'admin_get_live_orders': {
+      const tools = createAdminOrdersAgentTools({ accountId: context.accountId })
+      return async () => (tools.admin_get_live_orders.execute as any)({}, { abortSignal: undefined })
+    }
     default:
       return null
   }

@@ -1,5 +1,5 @@
-import { getContextLogger } from '@/utils/logger'
 import prisma from '@/database'
+import { getContextLogger } from '@/utils/logger'
 import crypto from 'crypto'
 import fs from 'fs'
 import path from 'path'
@@ -59,7 +59,13 @@ const CODE_DEFAULT_POLICIES: Record<string, TaskPolicy> = {
   place_order: { actionType: 'write', resource: 'order', requiresConfirmation: true },
   cancel_order: { actionType: 'write', resource: 'order', requiresConfirmation: true },
   apply_coupon: { actionType: 'write', resource: 'coupon', requiresConfirmation: false },
-  general_chat: { actionType: 'read', resource: 'general', requiresConfirmation: false }
+  general_chat: { actionType: 'read', resource: 'general', requiresConfirmation: false },
+  // Admin AI Intents
+  admin_get_revenue_trends: { actionType: 'read', resource: 'analytics', requiresConfirmation: false },
+  admin_get_dish_performance: { actionType: 'read', resource: 'analytics', requiresConfirmation: false },
+  admin_update_dish: { actionType: 'write', resource: 'dish', requiresConfirmation: true },
+  admin_cancel_order: { actionType: 'write', resource: 'order', requiresConfirmation: true },
+  admin_get_live_orders: { actionType: 'read', resource: 'order', requiresConfirmation: false }
 }
 
 const CODE_DEFAULT_PAIRS: [string, string][] = [
@@ -340,6 +346,19 @@ export async function canExecuteMutationV2(
 
   if (task.intent === 'cancel_order' && !resolvedParams.orderId) {
     return { blocked: true, reason: 'missing_params', action: 'ask_user' }
+  }
+
+  // Admin Intents
+  if (task.intent === 'admin_update_dish') {
+    if (!resolvedParams.dishId || !resolvedParams.updates) {
+      return { blocked: true, reason: 'missing_params', action: 'ask_user' }
+    }
+  }
+
+  if (task.intent === 'admin_cancel_order') {
+    if (!resolvedParams.orderId || !resolvedParams.reason) {
+      return { blocked: true, reason: 'missing_params', action: 'ask_user' }
+    }
   }
 
   return { blocked: false }

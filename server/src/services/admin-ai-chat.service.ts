@@ -1,10 +1,10 @@
 import envConfig from '@/config'
 import { validateMessageContent } from '@/middleware/ai-security'
-import { createFaqAgentTools } from '@/services/agents/faq.agent'
-import { createOrderAgentTools } from '@/services/agents/order.agent'
-import { createSearchAgentTools } from '@/services/agents/search.agent'
+import { adminAiRouterService } from '@/services/admin-ai-router.service'
+import { createAdminAnalyticsAgentTools } from '@/services/agents/admin-analytics.agent'
+import { createAdminMenuAgentTools } from '@/services/agents/admin-menu.agent'
+import { createAdminOrdersAgentTools } from '@/services/agents/admin-orders.agent'
 import { aiMemoryService } from '@/services/ai-memory.service'
-import { aiRouterService, intentFromTaskPlan } from '@/services/ai-router.service'
 import { clearPendingExecution, getPendingExecution, savePendingExecution } from '@/services/pending-execution'
 import { promptBuilderService } from '@/services/prompt-builder.service'
 import { buildDAG, executeTasksV2 } from '@/services/task-executor'
@@ -12,7 +12,13 @@ import { enrichTasks } from '@/services/task-policy'
 import { toUIMessages } from '@/utils/ai-message'
 import { getContextLogger } from '@/utils/logger'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
-import { convertToModelMessages, stepCountIs, streamText } from 'ai'
+import {
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  stepCountIs,
+  streamText
+} from 'ai'
 import crypto from 'crypto'
 import { FastifyReply } from 'fastify'
 
@@ -22,17 +28,16 @@ const SESSION_TOKEN_BUDGET = 50_000
 /** V3: Below this confidence, show decomposition preview instead of executing */
 const LOW_CONFIDENCE = 0.5
 
-class AiChatService {
+class AdminAiChatService {
   private openrouter = createOpenRouter({
     apiKey: envConfig.OPENROUTER_API_KEY
   })
 
   async handleChat(
     messages: Array<Record<string, unknown>>,
-    userId: string,
+    accountId: number,
     sessionId: string | undefined,
-    reply: FastifyReply,
-    guestId?: number
+    reply: FastifyReply
   ) {
     const log = getContextLogger()
 
@@ -64,8 +69,10 @@ class AiChatService {
       let memorySummary = memoryResult.summary
       let summaryVersion = memoryResult.summaryVersion
 
-      // 2. Build dynamic system prompt from DB (restaurant info + FAQs) and inject memory summary
-      const systemPrompt = await promptBuilderService.buildSystemPrompt(userId, { summary: memorySummary })
+      // 2. Build admin-specific system prompt
+      const systemPrompt = await promptBuilderService.buildAdminSystemPrompt({
+        summary: memorySummary
+      })
 
       // 3. Convert incoming messages to UIMessage format
       const newUiMessages = toUIMessages(
@@ -75,7 +82,7 @@ class AiChatService {
       // 3.5. Token budget check — refuse if session exceeded limit
       const sessionTokens = await aiMemoryService.getSessionTokens(session)
       if (sessionTokens >= SESSION_TOKEN_BUDGET) {
-        log?.warn(`[AI Chat] Session ${session} exceeded token budget (${sessionTokens}/${SESSION_TOKEN_BUDGET})`)
+        log?.warn(`[Admin AI Chat] Session ${session} exceeded token budget (${sessionTokens}/${SESSION_TOKEN_BUDGET})`)
         reply.status(429).send({
           error: `Chat session has exceeded the token limit (${SESSION_TOKEN_BUDGET.toLocaleString()}). Please start a new conversation.`
         })
@@ -93,13 +100,17 @@ class AiChatService {
       const recentMessages = hotMessages.slice(-4)
       const pending = getPendingExecution(session)
       let multiIntentContext = ''
-      let agentTools: any = {}
+      const agentTools: any = {
+        ...createAdminAnalyticsAgentTools({ accountId }),
+        ...createAdminOrdersAgentTools({ accountId }),
+        ...createAdminMenuAgentTools({ accountId })
+      } // Always inject admin tools
       let isResumed = false
 
       if (pending) {
         // ─── V3: Resume DAG from blocked task ────────────────────────────
         log?.info(
-          `[AI Chat] Found pending execution for session ${session}, resuming blocked task ${pending.blockedTaskId}`
+          `[Admin AI Chat] Found pending execution for session ${session}, resuming blocked task ${pending.blockedTaskId}`
         )
 
         const lastUserMsg = recentMessages.filter((m) => m.role === 'user').pop()
@@ -121,7 +132,7 @@ class AiChatService {
         const trace = await executeTasksV2(
           resumedTasks.filter((t) => !pending.completedTaskIds.has(t.id)),
           pending.dag,
-          { guestId, sessionId: session, messageTs: Date.now() },
+          { accountId, sessionId: session, messageTs: Date.now() },
           pending.originalMessage,
           pending.suggestedDeps
         )
@@ -160,51 +171,28 @@ class AiChatService {
           parts.push('Failed tasks:\n' + failedResults.map((r) => `- ${r.intent}: ${r.reason}`).join('\n'))
         }
         multiIntentContext = parts.join('\n\n')
-
-        // Give AI all tools after resume so it can handle follow-up actions
-        agentTools = {
-          ...createSearchAgentTools(),
-          ...createOrderAgentTools({ guestId }),
-          ...createFaqAgentTools()
-        }
       }
 
       // 3.8b. Plan Tasks (skip if resumed from pending)
       if (!isResumed) {
-        const plan = await aiRouterService.planTasks(recentMessages)
+        const plan = await adminAiRouterService.planTasks(recentMessages)
 
         // 3.9. Determine single vs multi-intent path
         const isSingleIntent = plan.tasks.length <= 1
 
         if (isSingleIntent) {
           // ─── Fast Path: single intent → existing flow ────────────────────
-          const intent = intentFromTaskPlan(plan.tasks[0])
-          if (intent === 'SEARCH') {
-            agentTools = createSearchAgentTools()
-          } else if (intent === 'ORDER') {
-            agentTools = createOrderAgentTools({ guestId })
-          } else if (intent === 'FAQ') {
-            agentTools = createFaqAgentTools()
-          } else {
-            // GENERAL or unknown: give ALL tools so AI can decide what's needed
-            // This prevents the case where planner misclassifies a search query
-            // as general_chat → AI gets no tools → can't actually search
-            agentTools = {
-              ...createSearchAgentTools(),
-              ...createOrderAgentTools({ guestId }),
-              ...createFaqAgentTools()
-            }
-          }
-          log?.info(`[AI Chat] Fast path: single intent ${intent}`)
+          // In admin context, we always give all tools currently.
+          log?.info(`[Admin AI Chat] Fast path executed.`)
         } else {
           // ─── V3: Confidence gate ─────────────────────────────────────────
           if (plan.confidence < LOW_CONFIDENCE && plan.isMultiIntent) {
             const preview = plan.tasks.map((t: any) => `• ${t.intent}(${JSON.stringify(t.params)})`).join('\n')
-            multiIntentContext = `The user's request was analyzed but confidence is low (${plan.confidence.toFixed(2)}). Please confirm with the user if this decomposition is correct:\n\n${preview}\n\nAsk: "Mình hiểu bạn muốn: ... Đúng không?"`
-            log?.info(`[AI Chat] Low confidence (${plan.confidence}), showing preview instead of executing`)
+            multiIntentContext = `The user's request was analyzed but confidence is low (${plan.confidence.toFixed(2)}). Please confirm with the user if this decomposition is correct:\n\n${preview}\n\nAsk for confirmation.`
+            log?.info(`[Admin AI Chat] Low confidence (${plan.confidence}), showing preview instead of executing`)
           } else {
             // ─── Multi-Intent Pipeline ───────────────────────────────────────
-            multiIntentContext = await this.executeMultiIntentPipeline(plan, recentMessages, session, guestId, log)
+            multiIntentContext = await this.executeMultiIntentPipeline(plan, recentMessages, session, accountId, log)
           }
         }
       }
@@ -213,75 +201,83 @@ class AiChatService {
 
       // If multi-intent, inject execution results as additional system context
       const effectiveSystemPrompt = multiIntentContext
-        ? `${systemPrompt}\n\n--- TASK EXECUTION RESULTS ---\nThe following tasks were executed based on the user's multi-part request. Use these results to compose your response. Present each result clearly. For blocked tasks, ask the user for clarification.\n\n${multiIntentContext}`
+        ? `${systemPrompt}\n\n--- TASK EXECUTION RESULTS ---\nThe following tasks were executed based on the owner's request. Present the findings professionally. For blocked tasks demanding confirmation, ask securely.\n\n${multiIntentContext}`
         : systemPrompt
 
       log?.info(
-        `[AI Chat] Starting streamText (Session: ${session}, Hot History: ${hotMessages.length}, Tokens used: ${sessionTokens}, Resumed: ${isResumed})`
+        `[Admin AI Chat] Starting streamText (Session: ${session}, Hot History: ${hotMessages.length}, Tokens used: ${sessionTokens}, Resumed: ${isResumed})`
       )
 
-      // 4. Stream text with tool calling + 30s timeout
+      // 4. Stream text with tool calling + HITL wrapper
       const abortController = new AbortController()
       timeout = setTimeout(() => abortController.abort(), 30_000)
 
-      const result = streamText({
-        model: this.openrouter.chat('google/gemini-2.5-flash'),
-        maxOutputTokens: 2048,
-        system: effectiveSystemPrompt,
-        messages: modelMessages,
-        tools: Object.keys(agentTools).length > 0 ? agentTools : undefined,
-        stopWhen: stepCountIs(5),
-        abortSignal: abortController.signal,
-        onFinish: async (event) => {
-          clearTimeout(timeout)
-          try {
-            const newMessages = event.response.messages
-              .filter((msg) => msg.role === 'assistant')
-              .map((msg) => {
-                const textParts = ((msg.content || []) as any[])
-                  .filter((c: any) => c.type === 'text' && c.text)
-                  .map((c: any) => ({ type: 'text' as const, text: c.text }))
-                return {
-                  id: `msg-asst-${Date.now()}-${Math.random()}`,
-                  role: 'assistant' as const,
-                  parts: textParts.length > 0 ? textParts : [{ type: 'text' as const, text: '' }]
+      const stream = createUIMessageStream({
+        originalMessages: hotMessages,
+        execute: async ({ writer }) => {
+          const result = streamText({
+            model: this.openrouter.chat('google/gemini-2.5-flash'),
+            maxOutputTokens: 2048,
+            system: effectiveSystemPrompt,
+            messages: await convertToModelMessages(hotMessages),
+            tools: Object.keys(agentTools).length > 0 ? agentTools : undefined,
+            stopWhen: stepCountIs(5),
+            abortSignal: abortController.signal,
+            onFinish: async (event) => {
+              clearTimeout(timeout)
+              try {
+                const newMessages = event.response.messages
+                  .filter((msg) => msg.role === 'assistant')
+                  .map((msg) => {
+                    const textParts = ((msg.content || []) as any[])
+                      .filter((c: any) => c.type === 'text' && c.text)
+                      .map((c: any) => ({ type: 'text' as const, text: c.text }))
+                    return {
+                      id: `msg-asst-${Date.now()}-${Math.random()}`,
+                      role: 'assistant' as const,
+                      parts: textParts.length > 0 ? textParts : [{ type: 'text' as const, text: '' }]
+                    }
+                  })
+                  .filter((msg) => msg.parts.some((p) => p.text !== ''))
+
+                const updatedHistory = [...hotMessages, ...newMessages]
+
+                if (needsNewSummary) {
+                  log?.info(
+                    `[Admin AI Memory] Generating progressive summary for ${evictedMessages.length} evicted messages`
+                  )
+                  memorySummary = await aiMemoryService.generateProgressiveSummary(memorySummary, evictedMessages)
+                  summaryVersion++
                 }
-              })
-              .filter((msg) => msg.parts.some((p) => p.text !== ''))
 
-            const updatedHistory = [...hotMessages, ...newMessages]
-
-            if (needsNewSummary) {
-              log?.info(`[AI Memory] Generating progressive summary for ${evictedMessages.length} evicted messages`)
-              memorySummary = await aiMemoryService.generateProgressiveSummary(memorySummary, evictedMessages)
-              summaryVersion++
+                await aiMemoryService.saveSession(
+                  session,
+                  updatedHistory,
+                  { accountId },
+                  event.usage
+                    ? {
+                        promptTokens: event.usage.inputTokens || 0,
+                        completionTokens: event.usage.outputTokens || 0,
+                        totalTokens: event.usage.totalTokens || 0
+                      }
+                    : undefined,
+                  memorySummary,
+                  summaryVersion
+                )
+              } catch (e) {
+                log?.error({ err: e }, '[Admin AI Chat] Failed to save session on finish')
+              }
             }
+          })
 
-            const parsedUserId = userId !== 'guest' ? parseInt(userId) : undefined
-            await aiMemoryService.saveSession(
-              session,
-              updatedHistory,
-              { accountId: parsedUserId, guestId },
-              event.usage
-                ? {
-                    promptTokens: event.usage.inputTokens || 0,
-                    completionTokens: event.usage.outputTokens || 0,
-                    totalTokens: event.usage.totalTokens || 0
-                  }
-                : undefined,
-              memorySummary,
-              summaryVersion
-            )
-          } catch (e) {
-            log?.error({ err: e }, '[AI Chat] Failed to save session on finish')
-          }
+          writer.merge(result.toUIMessageStream({ originalMessages: hotMessages }))
         }
       })
 
       // 5. Pipe the stream directly to Fastify's raw response
       reply.hijack()
 
-      const response = result.toUIMessageStreamResponse()
+      const response = createUIMessageStreamResponse({ stream })
       const headers: Record<string, string> = {
         'x-ai-session-id': session
       }
@@ -313,9 +309,9 @@ class AiChatService {
       clearTimeout(timeout)
       const isAbort = error instanceof Error && error.name === 'AbortError'
       if (isAbort) {
-        log?.warn('[AI Chat] Request timed out after 30s')
+        log?.warn('[Admin AI Chat] Request timed out after 30s')
       } else {
-        log?.error({ err: error }, '[AI Chat] Error')
+        log?.error({ err: error }, '[Admin AI Chat] Error')
       }
 
       if (!reply.raw.headersSent) {
@@ -328,13 +324,13 @@ class AiChatService {
     }
   }
 
-  // ─── V3: Multi-Intent Pipeline (extracted for resume reuse) ─────────────────
+  // ─── V3: Multi-Intent Pipeline ──────────────────────────────────────────────
 
   private async executeMultiIntentPipeline(
     plan: any,
     recentMessages: any[],
     session: string,
-    guestId: number | undefined,
+    accountId: number | undefined,
     log: ReturnType<typeof getContextLogger>
   ): Promise<string> {
     const enrichedTasks = enrichTasks(plan.tasks)
@@ -351,7 +347,7 @@ class AiChatService {
     const trace = await executeTasksV2(
       enrichedTasks,
       dag,
-      { guestId, sessionId: session, messageTs: Date.now() },
+      { accountId, sessionId: session, messageTs: Date.now() },
       originalMessage,
       plan.suggestedDependencies
     )
@@ -363,7 +359,7 @@ class AiChatService {
         blocked: trace.results.filter((r) => r.status === 'blocked').length,
         totalLatencyMs: trace.totalLatencyMs
       },
-      '[AI Chat] Multi-intent execution complete'
+      '[Admin AI Chat] Multi-intent execution complete'
     )
 
     // Save pending if blocked
@@ -398,7 +394,8 @@ class AiChatService {
     }
     if (blockedResults.length > 0) {
       parts.push(
-        'Blocked tasks (need user input):\n' + blockedResults.map((r) => `- ${r.intent}: ${r.reason}`).join('\n')
+        'Blocked tasks (need admin input to proceed!):\n' +
+          blockedResults.map((r) => `- ${r.intent}: ${r.reason}`).join('\n')
       )
     }
     if (failedResults.length > 0) {
@@ -409,4 +406,4 @@ class AiChatService {
   }
 }
 
-export const aiChatService = new AiChatService()
+export const adminAiChatService = new AdminAiChatService()
