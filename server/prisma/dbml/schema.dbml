@@ -584,6 +584,19 @@ Table AiChatSession {
   account Account
 }
 
+Table ExecutionTrace {
+  id Int [pk, increment]
+  sessionId String [not null]
+  originalMessage String [not null]
+  taskCount Int [not null]
+  completedCount Int [not null]
+  blockedCount Int [not null]
+  failedCount Int [not null]
+  totalLatencyMs Int [not null]
+  traceData String [not null]
+  createdAt DateTime [default: `now()`, not null]
+}
+
 Ref: Account.ownerId - Account.id
 
 Ref: DishSnapshot.dishId > Dish.id

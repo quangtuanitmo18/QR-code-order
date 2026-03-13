@@ -228,31 +228,6 @@ export function createSearchAgentTools() {
           return { message: 'Failed to retrieve popular dishes. Please try again.' }
         }
       }
-    }),
-    /**
-     * Get currently available coupons for this guest (can be asked during search).
-     */
-    getAvailableCoupons: tool({
-      description:
-        'Get all currently active coupons and promotions available for this customer. Filters out coupons the customer has already used up. Use when a customer asks about discounts, promotions, deals, or coupons.',
-      inputSchema: z.object({}),
-      execute: async () => {
-        const log = getContextLogger()
-        try {
-          // NOTE: We need guestId to be injected here somehow if we extract this.
-          // For now, let's assume search doesn't strictly need auth'd coupon lookup,
-          // OR we must pass context to this agent factory too.
-          // Returning a placeholder error if context is missing, but to fix properly,
-          // createSearchAgentTools must accept (context: { guestId?: number })
-          return {
-            message:
-              'Coupons require you to be logged into your table session. Please use the Order tools to view coupons.'
-          }
-        } catch (error) {
-          log?.error({ err: error }, '[AI Tool: getAvailableCoupons] Database error')
-          return { message: 'Failed to retrieve coupons. Please try again.' }
-        }
-      }
     })
   }
 }

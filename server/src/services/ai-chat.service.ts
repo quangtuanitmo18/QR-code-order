@@ -4,8 +4,11 @@ import { createFaqAgentTools } from '@/services/agents/faq.agent'
 import { createOrderAgentTools } from '@/services/agents/order.agent'
 import { createSearchAgentTools } from '@/services/agents/search.agent'
 import { aiMemoryService } from '@/services/ai-memory.service'
-import { AgentIntent, aiRouterService } from '@/services/ai-router.service'
+import { aiRouterService, intentFromTaskPlan } from '@/services/ai-router.service'
+import { getPendingExecution, clearPendingExecution, savePendingExecution } from '@/services/pending-execution'
 import { promptBuilderService } from '@/services/prompt-builder.service'
+import { buildDAG, executeTasksV2, type TaskResult } from '@/services/task-executor'
+import { enrichTasks } from '@/services/task-policy'
 import { getContextLogger } from '@/utils/logger'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { convertToModelMessages, stepCountIs, streamText } from 'ai'
@@ -15,10 +18,14 @@ import { FastifyReply } from 'fastify'
 /** Max tokens a single session is allowed to consume before being cut off. */
 const SESSION_TOKEN_BUDGET = 50_000
 
+/** V3: Below this confidence, show decomposition preview instead of executing */
+const LOW_CONFIDENCE = 0.5
+
 // Convert raw client messages to UIMessage-like format for convertToModelMessages
 function toUIMessages(
   messages: Array<{ role: string; content?: string; parts?: Array<{ type: string; text?: string }> }>
 ) {
+  const turnId = crypto.randomUUID().slice(0, 8)
   return messages.map((msg, index) => {
     const parts: Array<{ type: 'text'; text: string }> = []
 
@@ -37,7 +44,7 @@ function toUIMessages(
     }
 
     return {
-      id: `msg-${index}`,
+      id: `msg-${turnId}-${index}`,
       role: msg.role as 'user' | 'assistant',
       parts
     }
@@ -111,26 +118,135 @@ class AiChatService {
       const { hotMessages, evictedMessages } = aiMemoryService.buildContextWithSummary(fullUiHistory)
       const needsNewSummary = evictedMessages.length > 0
 
-      // 3.8. Route the Intent
-      // Grab the last 4 messages from hotMessages for faster classification
+      // 3.8. V3: Check for pending multi-turn resume BEFORE planning
       const recentMessages = hotMessages.slice(-4)
-      const intent: AgentIntent = await aiRouterService.classifyIntent(recentMessages)
-
-      // 3.9. Dynamically select tools based on intent
+      const pending = getPendingExecution(session)
+      let multiIntentContext = ''
       let agentTools: any = {}
-      if (intent === 'SEARCH') {
-        agentTools = createSearchAgentTools()
-      } else if (intent === 'ORDER') {
-        agentTools = createOrderAgentTools({ guestId })
-      } else if (intent === 'FAQ') {
-        agentTools = createFaqAgentTools()
+      let isResumed = false
+
+      if (pending) {
+        // ─── V3: Resume DAG from blocked task ────────────────────────────
+        log?.info(
+          `[AI Chat] Found pending execution for session ${session}, resuming blocked task ${pending.blockedTaskId}`
+        )
+
+        const lastUserMsg = recentMessages.filter((m) => m.role === 'user').pop()
+        const userReply =
+          lastUserMsg?.parts
+            .filter((p) => p.type === 'text')
+            .map((p) => p.text)
+            .join(' ') || ''
+
+        // Inject user reply as resolved params for blocked task
+        const resumedTasks = pending.enrichedTasks.map((task) => {
+          if (task.id === pending.blockedTaskId) {
+            return { ...task, params: { ...task.params, __userReply: userReply, confirmed: true } }
+          }
+          return task
+        })
+
+        // Re-execute only non-completed tasks
+        const trace = await executeTasksV2(
+          resumedTasks.filter((t) => !pending.completedTaskIds.has(t.id)),
+          pending.dag,
+          { guestId, sessionId: session, messageTs: Date.now() },
+          pending.originalMessage,
+          pending.suggestedDeps
+        )
+
+        clearPendingExecution(session)
+        isResumed = true
+
+        // Merge prior completed results with resumed results
+        const completedResults = trace.results.filter((r) => r.status === 'completed' && r.data)
+        const blockedResults = trace.results.filter((r) => r.status === 'blocked')
+        const failedResults = trace.results.filter((r) => r.status === 'failed')
+
+        const parts: string[] = ['(Resumed from previous multi-turn interaction)']
+        if (completedResults.length > 0) {
+          parts.push(
+            'Completed task results:\n' +
+              JSON.stringify(
+                completedResults.map((r) => ({ task: r.intent, data: r.data })),
+                null,
+                2
+              )
+          )
+        }
+        if (blockedResults.length > 0) {
+          parts.push(
+            'Blocked tasks (need user input):\n' + blockedResults.map((r) => `- ${r.intent}: ${r.reason}`).join('\n')
+          )
+          // Re-save if still blocked
+          savePendingExecution(session, {
+            ...pending,
+            blockedTaskId: blockedResults[0].taskId,
+            blockedReason: blockedResults[0].reason || 'unknown'
+          })
+        }
+        if (failedResults.length > 0) {
+          parts.push('Failed tasks:\n' + failedResults.map((r) => `- ${r.intent}: ${r.reason}`).join('\n'))
+        }
+        multiIntentContext = parts.join('\n\n')
+
+        // Give AI all tools after resume so it can handle follow-up actions
+        agentTools = {
+          ...createSearchAgentTools(),
+          ...createOrderAgentTools({ guestId }),
+          ...createFaqAgentTools()
+        }
       }
-      // GENERAL intent gets no specific tools, just standard chat.
+
+      // 3.8b. Plan Tasks (skip if resumed from pending)
+      if (!isResumed) {
+        const plan = await aiRouterService.planTasks(recentMessages)
+
+        // 3.9. Determine single vs multi-intent path
+        const isSingleIntent = plan.tasks.length <= 1
+
+        if (isSingleIntent) {
+          // ─── Fast Path: single intent → existing flow ────────────────────
+          const intent = intentFromTaskPlan(plan.tasks[0])
+          if (intent === 'SEARCH') {
+            agentTools = createSearchAgentTools()
+          } else if (intent === 'ORDER') {
+            agentTools = createOrderAgentTools({ guestId })
+          } else if (intent === 'FAQ') {
+            agentTools = createFaqAgentTools()
+          } else {
+            // GENERAL or unknown: give ALL tools so AI can decide what's needed
+            // This prevents the case where planner misclassifies a search query
+            // as general_chat → AI gets no tools → can't actually search
+            agentTools = {
+              ...createSearchAgentTools(),
+              ...createOrderAgentTools({ guestId }),
+              ...createFaqAgentTools()
+            }
+          }
+          log?.info(`[AI Chat] Fast path: single intent ${intent}`)
+        } else {
+          // ─── V3: Confidence gate ─────────────────────────────────────────
+          if (plan.confidence < LOW_CONFIDENCE && plan.isMultiIntent) {
+            const preview = plan.tasks.map((t: any) => `• ${t.intent}(${JSON.stringify(t.params)})`).join('\n')
+            multiIntentContext = `The user's request was analyzed but confidence is low (${plan.confidence.toFixed(2)}). Please confirm with the user if this decomposition is correct:\n\n${preview}\n\nAsk: "Mình hiểu bạn muốn: ... Đúng không?"`
+            log?.info(`[AI Chat] Low confidence (${plan.confidence}), showing preview instead of executing`)
+          } else {
+            // ─── Multi-Intent Pipeline ───────────────────────────────────────
+            multiIntentContext = await this.executeMultiIntentPipeline(plan, recentMessages, session, guestId, log)
+          }
+        }
+      }
 
       const modelMessages = await convertToModelMessages(hotMessages)
 
+      // If multi-intent, inject execution results as additional system context
+      const effectiveSystemPrompt = multiIntentContext
+        ? `${systemPrompt}\n\n--- TASK EXECUTION RESULTS ---\nThe following tasks were executed based on the user's multi-part request. Use these results to compose your response. Present each result clearly. For blocked tasks, ask the user for clarification.\n\n${multiIntentContext}`
+        : systemPrompt
+
       log?.info(
-        `[AI Chat] Starting streamText (Session: ${session}, Intent: ${intent}, Hot History: ${hotMessages.length}, Tokens used: ${sessionTokens})`
+        `[AI Chat] Starting streamText (Session: ${session}, Hot History: ${hotMessages.length}, Tokens used: ${sessionTokens}, Resumed: ${isResumed})`
       )
 
       // 4. Stream text with tool calling + 30s timeout
@@ -139,26 +255,21 @@ class AiChatService {
 
       const result = streamText({
         model: this.openrouter.chat('google/gemini-2.5-flash'),
-        maxOutputTokens: 2048, // Limit per-request cost — đủ cho restaurant assistant
-        system: systemPrompt,
+        maxOutputTokens: 2048,
+        system: effectiveSystemPrompt,
         messages: modelMessages,
         tools: Object.keys(agentTools).length > 0 ? agentTools : undefined,
         stopWhen: stepCountIs(5),
         abortSignal: abortController.signal,
         onFinish: async (event) => {
           clearTimeout(timeout)
-          // On finish, append the assistant's ultimate reply to the UI history and save
           try {
-            // Only save text content from assistant messages.
-            // Tool-call/tool-result parts are NOT compatible with convertToModelMessages
-            // on reload, and the assistant's text already contains all useful context.
             const newMessages = event.response.messages
               .filter((msg) => msg.role === 'assistant')
               .map((msg) => {
                 const textParts = ((msg.content || []) as any[])
                   .filter((c: any) => c.type === 'text' && c.text)
                   .map((c: any) => ({ type: 'text' as const, text: c.text }))
-
                 return {
                   id: `msg-asst-${Date.now()}-${Math.random()}`,
                   role: 'assistant' as const,
@@ -167,10 +278,8 @@ class AiChatService {
               })
               .filter((msg) => msg.parts.some((p) => p.text !== ''))
 
-            // Combine previous hot window with the new messages
             const updatedHistory = [...hotMessages, ...newMessages]
 
-            // If messages were evicted from the hot window, generate a new progressive summary asynchronously
             if (needsNewSummary) {
               log?.info(`[AI Memory] Generating progressive summary for ${evictedMessages.length} evicted messages`)
               memorySummary = await aiMemoryService.generateProgressiveSummary(memorySummary, evictedMessages)
@@ -216,12 +325,12 @@ class AiChatService {
         const pump = async () => {
           let done = false
           while (!done) {
-            const result = await reader.read()
-            done = result.done
+            const readResult = await reader.read()
+            done = readResult.done
             if (done) {
               reply.raw.end()
             } else {
-              reply.raw.write(result.value)
+              reply.raw.write(readResult.value)
             }
           }
         }
@@ -246,6 +355,86 @@ class AiChatService {
         reply.raw.end()
       }
     }
+  }
+
+  // ─── V3: Multi-Intent Pipeline (extracted for resume reuse) ─────────────────
+
+  private async executeMultiIntentPipeline(
+    plan: any,
+    recentMessages: any[],
+    session: string,
+    guestId: number | undefined,
+    log: ReturnType<typeof getContextLogger>
+  ): Promise<string> {
+    const enrichedTasks = enrichTasks(plan.tasks)
+
+    const lastUserMsg = recentMessages.filter((m) => m.role === 'user').pop()
+    const originalMessage =
+      lastUserMsg?.parts
+        .filter((p: any) => p.type === 'text')
+        .map((p: any) => p.text)
+        .join(' ') || ''
+
+    const dag = buildDAG(enrichedTasks, plan.suggestedDependencies)
+
+    const trace = await executeTasksV2(
+      enrichedTasks,
+      dag,
+      { guestId, sessionId: session, messageTs: Date.now() },
+      originalMessage,
+      plan.suggestedDependencies
+    )
+
+    log?.info(
+      {
+        taskCount: trace.detectedTasks.length,
+        completed: trace.results.filter((r) => r.status === 'completed').length,
+        blocked: trace.results.filter((r) => r.status === 'blocked').length,
+        totalLatencyMs: trace.totalLatencyMs
+      },
+      '[AI Chat] Multi-intent execution complete'
+    )
+
+    // Save pending if blocked
+    const blockedResults = trace.results.filter((r) => r.status === 'blocked')
+    if (blockedResults.length > 0) {
+      savePendingExecution(session, {
+        sessionId: session,
+        dag,
+        stateCtx: { taskResults: new Map(trace.results.filter((r) => r.data).map((r) => [r.taskId, r.data])) },
+        blockedTaskId: blockedResults[0].taskId,
+        blockedReason: blockedResults[0].reason || 'unknown',
+        completedTaskIds: new Set(trace.results.filter((r) => r.status === 'completed').map((r) => r.taskId)),
+        enrichedTasks,
+        suggestedDeps: plan.suggestedDependencies || [],
+        originalMessage
+      })
+    }
+
+    const completedResults = trace.results.filter((r) => r.status === 'completed' && r.data)
+    const failedResults = trace.results.filter((r) => r.status === 'failed')
+    const parts: string[] = []
+
+    if (completedResults.length > 0) {
+      parts.push(
+        'Completed task results:\n' +
+          JSON.stringify(
+            completedResults.map((r) => ({ task: r.intent, data: r.data })),
+            null,
+            2
+          )
+      )
+    }
+    if (blockedResults.length > 0) {
+      parts.push(
+        'Blocked tasks (need user input):\n' + blockedResults.map((r) => `- ${r.intent}: ${r.reason}`).join('\n')
+      )
+    }
+    if (failedResults.length > 0) {
+      parts.push('Failed tasks:\n' + failedResults.map((r) => `- ${r.intent}: ${r.reason}`).join('\n'))
+    }
+
+    return parts.join('\n\n')
   }
 }
 

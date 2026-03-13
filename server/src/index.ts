@@ -2,6 +2,7 @@
 import envConfig, { API_URL } from '@/config'
 import { initOwnerAccount } from '@/controllers/account.controller'
 import autoRemoveRefreshTokenJob from '@/jobs/autoRemoveRefreshToken.job'
+import cleanupExecutionTraceJob from '@/jobs/cleanupExecutionTrace.job'
 import calendarNotificationJob from '@/jobs/calendarNotification.job'
 import { errorHandlerPlugin } from '@/plugins/errorHandler.plugins'
 import { mediasoupPlugin } from '@/plugins/mediasoup.plugin'
@@ -98,6 +99,7 @@ const start = async () => {
     createFolder(path.resolve(envConfig.UPLOAD_FOLDER))
     autoRemoveRefreshTokenJob(fastify)
     calendarNotificationJob(fastify)
+    cleanupExecutionTraceJob(fastify)
     // autoCheckHeartbeatJob()
 
     const whitelist = ['*']

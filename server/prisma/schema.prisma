@@ -704,3 +704,20 @@ model AiChatSession {
   @@index([accountId])
   @@index([updatedAt])
 }
+
+// V2: Multi-Intent Execution Trace
+model ExecutionTrace {
+  id              Int      @id @default(autoincrement())
+  sessionId       String
+  originalMessage String
+  taskCount       Int
+  completedCount  Int
+  blockedCount    Int
+  failedCount     Int
+  totalLatencyMs  Int
+  traceData       String   // JSON-serialized ExecutionTrace object
+  createdAt       DateTime @default(now())
+
+  @@index([sessionId])
+  @@index([createdAt])
+}

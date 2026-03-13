@@ -1,0 +1,22 @@
+{
+  "policies": {
+    "search_product": { "actionType": "read", "resource": "catalog", "requiresConfirmation": false },
+    "search_faq": { "actionType": "read", "resource": "faq", "requiresConfirmation": false },
+    "get_restaurant_info": { "actionType": "read", "resource": "settings", "requiresConfirmation": false },
+    "get_order_status": { "actionType": "read", "resource": "order", "requiresConfirmation": false },
+    "get_available_coupons": { "actionType": "read", "resource": "coupon", "requiresConfirmation": false },
+    "place_order": { "actionType": "write", "resource": "order", "requiresConfirmation": true },
+    "cancel_order": { "actionType": "write", "resource": "order", "requiresConfirmation": true },
+    "apply_coupon": { "actionType": "write", "resource": "coupon", "requiresConfirmation": false },
+    "general_chat": { "actionType": "read", "resource": "general", "requiresConfirmation": false }
+  },
+  "parallelSafePairs": [
+    ["search_product", "search_faq"],
+    ["search_product", "get_restaurant_info"],
+    ["search_product", "get_order_status"],
+    ["search_product", "get_available_coupons"],
+    ["search_faq", "get_restaurant_info"],
+    ["get_order_status", "get_restaurant_info"],
+    ["get_order_status", "get_available_coupons"]
+  ]
+}
