@@ -6,49 +6,143 @@ This document serves as the master blueprint and analysis report for the Restaur
 
 ## I. Current System Architecture & Capabilities
 
-The AI Assistant has evolved from a simple chatbot into a structured **Multi-Agent System** featuring intent routing, parallel DAG execution, and human-in-the-loop safety.
+The AI Assistant is a production-grade **Multi-Agent System** with intent routing, parallel DAG execution, human-in-the-loop (HITL) safety, progressive memory, and hybrid RAG search.
 
 ### 1. Technology Stack
 
-- **AI Orchestration:** [Vercel AI SDK v6](https://sdk.vercel.ai/) (`generateObject`, `streamText`, `createUIMessageStream`).
-- **LLM Provider:** [OpenRouter](https://openrouter.ai/) (Core Model: Google Gemini 2.5 Flash).
-- **RAG & Vector Database:** ChromaDB + Jina AI embeddings (`jina-embeddings-v3`) for menu and FAQs.
-- **Data Validation:** Zod (for strict JSON schema definition of AI Tools and Routing outputs).
-- **Database:** Prisma ORM connected to PostgreSQL/SQLite.
+| Layer                | Technology                                                                                                                                    |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| **AI Orchestration** | [Vercel AI SDK v6](https://sdk.vercel.ai/) (`generateObject`, `streamText`, `createUIMessageStream`, `convertToModelMessages`, `stepCountIs`) |
+| **LLM Provider**     | [OpenRouter](https://openrouter.ai/) → Google Gemini 2.5 Flash                                                                                |
+| **RAG & Vector DB**  | ChromaDB + Jina AI embeddings (`jina-embeddings-v3`) for menu & FAQs                                                                          |
+| **Data Validation**  | Zod (strict JSON schemas for AI tool I/O, router outputs, and planner schemas)                                                                |
+| **Database**         | Prisma ORM (PostgreSQL/SQLite)                                                                                                                |
+| **Server**           | Fastify (with `reply.hijack()` for raw streaming)                                                                                             |
+| **Client**           | Next.js + `@ai-sdk/react` (`useChat` hook, `DefaultChatTransport`)                                                                            |
 
-### 2. The Multi-Agent Architecture (Guest & Admin)
+### 2. The Multi-Agent Architecture
 
-Both Guest and Admin AI utilize a **Planner-Executor Pattern** via a Multi-Intent Router and a Directed Acyclic Graph (DAG) task executor.
+Both Guest and Admin AI utilize a **Planner → Enricher → DAG Executor → Synthesizer** pipeline.
 
-#### A. Guest AI
+```mermaid
+graph TD
+    A[User Message] --> B{Security Middleware}
+    B -->|Blocked| C[400 Error]
+    B -->|Valid| D[Token Budget Check]
+    D -->|Exceeded| E[429 Error]
+    D -->|OK| F[Memory Retrieval + Progressive Summary]
+    F --> G[Router / Planner]
+    G -->|Single Intent| H[Fast Path: Direct Tool Injection]
+    G -->|Multi Intent| I{Confidence Gate}
+    I -->|Low < 0.5| J[Preview & Confirm]
+    I -->|High >= 0.5| K[Task Enricher + DAG Builder]
+    K --> L[DAG Executor V2]
+    L --> M[Results Injection into System Prompt]
+    H --> N[streamText + Tool Calling]
+    M --> N
+    J --> N
+    N --> O[UIMessageStream Response]
+    O --> P[Session Save + Token Tracking]
+```
 
-1. **The Planner (`ai-router.service.ts`):**
-   - Analyzes user input and decomposes it into multiple atomic intents (e.g., `['place_order', 'search_faq']`).
-   - Generates predictable task dependencies.
-2. **The Agents (Tools Grouping):**
-   - **Search Agent:** Implements a **5-Layer Hybrid RAG Pipeline** (`hybrid-rag.service.ts`) for query expansion, entity extraction, and concurrent SQL + Vector search + filtering, followed by weighted reranking.
-   - **Order Agent:** Handles cart management, checkout, and coupons.
-   - **FAQ Agent:** Handles structured restaurant info and semantic FAQ searches.
-3. **The Executor (`task-executor.ts`):**
-   - Runs tasks in parallel or sequentially based on DAG dependencies. Results are injected back into the final Synthesizer (Gemini) to generate a cohesive response.
+#### A. Guest AI (`ai-chat.service.ts`)
 
-#### B. Admin AI
+**1. The Planner (`ai-router.service.ts`)**
 
-1. **The Planner (`admin-ai-router.service.ts`):**
-   - Analyzes owner/admin input and decomposes it into admin-specific tasks (e.g., `admin_get_revenue_trends`, `admin_search_orders`).
-2. **The Agents:**
-   - **Analytics Agent:** Business metrics (revenue, dish performance).
-   - **Orders Agent:** Searches historical orders, gets live orders, and cancels orders.
-   - **Menu Agent:** Updates dish prices and status.
-3. **Human-in-the-Loop (HITL) Execution:**
-   - Dangerous mutations (`admin_update_dish`, `admin_cancel_order`) do not execute automatically. The AI SDK pauses execution (`createUIMessageStream`) and renders a React UI Card asking the Owner to "Approve" or "Cancel". Only upon explicit approval does the backend execute the database changes.
+- Uses `generateObject()` with `TaskPlanSchema` to decompose user input into 1–4 atomic tasks.
+- 9 supported intents: `search_product`, `search_faq`, `place_order`, `cancel_order`, `apply_coupon`, `get_order_status`, `get_restaurant_info`, `get_available_coupons`, `general_chat`.
+- Outputs: task list, confidence score, dependency graph, `isMultiIntent` flag.
+- Fast-path: single intent → maps to legacy `AgentIntent` (`SEARCH`, `ORDER`, `FAQ`, `GENERAL`) for tool selection.
+- Fallback-safe: `GENERAL` intent provides **all** tools so the LLM can self-route.
 
-### 3. Memory Architecture
+**2. The Agents (Specialized Tool Groups)**
 
-Both assistants share a **2-Tier Memory System** (`ai-memory.service.ts`):
+| Agent      | File              | Tools                                                                                         | Key Capabilities                                                                                                                |
+| ---------- | ----------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Search** | `search.agent.ts` | `searchMenu`, `searchMenuSemantic`, `getDishDetails`, `getMenuCategories`, `getPopularDishes` | 5-layer Hybrid RAG pipeline (Normalize → Entity Extract → Expand → Hybrid Retrieve → Rerank); SQL fallback on RAG failure       |
+| **Order**  | `order.agent.ts`  | `getOrderStatus`, `getAvailableCoupons`, `placeOrder`, `cancelOrder`, `applyCoupon`           | HITL on mutations — `placeOrder`, `cancelOrder`, `applyCoupon` have **no `execute`** handler (frontend renders confirmation UI) |
+| **FAQ**    | `faq.agent.ts`    | `getRestaurantInfo`, `searchFAQ`                                                              | 4-layer lightweight hybrid search pipeline; SQL fallback                                                                        |
 
-1. **Tier 1 (Hot Window):** The exact raw text of the most recent N messages.
-2. **Tier 2 (Progressive Summary):** Background LLM summarization of older evicted messages, injected into the System Prompt to prevent token overflow.
+**3. The Executor (`task-executor.ts`, 722 lines)**
+
+- **DAG Builder:** Constructs dependency graph from planner suggestions + implicit read-before-write rules.
+- **Cycle Detection:** DFS-based. Falls back to sequential on cycles.
+- **Parallel Grouping:** Hybrid whitelist + resource-based auto-detect for parallel-safe task pairs.
+- **State Forwarding:** Injects prior task results into dependent tasks. V3: auto-picks when exactly 1 search result.
+- **Retry with Backoff:** Retries transient failures (`ETIMEOUT`, `ECONNRESET`, `fetch failed`) once with 500ms delay.
+- **Idempotency:** SHA-256 key from `session:messageTs:taskId`, cached with 30s TTL.
+- **Trace Persistence:** Fire-and-forget write to `ExecutionTrace` table for analytics.
+
+#### B. Admin AI (`admin-ai-chat.service.ts`)
+
+**1. The Planner (`admin-ai-router.service.ts`)**
+
+- Separate `AdminTaskPlanSchema` with 7 admin-specific intents: `admin_get_revenue_trends`, `admin_get_dish_performance`, `admin_search_orders`, `admin_update_dish`, `admin_cancel_order`, `admin_get_live_orders`, `general_chat`.
+- Always injects **all admin tools** regardless of intent (unlike Guest's selective routing).
+
+**2. The Agents**
+
+| Agent         | File                       | Tools                                                                | HITL?                      |
+| ------------- | -------------------------- | -------------------------------------------------------------------- | -------------------------- |
+| **Analytics** | `admin-analytics.agent.ts` | `admin_get_revenue_trends`, `admin_get_dish_performance`             | No                         |
+| **Orders**    | `admin-orders.agent.ts`    | `admin_search_orders`, `admin_cancel_order`, `admin_get_live_orders` | Yes (`admin_cancel_order`) |
+| **Menu**      | `admin-menu.agent.ts`      | `admin_update_dish`                                                  | Yes                        |
+
+- All admin tools have an `authGuard()` that checks `accountId` presence.
+- Mutations (`admin_update_dish`, `admin_cancel_order`) have **no `execute` handler** — they trigger HITL confirmation via `createUIMessageStream`.
+
+### 3. Memory Architecture (`ai-memory.service.ts`)
+
+Both assistants share a **2-Tier Memory System** backed by Prisma (`AiChatSession` table):
+
+| Tier                    | Description                               | Implementation                                                                   |
+| ----------------------- | ----------------------------------------- | -------------------------------------------------------------------------------- |
+| **Hot Window**          | Last N raw messages (default N=8)         | `buildContextWithSummary()` — preserves system prompt at index 0                 |
+| **Progressive Summary** | LLM-generated summary of evicted messages | `generateProgressiveSummary()` — injected into system prompt as `MEMORY CONTEXT` |
+
+**Token Budget:** Each session has a 50,000-token hard cap. Exceeding returns HTTP 429.
+
+**Session Lifecycle:**
+
+- Sessions stored in DB via `upsert` (create or update).
+- Token usage tracked incrementally (`promptTokens`, `completionTokens`, `totalTokens`).
+- FK constraint failures (guest/account not found) gracefully retry without user link.
+- Auto-cleanup job: deletes sessions older than 24h, runs every 12h.
+
+### 4. Security Layer (`ai-security.ts`)
+
+- **Prompt Injection Detection:** 12 regex patterns covering common attacks (ignore previous instructions, jailbreak, DAN mode, reveal system prompt).
+- **Message Validation:** Max 50 messages, max 4,000 chars per user message.
+- **Rate Limiting:** 10 requests/minute (guest), 20 requests/minute (admin actions).
+- **30s Timeout:** `AbortController` auto-cancels long-running LLM calls.
+
+### 5. Dynamic System Prompt (`prompt-builder.service.ts`)
+
+- **Cached with 5min TTL:** Restaurant settings and FAQs fetched from DB, cached to reduce queries.
+- **Guest Prompt:** Injects restaurant info, FAQs, tool usage guide (17 numbered instructions), and memory context.
+- **Admin Prompt:** Business analyst role, analytics/management tool descriptions, response formatting guidelines.
+- **Cache Invalidation:** Explicit `invalidateCache()` method for admin settings changes.
+
+### 6. Task Policy Engine (`task-policy.ts`)
+
+- **Intent Metadata Registry:** Maps each intent to `{ actionType, resource, requiresConfirmation }`. Supports JSON config file override + code defaults merge.
+- **Enrichment:** `enrichTasks()` annotates raw LLM tasks with policy metadata.
+- **Mutation Gate V2:** Async DB-based disambiguation — counts matching dishes before allowing `place_order`. Rejects ambiguous (>1 match) or missing (0 match) items.
+- **V3 Auto-Pick:** Skips gate if `__autoPickedResult` is present from prior read.
+
+### 7. Multi-Turn Resume (`pending-execution.ts`)
+
+- When a DAG execution is **blocked** (e.g., needs user confirmation), the pending state (DAG, completed tasks, blocked task info) is saved in-memory.
+- On next user message, the system resumes from the blocked task with the user's reply injected as `__userReply`.
+
+### 8. Client Components
+
+| Component      | File                       | Purpose                                                                                                                                                          |
+| -------------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Guest Chat** | `ai-chat-button.tsx`       | Floating chat button + chat window; uses `useChat` hook with `DefaultChatTransport`; handles HITL actions (placeOrder/cancelOrder/applyCoupon); renders markdown |
+| **Admin Chat** | `admin-ai-chat-button.tsx` | Same structure but with admin-specific HITL actions (admin_update_dish, admin_cancel_order); richer confirmation UI                                              |
+
+- **State Preservation:** Both use CSS `hidden` toggle (not conditional rendering) to preserve messages when modal is closed.
 
 ---
 
@@ -56,15 +150,35 @@ Both assistants share a **2-Tier Memory System** (`ai-memory.service.ts`):
 
 ### ✅ Completed Milestones
 
-1. **Advanced Hybrid RAG (Guest AI):** Implemented the 5-layer query expansion pipeline for robust menu searching without hallucination. Admin AI omits this intentionally as it requires exact SQL matching rather than semantic fuzziness.
-2. **Multi-Intent & Synthesizer:** Implemented DAG-based parallel execution for both Guest and Admin AI. Users can ask for revenues and live orders in a single breath.
-3. **Human-in-the-Loop (HITL):** Admin AI securely validates destructive actions via interactive UI streaming (`createUIMessageStream`).
-4. **Agent Modularity:** Both Guest and Admin tools are cleanly split into domain-specific agent files (e.g., `admin-analytics.agent.ts`, `search.agent.ts`).
+1. **Advanced Hybrid RAG (Guest AI):** 5-layer query expansion pipeline (`hybrid-rag.service.ts`) with synonym expansion, entity extraction, concurrent SQL+Vector search, weighted reranking, and SQL fallback.
+2. **Multi-Intent DAG Executor:** Full DAG-based parallel execution with cycle detection, state forwarding, auto-pick, retry with backoff, and idempotency — for both Guest and Admin AI.
+3. **Human-in-the-Loop (HITL):** Both Guest (placeOrder, cancelOrder, applyCoupon) and Admin (admin_update_dish, admin_cancel_order) mutations render React confirmation cards via `createUIMessageStream`. Dedicated `/execute-action` REST endpoints handle confirmed actions.
+4. **Agent Modularity:** 6 cleanly separated agent files across 3 guest domains (Search, Order, FAQ) and 3 admin domains (Analytics, Orders, Menu).
+5. **Progressive Memory:** 2-tier system with hot window + LLM-generated progressive summarization of evicted messages. DB-backed with auto-cleanup.
+6. **Security Hardening:** Prompt injection detection, message length/count limits, rate limiting, token budget per session, and 30s timeout.
+7. **Confidence Gating:** Low-confidence multi-intent plans (< 0.5) show decomposition preview for user confirmation instead of blind execution.
+8. **Execution Trace Analytics:** All multi-intent executions are persisted to `ExecutionTrace` table with task counts, statuses, and latency metrics.
+9. **Dynamic Prompt Caching:** System prompts built from live DB data (restaurant settings + FAQs) with 5-minute TTL cache.
+10. **Task Policy Config Override:** `task-policies.json` file allows runtime configuration of intent policies and parallel-safe pairs without code changes.
+11. **Chat Persistence (Client):** Chat messages persist across modal open/close cycles (CSS visibility toggle) — messages only clear on full page reload.
 
 ### 🟡 Remaining GAPs & Next Steps
 
 1. **Entity State / Core Memory Extraction:**
-   - **Flaw:** Progressive summaries are fluid. Concrete facts like user allergies or VIP preferences might get diluted over long sessions.
-   - **Fix:** Implement an explicit Entity Extractor that permanently persists `{ allergies: [], preferences: [] }` to the user profile and injects it into every system prompt.
-2. **Analytics & Automated Actions (Admin AI):**
-   - **Future Scope:** Enable the Admin AI to trigger proactive actions, such as sending promotional emails to customers based on the "Worst Performing Dishes" report.
+   - **Issue:** Progressive summaries are fluid text. Concrete facts (user allergies, VIP preferences, dietary restrictions) may get diluted over long sessions.
+   - **Fix:** Implement an Entity Extractor that persists structured data `{ allergies: [], preferences: [], dietaryRestrictions: [] }` to the user profile table and injects it into every system prompt.
+
+2. **Cross-Session Memory:**
+   - **Issue:** Memory is session-scoped (24h TTL). Returning guests start fresh.
+   - **Fix:** Link entity memory to guest/account profiles for persistent preferences across visits.
+
+3. **Analytics & Automated Actions (Admin AI):**
+   - **Future:** Enable proactive actions — e.g., auto-suggest menu changes based on worst-performing dishes, or send promotional alerts.
+
+4. **Streaming Error Recovery:**
+   - **Issue:** If `streamText` fails mid-stream (after headers sent), the client receives a broken stream.
+   - **Fix:** Implement stream error framing in the `UIMessageStream` protocol so the client can display a graceful error message.
+
+5. **Observation / Evaluation Pipeline:**
+   - **Partial:** `eval-ai.ts` exists but is a script, not an automated pipeline.
+   - **Fix:** Integrate with CI/CD for automated regression testing of AI responses.
