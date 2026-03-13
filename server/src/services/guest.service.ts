@@ -239,5 +239,54 @@ export const guestService = {
         unitPrice: item.unitPrice
       }))
     }
+  },
+
+  /**
+   * Place an order by dish names (used by AI HITL flow).
+   * Handles dish name resolution, fuzzy matching, and delegates to createOrders.
+   */
+  async placeOrderByName(guestId: number, items: Array<{ dishName: string; quantity: number }>) {
+    const orderItems: Array<{ dishId: number; quantity: number }> = []
+    const resolvedDishes: Array<{ name: string; price: number; quantity: number }> = []
+
+    for (const item of items) {
+      const exactMatches = await prisma.dish.findMany({
+        where: { name: { contains: item.dishName.toLowerCase() }, status: 'Available' },
+        take: 10
+      })
+
+      let dish = exactMatches.find((d) => d.name.toLowerCase() === item.dishName.toLowerCase()) || null
+
+      if (!dish) {
+        if (exactMatches.length === 0) {
+          throw new Error(`Could not find dish "${item.dishName}". Please check the name.`)
+        }
+        if (exactMatches.length > 1) {
+          throw new Error(
+            `Multiple dishes match "${item.dishName}": ${exactMatches.map((d) => `"${d.name}"`).join(', ')}. Please specify.`
+          )
+        }
+        dish = exactMatches[0]
+      }
+
+      orderItems.push({ dishId: dish.id, quantity: item.quantity })
+      resolvedDishes.push({ name: dish.name, price: dish.price, quantity: item.quantity })
+    }
+
+    const orders = await this.createOrders(guestId, orderItems)
+    const createdOrder = orders[0]
+
+    return {
+      message: 'Order placed successfully! 🎉',
+      orderId: createdOrder.id,
+      status: createdOrder.status,
+      items: resolvedDishes.map((d) => ({
+        name: d.name,
+        quantity: d.quantity,
+        unitPrice: d.price,
+        subtotal: d.price * d.quantity
+      })),
+      totalAmount: createdOrder.totalAmount
+    }
   }
 }

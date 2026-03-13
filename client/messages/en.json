@@ -185,7 +185,17 @@
     "loading": "Analyzing...",
     "errorDefault": "Sorry, an error occurred. Please try again.",
     "stopButton": "Stop response",
-    "inputPlaceholder": "Type your question..."
+    "inputPlaceholder": "Type your question...",
+    "confirmTitle": "Confirmation Required",
+    "confirmPlaceOrder": "Place order with {count} item(s)?",
+    "confirmCancelOrder": "Cancel order #{orderId}?",
+    "confirmApplyCoupon": "Apply coupon \"{couponCode}\" to order #{orderId}?",
+    "confirmApprove": "Confirm",
+    "confirmDeny": "Cancel",
+    "actionSuccess": "Action completed successfully",
+    "actionFailed": "Action failed",
+    "actionExecuting": "Processing...",
+    "actionDenied": "Action cancelled."
   },
   "AdminAiChat": {
     "title": "Admin AI Assistant",
@@ -224,6 +234,7 @@
     "noData": "No data available",
     "actionSuccess": "Action completed successfully",
     "actionFailed": "Action failed",
-    "actionExecuting": "Executing action..."
+    "actionExecuting": "Executing action...",
+    "actionDenied": "Action denied by admin."
   }
 }

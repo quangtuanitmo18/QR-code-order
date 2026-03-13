@@ -1,10 +1,12 @@
 import prisma from '@/database'
+import { adminService } from '@/services/admin.service'
 import { createAdminAnalyticsAgentTools } from '@/services/agents/admin-analytics.agent'
-import { createAdminMenuAgentTools } from '@/services/agents/admin-menu.agent'
 import { createAdminOrdersAgentTools } from '@/services/agents/admin-orders.agent'
 import { createFaqAgentTools } from '@/services/agents/faq.agent'
 import { createOrderAgentTools } from '@/services/agents/order.agent'
 import { createSearchAgentTools } from '@/services/agents/search.agent'
+import { couponService } from '@/services/coupon.service'
+import { guestService } from '@/services/guest.service'
 import {
   cacheMutationResult,
   canExecuteMutationV2,
@@ -76,28 +78,30 @@ function getToolExecutor(
       return async () => (tools.getAvailableCoupons.execute as any)({}, { abortSignal: undefined })
     }
     case 'place_order': {
-      const tools = createOrderAgentTools({ guestId: context.guestId })
       return async (params) => {
         const items = params.items as Array<{ dishName: string; quantity: number }> | undefined
         if (!items || items.length === 0) return { message: 'No items specified for the order.' }
-        return (tools.placeOrder.execute as any)({ items }, { abortSignal: undefined })
+        if (!context.guestId) return { message: 'Unable to identify your session.' }
+        return guestService.placeOrderByName(context.guestId, items)
       }
     }
     case 'cancel_order': {
-      const tools = createOrderAgentTools({ guestId: context.guestId })
       return async (params) => {
         const orderId = Number(params.orderId)
         if (!orderId) return { message: 'Please specify which order to cancel.' }
-        return (tools.cancelOrder.execute as any)({ orderId }, { abortSignal: undefined })
+        if (!context.guestId) return { message: 'Unable to identify your session.' }
+        const result = await guestService.cancelOrder(orderId, context.guestId)
+        return { message: `Order #${orderId} has been cancelled successfully.`, ...result }
       }
     }
     case 'apply_coupon': {
-      const tools = createOrderAgentTools({ guestId: context.guestId })
       return async (params) => {
         const couponCode = String(params.couponCode || '')
         const orderId = Number(params.orderId)
         if (!couponCode || !orderId) return { message: 'Please specify the coupon code and order ID.' }
-        return (tools.applyCoupon.execute as any)({ couponCode, orderId }, { abortSignal: undefined })
+        if (!context.guestId) return { message: 'Unable to identify your session.' }
+        const result = await couponService.applyToOrder(couponCode, orderId, context.guestId)
+        return { message: `Coupon "${couponCode}" applied successfully! 🎉`, ...result }
       }
     }
     case 'general_chat':
@@ -112,12 +116,14 @@ function getToolExecutor(
       return async (params) => (tools.admin_get_dish_performance.execute as any)(params, { abortSignal: undefined })
     }
     case 'admin_update_dish': {
-      const tools = createAdminMenuAgentTools({ accountId: context.accountId })
-      return async (params) => (tools.admin_update_dish.execute as any)(params, { abortSignal: undefined })
+      return async (params) => {
+        return adminService.updateDish(Number(params.dishId), params.updates as any)
+      }
     }
     case 'admin_cancel_order': {
-      const tools = createAdminOrdersAgentTools({ accountId: context.accountId })
-      return async (params) => (tools.admin_cancel_order.execute as any)(params, { abortSignal: undefined })
+      return async (params) => {
+        return adminService.cancelOrder(Number(params.orderId), String(params.reason || 'Admin action'))
+      }
     }
     case 'admin_get_live_orders': {
       const tools = createAdminOrdersAgentTools({ accountId: context.accountId })

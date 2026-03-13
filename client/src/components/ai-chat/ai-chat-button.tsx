@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
-import { Loader2, MessagesSquare, Send, StopCircle, X } from 'lucide-react'
+import { CheckCircle2, Loader2, MessagesSquare, Send, StopCircle, X, XCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
@@ -17,6 +17,12 @@ export default function AiChatButton() {
   const [isOpen, setIsOpen] = useState(false)
   const [input, setInput] = useState('')
   const [sessionId, setSessionId] = useState<string | undefined>(undefined)
+  const [hitlResults, setHitlResults] = useState<
+    Record<
+      string,
+      { status: 'loading' | 'success' | 'error' | 'denied'; result?: any; error?: string }
+    >
+  >({})
   const scrollRef = useRef<HTMLDivElement>(null)
   const sessionIdRef = useRef(sessionId)
   sessionIdRef.current = sessionId
@@ -64,6 +70,53 @@ export default function AiChatButton() {
 
     sendMessage({ text })
     if (!customText) setInput('')
+  }
+
+  // Handle HITL action execution
+  const handleAction = async (toolCallId: string, toolName: string, params: any) => {
+    setHitlResults((prev) => ({
+      ...prev,
+      [toolCallId]: { status: 'loading' },
+    }))
+
+    try {
+      const res = await fetch('/api/guest/ai-chat/execute-action', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: toolName, params }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || t('actionFailed'))
+      }
+
+      setHitlResults((prev) => ({
+        ...prev,
+        [toolCallId]: {
+          status: 'success',
+          result: data,
+        },
+      }))
+    } catch (error: any) {
+      setHitlResults((prev) => ({
+        ...prev,
+        [toolCallId]: {
+          status: 'error',
+          error: error.message || t('actionFailed'),
+        },
+      }))
+    }
+  }
+
+  const handleDeny = (toolCallId: string) => {
+    setHitlResults((prev) => ({
+      ...prev,
+      [toolCallId]: { status: 'denied', error: t('actionDenied') },
+    }))
   }
 
   // Helper to map tool names to friendly UI text
@@ -201,26 +254,140 @@ export default function AiChatButton() {
                               </ReactMarkdown>
                             )
                           }
-                          // Show tool states for transparency
-                          if (part.type === 'tool-invocation') {
+                          // AI SDK v6: tools without execute produce parts with type 'tool-invocation'
+                          // and state 'input-available'. Tools with execute produce 'output-available'.
+                          const isToolPart =
+                            part.type === 'tool-invocation' || part.type.startsWith('tool-')
+                          if (isToolPart) {
+                            const toolName =
+                              'toolName' in part
+                                ? (part as any).toolName
+                                : part.type.replace('tool-', '')
+                            const toolCallId = (part as any).toolCallId || `${m.id}-${i}`
+                            const hitlState = hitlResults[toolCallId]
+
+                            // HITL: Show confirmation card for mutation tools without execute
+                            const isMutationTool =
+                              toolName === 'placeOrder' ||
+                              toolName === 'cancelOrder' ||
+                              toolName === 'applyCoupon'
+                            const isInputReady = (part as any).state === 'input-available'
+
+                            if (isMutationTool && (isInputReady || hitlState)) {
+                              // Already executed via REST — show result
+                              if (hitlState?.status === 'success') {
+                                return (
+                                  <div
+                                    key={toolCallId}
+                                    className="my-3 rounded-lg border border-green-500/30 bg-green-500/5 p-4 text-sm shadow-sm"
+                                  >
+                                    <h4 className="mb-1 flex items-center gap-2 font-semibold text-green-600">
+                                      <CheckCircle2 className="h-4 w-4" />
+                                      {t('actionSuccess')}
+                                    </h4>
+                                    <p className="whitespace-pre-wrap text-xs text-muted-foreground">
+                                      {hitlState.result?.message ||
+                                        JSON.stringify(hitlState.result)}
+                                    </p>
+                                  </div>
+                                )
+                              }
+                              if (hitlState?.status === 'error' || hitlState?.status === 'denied') {
+                                return (
+                                  <div
+                                    key={toolCallId}
+                                    className="my-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm shadow-sm"
+                                  >
+                                    <h4 className="mb-1 flex items-center gap-2 font-semibold text-destructive">
+                                      <XCircle className="h-4 w-4" />
+                                      {hitlState.status === 'denied'
+                                        ? t('actionDenied')
+                                        : t('actionFailed')}
+                                    </h4>
+                                    {hitlState.error && hitlState.status !== 'denied' && (
+                                      <p className="text-xs text-muted-foreground">
+                                        {hitlState.error}
+                                      </p>
+                                    )}
+                                  </div>
+                                )
+                              }
+                              if (hitlState?.status === 'loading') {
+                                return (
+                                  <div
+                                    key={toolCallId}
+                                    className="my-3 rounded-lg border border-primary/30 bg-primary/5 p-4 text-sm shadow-sm"
+                                  >
+                                    <div className="flex items-center gap-2 font-medium text-primary">
+                                      <Loader2 className="h-4 w-4 animate-spin" />
+                                      {t('actionExecuting')}
+                                    </div>
+                                  </div>
+                                )
+                              }
+
+                              // Pending confirmation — show card with Approve/Deny buttons
+                              const input = (part as any).input
+                              return (
+                                <div
+                                  key={toolCallId}
+                                  className="my-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm shadow-sm"
+                                >
+                                  <h4 className="mb-2 flex items-center gap-2 font-semibold text-destructive">
+                                    <XCircle className="h-4 w-4" />
+                                    {t('confirmTitle')}
+                                  </h4>
+                                  <p className="mb-4 text-muted-foreground">
+                                    {toolName === 'placeOrder' &&
+                                      t('confirmPlaceOrder', { count: input?.items?.length || 0 })}
+                                    {toolName === 'cancelOrder' &&
+                                      t('confirmCancelOrder', { orderId: input?.orderId })}
+                                    {toolName === 'applyCoupon' &&
+                                      t('confirmApplyCoupon', {
+                                        couponCode: input?.couponCode,
+                                        orderId: input?.orderId,
+                                      })}
+                                  </p>
+
+                                  <div className="flex gap-2">
+                                    <Button
+                                      size="sm"
+                                      variant="destructive"
+                                      className="w-full"
+                                      onClick={() => handleAction(toolCallId, toolName, input)}
+                                    >
+                                      {t('confirmApprove')}
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="w-full"
+                                      onClick={() => handleDeny(toolCallId)}
+                                    >
+                                      {t('confirmDeny')}
+                                    </Button>
+                                  </div>
+                                </div>
+                              )
+                            }
+
+                            // Standard tools with execute() (like searchMenu, getDishDetails)
+                            // We ignore them here since the text output already contains the data we want to show
+                            // but we can show a loader while it's executing.
                             if (
-                              part.state === 'output-available' ||
-                              part.state === 'output-error' ||
-                              part.state === 'output-denied'
+                              (part as any).state === 'output-available' ||
+                              (part as any).state === 'output-error'
                             ) {
                               return null // Tool completed, text response will show the result
                             }
+
                             return (
                               <div
                                 key={`${m.id}-${i}`}
                                 className="my-2 flex items-center gap-2 rounded-md bg-background/50 p-2 text-xs text-muted-foreground"
                               >
                                 <Loader2 className="h-3 w-3 animate-spin" />
-                                <span>
-                                  {getToolDisplayName(
-                                    'toolName' in part ? (part as any).toolName : 'unknown'
-                                  )}
-                                </span>
+                                <span>{getToolDisplayName(toolName)}</span>
                               </div>
                             )
                           }

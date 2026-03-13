@@ -185,7 +185,17 @@
     "loading": "Đang phân tích...",
     "errorDefault": "Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.",
     "stopButton": "Dừng trả lời",
-    "inputPlaceholder": "Nhập câu hỏi của bạn..."
+    "inputPlaceholder": "Nhập câu hỏi của bạn...",
+    "confirmTitle": "Yêu cầu xác nhận",
+    "confirmPlaceOrder": "Đặt đơn hàng với {count} món?",
+    "confirmCancelOrder": "Hủy đơn hàng #{orderId}?",
+    "confirmApplyCoupon": "Áp dụng mã giảm giá \"{couponCode}\" cho đơn #{orderId}?",
+    "confirmApprove": "Xác nhận",
+    "confirmDeny": "Hủy bỏ",
+    "actionSuccess": "Thao tác thành công",
+    "actionFailed": "Thao tác thất bại",
+    "actionExecuting": "Đang xử lý...",
+    "actionDenied": "Đã hủy thao tác."
   },
   "AdminAiChat": {
     "title": "Trợ lý AI Quản trị",
@@ -224,6 +234,7 @@
     "noData": "Không có dữ liệu",
     "actionSuccess": "Thao tác thành công",
     "actionFailed": "Thao tác thất bại",
-    "actionExecuting": "Đang thực hiện..."
+    "actionExecuting": "Đang thực hiện...",
+    "actionDenied": "Hành động đã bị hủy bởi admin."
   }
 }

@@ -185,7 +185,17 @@
     "loading": "Анализирую...",
     "errorDefault": "Извините, произошла ошибка. Пожалуйста, попробуйте снова.",
     "stopButton": "Остановить ответ",
-    "inputPlaceholder": "Введите ваш вопрос..."
+    "inputPlaceholder": "Введите ваш вопрос...",
+    "confirmTitle": "Требуется подтверждение",
+    "confirmPlaceOrder": "Оформить заказ из {count} позиций?",
+    "confirmCancelOrder": "Отменить заказ #{orderId}?",
+    "confirmApplyCoupon": "Применить купон \"{couponCode}\" к заказу #{orderId}?",
+    "confirmApprove": "Подтвердить",
+    "confirmDeny": "Отмена",
+    "actionSuccess": "Действие выполнено успешно",
+    "actionFailed": "Действие не выполнено",
+    "actionExecuting": "Обработка...",
+    "actionDenied": "Действие отменено."
   },
   "AdminAiChat": {
     "title": "AI Ассистент администратора",
@@ -224,6 +234,7 @@
     "noData": "Нет данных",
     "actionSuccess": "Действие выполнено успешно",
     "actionFailed": "Действие не выполнено",
-    "actionExecuting": "Выполнение..."
+    "actionExecuting": "Выполнение...",
+    "actionDenied": "Действие отклонено администратором."
   }
 }

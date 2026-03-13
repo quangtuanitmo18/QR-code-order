@@ -255,10 +255,7 @@ export default function AdminAiChatButton() {
 
       case 'admin_update_dish':
       case 'admin_cancel_order': {
-        const isSuccess =
-          output?.message &&
-          !output.message.includes('Failed') &&
-          !output.message.includes('cancelled')
+        const isSuccess = output?.message && !output.message.toLowerCase().startsWith('failed')
         const isCancelled = output?.message?.includes('cancelled by the user')
 
         if (isCancelled) {
@@ -553,7 +550,7 @@ export default function AdminAiChatButton() {
                                           ...prev,
                                           [toolCallId]: {
                                             status: 'success',
-                                            result: { message: 'Hành động đã bị hủy bởi admin.' },
+                                            result: { message: t('actionDenied') },
                                           },
                                         }))
                                       }}
