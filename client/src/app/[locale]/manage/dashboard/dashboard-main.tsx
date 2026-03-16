@@ -73,7 +73,7 @@ export default function DashboardMain() {
 
       {/* Stats cards - responsive grid */}
       <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
-        <Card>
+        <Card className="bg-card/50 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('totalRevenue')}</CardTitle>
 
@@ -91,10 +91,12 @@ export default function DashboardMain() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold sm:text-2xl">{formatCurrency(revenue)}</div>
+            <div className="bg-gradient-to-br from-primary to-accent bg-clip-text text-2xl font-black tracking-tight text-transparent sm:text-3xl">
+              {formatCurrency(revenue)}
+            </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-card/50 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('customers')}</CardTitle>
             <svg
@@ -113,11 +115,13 @@ export default function DashboardMain() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold sm:text-2xl">{guestCount}</div>
+            <div className="bg-gradient-to-br from-primary to-accent bg-clip-text text-2xl font-black tracking-tight text-transparent sm:text-3xl">
+              {guestCount}
+            </div>
             {/* <p className='text-xs text-muted-foreground'>Gọi món</p> */}
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-card/50 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('orders')}</CardTitle>
             <svg
@@ -135,11 +139,13 @@ export default function DashboardMain() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold sm:text-2xl">{orderCount}</div>
+            <div className="bg-gradient-to-br from-primary to-accent bg-clip-text text-2xl font-black tracking-tight text-transparent sm:text-3xl">
+              {orderCount}
+            </div>
             {/* <p className='text-xs text-muted-foreground'>Đã thanh toán</p> */}
           </CardContent>
         </Card>
-        <Card>
+        <Card className="bg-card/50 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">{t('tablesInUse')}</CardTitle>
             <svg
@@ -156,7 +162,9 @@ export default function DashboardMain() {
             </svg>
           </CardHeader>
           <CardContent>
-            <div className="text-xl font-bold sm:text-2xl">{servingTableCount}</div>
+            <div className="bg-gradient-to-br from-primary to-accent bg-clip-text text-2xl font-black tracking-tight text-transparent sm:text-3xl">
+              {servingTableCount}
+            </div>
           </CardContent>
         </Card>
       </div>

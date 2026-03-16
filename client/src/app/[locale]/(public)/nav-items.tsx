@@ -1,5 +1,4 @@
 'use client'
-import { useAppStore } from '@/store/useAppStore'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,6 +14,7 @@ import { Role } from '@/constants/type'
 import { Link, useRouter } from '@/i18n/routing'
 import { cn, handleErrorApi } from '@/lib/utils'
 import { useLogoutMutation } from '@/queries/useAuth'
+import { useAppStore } from '@/store/useAppStore'
 import { RoleType } from '@/types/jwt.types'
 import { useTranslations } from 'next-intl'
 
@@ -102,7 +102,14 @@ export default function NavItems({ className }: { className?: string }) {
       {role && (
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <div className={cn(className, 'cursor-pointer')}>{t('logout')}</div>
+            <div
+              className={cn(
+                className,
+                'cursor-pointer transition-colors duration-200 hover:text-primary'
+              )}
+            >
+              {t('logout')}
+            </div>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>

@@ -12,7 +12,7 @@ import {
 import { Link, usePathname } from '@/i18n/routing'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
-import { Package2, PanelLeft } from 'lucide-react'
+import { PanelLeft, UtensilsCrossed } from 'lucide-react'
 
 export default function MobileNavLinks() {
   const pathname = usePathname()
@@ -42,9 +42,9 @@ export default function MobileNavLinks() {
         <nav className="grid gap-2 text-lg font-medium">
           <Link
             href="#"
-            className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:text-base"
+            className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-gradient-to-tr from-primary to-accent text-lg font-semibold text-primary-foreground shadow-md transition-all md:text-base"
           >
-            <Package2 className="h-5 w-5 transition-all group-hover:scale-110" />
+            <UtensilsCrossed className="h-5 w-5 transition-transform group-hover:scale-110" />
             <span className="sr-only">Acme Inc</span>
           </Link>
           {menuItems.map((Item, index) => {
@@ -54,10 +54,13 @@ export default function MobileNavLinks() {
               <Link
                 key={Item.href}
                 href={Item.href}
-                className={cn('flex min-h-[44px] items-center gap-4 px-2.5 hover:text-foreground', {
-                  'text-foreground': isActive,
-                  'text-muted-foreground': !isActive,
-                })}
+                className={cn(
+                  'flex min-h-[44px] items-center gap-4 rounded-xl px-3 py-2 text-sm font-medium transition-all hover:text-foreground',
+                  {
+                    'bg-gradient-to-r from-primary to-accent text-white shadow-md': isActive,
+                    'text-muted-foreground hover:bg-muted/50': !isActive,
+                  }
+                )}
               >
                 <Item.Icon className="h-5 w-5" />
                 {Item.title}

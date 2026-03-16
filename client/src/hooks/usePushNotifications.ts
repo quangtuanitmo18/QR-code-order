@@ -84,7 +84,7 @@ export const usePushNotifications = () => {
     return () => {
       if (unsubscribe) unsubscribe()
     }
-  }, [isAuth])
+  }, [isAuth, role])
 
   return { fcmToken }
 }

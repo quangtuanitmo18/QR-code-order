@@ -52,67 +52,113 @@ export default function MenuOrder() {
   }
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:gap-8">
         {dishes
           .filter((dish) => dish.status !== DishStatus.Hidden)
-          .map((dish) => (
-            <div
-              key={dish.id}
-              className={cn(
-                'flex gap-3 rounded-lg border bg-card p-3 shadow-sm sm:flex-col sm:gap-4 sm:p-4',
-                {
-                  'pointer-events-none opacity-60': dish.status === DishStatus.Unavailable,
-                }
-              )}
-            >
-              <div className="relative flex-shrink-0 sm:w-full">
-                {dish.status === DishStatus.Unavailable && (
-                  <span className="absolute inset-0 flex items-center justify-center rounded-md bg-black/50 text-sm font-semibold text-white">
-                    Unavailable
-                  </span>
+          .map((dish) => {
+            const currentQuantity = orders.find((order) => order.dishId === dish.id)?.quantity ?? 0
+            const isSelected = currentQuantity > 0
+
+            return (
+              <div
+                key={dish.id}
+                className={cn(
+                  'group relative flex flex-col gap-4 overflow-hidden rounded-2xl border bg-card p-4 shadow-sm transition-all duration-300 hover:shadow-lg',
+                  {
+                    'pointer-events-none opacity-60 grayscale':
+                      dish.status === DishStatus.Unavailable,
+                    'border-primary/50 bg-primary/5 ring-1 ring-primary/20': isSelected,
+                  }
                 )}
-                <Image
-                  src={dish.image}
-                  alt={dish.name}
-                  height={200}
-                  width={200}
-                  quality={75}
-                  unoptimized
-                  className="h-[80px] w-[80px] rounded-md object-cover sm:h-[180px] sm:w-full md:h-[200px]"
-                />
+              >
+                <div className="flex gap-4 sm:flex-col">
+                  {/* Image section */}
+                  <div className="relative h-[100px] w-[100px] flex-shrink-0 overflow-hidden rounded-xl sm:h-[200px] sm:w-full md:h-[240px]">
+                    {dish.status === DishStatus.Unavailable && (
+                      <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                        <span className="rounded-full bg-background px-3 py-1 text-sm font-semibold text-foreground shadow-lg">
+                          Unavailable
+                        </span>
+                      </div>
+                    )}
+                    <Image
+                      src={dish.image}
+                      alt={dish.name}
+                      fill
+                      sizes="(max-width: 640px) 100px, (max-width: 768px) 100vw, 33vw"
+                      quality={75}
+                      unoptimized
+                      className={cn('object-cover transition-transform duration-500', {
+                        'group-hover:scale-110': dish.status !== DishStatus.Unavailable,
+                      })}
+                    />
+                  </div>
+
+                  {/* Info section */}
+                  <div className="flex flex-1 flex-col justify-between space-y-2">
+                    <div>
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="line-clamp-2 text-base font-bold leading-tight sm:text-lg">
+                          {dish.name}
+                        </h3>
+                      </div>
+                      {dish.category && dish.category !== 'Uncategorized' && (
+                        <span className="mt-1.5 inline-block rounded-full bg-accent/10 px-2.5 py-0.5 text-xs font-semibold tracking-wide text-accent">
+                          {dish.category}
+                        </span>
+                      )}
+                      <p className="mt-2 line-clamp-2 text-xs text-muted-foreground sm:text-sm">
+                        {dish.description}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2">
+                      <p className="text-lg font-black tracking-tight text-primary sm:text-xl">
+                        {formatCurrency(dish.price)}
+                      </p>
+                      <div className="hidden sm:block">
+                        <Quantity
+                          onChange={(value) => handleQuantityChange(dish.id, value)}
+                          value={currentQuantity}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mobile quantity controls (bottom aligned) */}
+                <div className="flex items-center justify-between border-t border-border/50 pt-3 sm:hidden">
+                  <span className="text-sm font-medium text-muted-foreground">Quantity</span>
+                  <Quantity
+                    onChange={(value) => handleQuantityChange(dish.id, value)}
+                    value={currentQuantity}
+                  />
+                </div>
               </div>
-              <div className="flex flex-1 flex-col space-y-1 sm:space-y-2">
-                <h3 className="text-sm font-semibold sm:text-base">{dish.name}</h3>
-                {dish.category && dish.category !== 'Uncategorized' && (
-                  <span className="inline-block w-fit rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                    {dish.category}
-                  </span>
-                )}
-                <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">
-                  {dish.description}
-                </p>
-                <p className="text-sm font-bold text-primary sm:text-base">
-                  {formatCurrency(dish.price)}
-                </p>
-              </div>
-              <div className="flex flex-shrink-0 items-center justify-center sm:mt-auto sm:justify-start">
-                <Quantity
-                  onChange={(value) => handleQuantityChange(dish.id, value)}
-                  value={orders.find((order) => order.dishId === dish.id)?.quantity ?? 0}
-                />
-              </div>
-            </div>
-          ))}
+            )
+          })}
       </div>
-      <div className="sticky bottom-0 bg-background pb-4 pt-4">
+
+      {/* Sticky Bottom Bar */}
+      <div className="sticky bottom-0 z-50 -mx-4 mt-8 translate-y-4 border-t border-border/50 bg-background/80 p-4 pb-8 backdrop-blur-xl sm:mx-0 sm:translate-y-0 sm:rounded-t-3xl sm:px-6">
         <Button
-          className="w-full justify-between shadow-lg"
+          className={cn(
+            'w-full justify-between rounded-full py-6 text-lg font-bold shadow-xl transition-all duration-300',
+            orders.length > 0
+              ? 'bg-gradient-to-r from-primary to-accent hover:opacity-90 hover:shadow-primary/25'
+              : 'opacity-50 grayscale'
+          )}
           size="lg"
           onClick={handleOrder}
           disabled={orders.length === 0}
         >
-          <span>Order · {orders.length} dishes</span>
-          <span>{formatCurrency(totalPrice)}</span>
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-sm">
+              {orders.length}
+            </span>
+            <span>Place Order</span>
+          </div>
+          <span className="text-xl tracking-tight">{formatCurrency(totalPrice)}</span>
         </Button>
       </div>
     </>

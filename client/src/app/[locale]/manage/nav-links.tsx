@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Link, usePathname } from '@/i18n/routing'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
-import { Package2, PanelLeft, Settings } from 'lucide-react'
+import { PanelLeft, Settings, UtensilsCrossed } from 'lucide-react'
 import { useState } from 'react'
 
 export default function NavLinks() {
@@ -23,7 +23,7 @@ export default function NavLinks() {
     <TooltipProvider>
       <aside
         className={cn(
-          'hidden h-screen flex-col border-r bg-background transition-[width] duration-200 sm:flex',
+          'hidden h-screen flex-col border-r border-border/50 bg-background/95 backdrop-blur-sm transition-[width] duration-200 sm:flex',
           isExpanded ? 'w-56' : 'w-14'
         )}
       >
@@ -33,11 +33,11 @@ export default function NavLinks() {
               <Link
                 href="/"
                 className={cn(
-                  'group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base',
+                  'group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-gradient-to-tr from-primary to-accent text-lg font-semibold text-primary-foreground shadow-md transition-all hover:shadow-lg md:h-8 md:w-8 md:text-base',
                   'ml-1'
                 )}
               >
-                <Package2 className="h-4 w-4 transition-all group-hover:scale-110" />
+                <UtensilsCrossed className="h-4 w-4 transition-transform group-hover:scale-110" />
                 <span className="sr-only">Big Boy Restaurant</span>
               </Link>
               <Button
@@ -73,10 +73,10 @@ export default function NavLinks() {
                 <Link
                   href={Item.href}
                   className={cn(
-                    'flex items-center rounded-lg px-2 py-2 text-sm transition-colors hover:text-foreground',
+                    'flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-all hover:text-foreground',
                     {
-                      'bg-accent text-accent-foreground': isActive,
-                      'text-muted-foreground': !isActive,
+                      'bg-gradient-to-r from-primary to-accent text-white shadow-md': isActive,
+                      'text-muted-foreground hover:bg-muted/50': !isActive,
                       'justify-center': !isExpanded,
                       'gap-3': isExpanded,
                     }
@@ -107,10 +107,10 @@ export default function NavLinks() {
               <Link
                 href="/manage/setting"
                 className={cn(
-                  'flex items-center rounded-lg px-2 py-2 text-sm transition-colors hover:text-foreground',
+                  'flex items-center rounded-lg px-2 py-2 text-sm font-medium transition-all hover:text-foreground',
                   {
-                    'bg-accent text-accent-foreground': isActive,
-                    'text-muted-foreground': !isActive,
+                    'bg-gradient-to-r from-primary to-accent text-white shadow-md': isActive,
+                    'text-muted-foreground hover:bg-muted/50': !isActive,
                     'justify-center': !isExpanded,
                     'gap-3': isExpanded,
                   }

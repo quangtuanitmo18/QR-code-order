@@ -4,7 +4,6 @@ import ReviewForm from '@/components/review/review-form'
 import ReviewList from '@/components/review/review-list'
 import ReviewStats from '@/components/review/review-stats'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -17,7 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Role } from '@/constants/type'
 import { decodeToken, getAccessTokenFromLocalStorage } from '@/lib/utils'
 import { useReviewListQuery, useReviewStatsQuery } from '@/queries/useReview'
-import { ChevronLeft, ChevronRight, PenSquare } from 'lucide-react'
+import { ChevronLeft, ChevronRight, MessageSquareHeart, PenSquare } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 export default function ReviewsClient() {
@@ -55,62 +54,89 @@ export default function ReviewsClient() {
   const isLoading = reviewsQuery.isLoading || statsQuery.isLoading
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <h1 className="mb-2 text-3xl font-bold">Customer Reviews</h1>
-            <p className="text-muted-foreground">
-              See what our customers are saying about their dining experience
-            </p>
+    <div className="container mx-auto max-w-6xl px-4 py-8 sm:py-12 md:py-16">
+      <div className="mb-10 sm:mb-16">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <MessageSquareHeart className="h-6 w-6" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">
+                Customer Reviews
+              </h1>
+              <p className="mt-2 max-w-2xl text-lg text-muted-foreground">
+                See what our customers are saying about their dining experience
+              </p>
+            </div>
           </div>
           {guestId && (
-            <Button onClick={() => setShowReviewDialog(true)} size="lg" className="gap-2">
-              <PenSquare className="h-5 w-5" />
+            <Button
+              onClick={() => setShowReviewDialog(true)}
+              size="lg"
+              className="rounded-full px-8 py-6 text-base font-bold shadow-xl shadow-primary/20 transition-transform hover:-translate-y-1"
+            >
+              <PenSquare className="mr-2 h-5 w-5" />
               Write a Review
             </Button>
           )}
         </div>
       </div>
 
-      <Tabs defaultValue="reviews" className="space-y-6">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="reviews">All Reviews</TabsTrigger>
-          <TabsTrigger value="stats">Statistics</TabsTrigger>
+      <Tabs defaultValue="reviews" className="space-y-8">
+        <TabsList className="grid h-14 w-full max-w-md grid-cols-2 rounded-full border border-border/50 bg-muted/50 p-1 backdrop-blur-sm">
+          <TabsTrigger
+            value="reviews"
+            className="rounded-full text-base font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            All Reviews
+          </TabsTrigger>
+          <TabsTrigger
+            value="stats"
+            className="rounded-full text-base font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
+          >
+            Statistics
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="reviews" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Customer Reviews</CardTitle>
-              <CardDescription>
-                {allReviews.length > 0 ? `${allReviews.length} reviews` : 'Loading reviews...'}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+        <TabsContent value="reviews" className="mt-8 space-y-8">
+          <div className="rounded-3xl border border-border/50 bg-card/50 p-6 shadow-sm backdrop-blur-sm sm:p-8">
+            <div className="mb-8 flex items-end justify-between border-b border-border/50 pb-4">
+              <h2 className="text-2xl font-bold tracking-tight">Latest Feedback</h2>
+              <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-bold text-primary">
+                {allReviews.length > 0 ? `${allReviews.length} Total` : 'Loading...'}
+              </span>
+            </div>
+
+            <div className="mt-6">
               {isLoading ? (
-                <div className="space-y-4">
+                <div className="space-y-6">
                   {[1, 2, 3].map((i) => (
-                    <div key={i} className="space-y-3 rounded-lg border p-4">
+                    <div
+                      key={i}
+                      className="space-y-4 rounded-2xl border border-border/50 bg-background/50 p-6"
+                    >
                       <div className="flex items-center gap-4">
-                        <Skeleton className="h-12 w-12 rounded-full" />
+                        <Skeleton className="h-14 w-14 rounded-full" />
                         <div className="flex-1 space-y-2">
-                          <Skeleton className="h-4 w-32" />
-                          <Skeleton className="h-3 w-24" />
+                          <Skeleton className="h-5 w-40" />
+                          <Skeleton className="h-4 w-24" />
                         </div>
                       </div>
-                      <Skeleton className="h-20 w-full" />
+                      <Skeleton className="h-24 w-full" />
                     </div>
                   ))}
                 </div>
               ) : reviews.length > 0 ? (
                 <>
-                  <ReviewList reviews={reviews} showStats={false} />
+                  <div className="space-y-6">
+                    <ReviewList reviews={reviews} showStats={false} />
+                  </div>
 
                   {/* Pagination */}
                   {totalPages > 1 && (
-                    <div className="mt-6 flex items-center justify-between">
-                      <div className="text-sm text-muted-foreground">
+                    <div className="mt-10 flex flex-col items-center justify-between gap-4 rounded-2xl bg-muted/30 p-4 sm:flex-row sm:px-6">
+                      <div className="text-sm font-medium text-muted-foreground">
                         Showing {startIndex + 1}-{Math.min(endIndex, allReviews.length)} of{' '}
                         {allReviews.length} reviews
                       </div>
@@ -118,48 +144,57 @@ export default function ReviewsClient() {
                         <Button
                           variant="outline"
                           size="sm"
+                          className="rounded-full"
                           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                           disabled={currentPage === 1}
                         >
-                          <ChevronLeft className="h-4 w-4" />
+                          <ChevronLeft className="mr-1 h-4 w-4" />
                           Previous
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
+                          className="rounded-full"
                           onClick={() => setCurrentPage((p) => p + 1)}
                           disabled={currentPage >= totalPages}
                         >
                           Next
-                          <ChevronRight className="h-4 w-4" />
+                          <ChevronRight className="ml-1 h-4 w-4" />
                         </Button>
                       </div>
                     </div>
                   )}
                 </>
               ) : (
-                <div className="py-12 text-center text-muted-foreground">
-                  <p>No reviews yet. Be the first to share your experience!</p>
+                <div className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
+                  <div className="mb-4 rounded-full bg-muted p-4">
+                    <MessageSquareHeart className="h-8 w-8 text-muted-foreground/50" />
+                  </div>
+                  <p className="text-lg font-medium">No reviews yet.</p>
+                  <p className="text-sm">Be the first to share your experience!</p>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
-        <TabsContent value="stats" className="space-y-6">
+        <TabsContent
+          value="stats"
+          className="mt-8 space-y-8 duration-500 animate-in fade-in slide-in-from-bottom-4"
+        >
           {isLoading ? (
-            <div className="space-y-4">
-              <Skeleton className="h-48 w-full" />
-              <Skeleton className="h-64 w-full" />
+            <div className="space-y-6">
+              <Skeleton className="h-48 w-full rounded-3xl" />
+              <Skeleton className="h-64 w-full rounded-3xl" />
             </div>
           ) : stats ? (
-            <ReviewStats stats={stats} />
+            <div className="rounded-3xl border border-border/50 bg-card/50 p-6 shadow-sm backdrop-blur-sm sm:p-8">
+              <ReviewStats stats={stats} />
+            </div>
           ) : (
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-center text-muted-foreground">No statistics available yet</p>
-              </CardContent>
-            </Card>
+            <div className="flex flex-col items-center justify-center rounded-3xl border border-border/50 bg-card/50 py-16 text-center text-muted-foreground">
+              <p className="text-lg font-medium">No statistics available yet</p>
+            </div>
           )}
         </TabsContent>
       </Tabs>
@@ -167,19 +202,21 @@ export default function ReviewsClient() {
       {/* Review Dialog */}
       {guestId && (
         <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
-          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Write a Review</DialogTitle>
+          <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-3xl border-border/50 p-0 sm:p-6">
+            <DialogHeader className="p-6 pb-0 sm:p-0">
+              <DialogTitle className="text-2xl font-bold">Write a Review</DialogTitle>
               <DialogDescription>Share your experience and help other customers</DialogDescription>
             </DialogHeader>
-            <ReviewForm
-              guestId={guestId}
-              guestName="Guest"
-              onSuccess={() => {
-                setShowReviewDialog(false)
-                reviewsQuery.refetch()
-              }}
-            />
+            <div className="p-6 sm:p-0 sm:pt-6">
+              <ReviewForm
+                guestId={guestId}
+                guestName="Guest"
+                onSuccess={() => {
+                  setShowReviewDialog(false)
+                  reviewsQuery.refetch()
+                }}
+              />
+            </div>
           </DialogContent>
         </Dialog>
       )}

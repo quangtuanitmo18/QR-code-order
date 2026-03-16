@@ -11,7 +11,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { Link } from '@/i18n/routing'
-import { Menu, Package2 } from 'lucide-react'
+import { Menu, UtensilsCrossed } from 'lucide-react'
 
 export default async function Layout(
   props: Readonly<{
@@ -27,13 +27,15 @@ export default async function Layout(
 
   return (
     <div className="relative flex w-full flex-col">
-      <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b bg-background px-3 sm:h-16 sm:gap-4 sm:px-4 md:px-6">
+      <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border/40 bg-background/80 px-3 backdrop-blur-xl sm:h-16 sm:gap-4 sm:px-4 md:px-6">
         <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
           <Link href="/" className="flex items-center gap-2 text-lg font-semibold md:text-base">
-            <Package2 className="h-6 w-6" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+              <UtensilsCrossed className="h-4 w-4" />
+            </div>
             <span className="sr-only">Big boy</span>
           </Link>
-          <NavItems className="flex-shrink-0 text-muted-foreground transition-colors hover:text-foreground" />
+          <NavItems className="flex-shrink-0 text-muted-foreground transition-colors duration-200 hover:text-primary" />
         </nav>
         <Sheet>
           <SheetTrigger asChild>
@@ -53,11 +55,13 @@ export default async function Layout(
             </SheetHeader>
             <nav className="grid gap-6 text-lg font-medium">
               <Link href="/" className="flex items-center gap-2 text-lg font-semibold">
-                <Package2 className="h-6 w-6" />
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                  <UtensilsCrossed className="h-4 w-4" />
+                </div>
                 <span className="sr-only">Big boy</span>
               </Link>
 
-              <NavItems className="text-muted-foreground transition-colors hover:text-foreground" />
+              <NavItems className="text-muted-foreground transition-colors duration-200 hover:text-primary" />
             </nav>
           </SheetContent>
         </Sheet>
@@ -66,7 +70,7 @@ export default async function Layout(
           <DarkModeToggle />
         </div>
       </header>
-      <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-8">
+      <main className="flex flex-1 flex-col">
         {children}
         {modal}
       </main>

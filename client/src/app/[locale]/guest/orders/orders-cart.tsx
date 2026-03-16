@@ -1,8 +1,6 @@
 'use client'
 
-import couponApiRequest from '@/apiRequests/coupon'
 import guestApiRequest from '@/apiRequests/guest'
-import { useAppStore } from '@/store/useAppStore'
 import { PaymentTestInfoDialog } from '@/components/payment-test-info-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -13,10 +11,12 @@ import { toast } from '@/components/ui/use-toast'
 import { OrderStatus, PaymentMethod } from '@/constants/type'
 import { useRouter } from '@/i18n/routing'
 import { convertUSDtoRUB, convertUSDtoVND, formatRUB, formatUSD, formatVND } from '@/lib/currency'
-import { formatCurrency, getOrderStatus } from '@/lib/utils'
-import { useGuestGetOrderListQuery } from '@/queries/useGuest'
+import { cn, formatCurrency, getOrderStatus } from '@/lib/utils'
 import { useValidateCouponMutation } from '@/queries/useCoupon'
+import { useGuestGetOrderListQuery } from '@/queries/useGuest'
 import { PayGuestOrdersResType, UpdateOrderResType } from '@/schemaValidations/order.schema'
+import { useAppStore } from '@/store/useAppStore'
+import { CheckCircle2, CircleDollarSign, CreditCard, Receipt, Tag, Wallet } from 'lucide-react'
 import Image from 'next/image'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -236,155 +236,262 @@ export default function OrdersCart() {
   return (
     <>
       {/* Order List */}
-      <div className="space-y-3 sm:space-y-4">
-        {orders.map((order, index) => (
-          <div
-            key={order.id}
-            className="flex flex-col gap-2 rounded-lg border bg-card p-3 shadow-sm sm:gap-3 sm:p-4"
-          >
-            <div className="flex items-center justify-between text-sm font-semibold text-muted-foreground sm:text-base">
-              <span>Order #{order.id}</span>
-              <Badge variant={'outline'} className="text-xs sm:text-sm">
-                {getOrderStatus(order.status)}
-              </Badge>
+      <div className="space-y-4 sm:space-y-6">
+        {orders.length === 0 ? (
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed py-12 text-center">
+            <div className="mb-4 rounded-full bg-muted p-4">
+              <Receipt className="h-8 w-8 text-muted-foreground" />
             </div>
-            {order.items.map((item) => (
-              <div
-                key={item.id}
-                className="flex gap-3 border-t pt-2 first:border-t-0 first:pt-0 sm:gap-4"
-              >
-                <div className="relative flex-shrink-0">
-                  <Image
-                    src={item.dishSnapshot.image}
-                    alt={item.dishSnapshot.name}
-                    height={120}
-                    width={120}
-                    quality={75}
-                    unoptimized
-                    className="h-[60px] w-[60px] rounded-md object-cover sm:h-[80px] sm:w-[80px]"
-                  />
-                </div>
-                <div className="flex flex-1 flex-col space-y-1 sm:space-y-2">
-                  <h3 className="text-sm font-semibold sm:text-base">{item.dishSnapshot.name}</h3>
-                  <div className="flex flex-wrap items-center gap-2 text-xs font-semibold sm:text-sm">
-                    <span>{formatCurrency(item.unitPrice)}</span>
-                    <span className="text-muted-foreground">×</span>
-                    <Badge className="px-2 py-0.5">{item.quantity}</Badge>
-                    <span className="ml-auto italic">{formatCurrency(item.totalPrice)}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
+            <h3 className="text-lg font-semibold">No orders yet</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Your delicious meals will appear here
+            </p>
           </div>
-        ))}
+        ) : (
+          orders.map((order, index) => (
+            <div
+              key={order.id}
+              className="flex flex-col gap-4 rounded-2xl border border-border/50 bg-card p-4 shadow-sm transition-all hover:shadow-md sm:gap-5 sm:p-5"
+            >
+              <div className="flex items-center justify-between border-b border-border/40 pb-3">
+                <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground sm:text-base">
+                  Order #{order.id}
+                </span>
+                <Badge
+                  variant={order.status === OrderStatus.Paid ? 'default' : 'outline'}
+                  className={cn('px-3 py-1 font-semibold', {
+                    'bg-green-500 hover:bg-green-600': order.status === OrderStatus.Paid,
+                    'border-primary text-primary': order.status === OrderStatus.Delivered,
+                    'border-orange-500 text-orange-600': order.status === OrderStatus.Processing,
+                  })}
+                >
+                  {getOrderStatus(order.status)}
+                </Badge>
+              </div>
+
+              <div className="space-y-3">
+                {order.items.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex gap-4 rounded-xl border border-transparent p-2 transition-colors hover:border-border/50 hover:bg-muted/30"
+                  >
+                    <div className="relative flex-shrink-0">
+                      <Image
+                        src={item.dishSnapshot.image}
+                        alt={item.dishSnapshot.name}
+                        height={120}
+                        width={120}
+                        quality={75}
+                        unoptimized
+                        className="h-16 w-16 rounded-xl object-cover shadow-sm sm:h-20 sm:w-20"
+                      />
+                    </div>
+                    <div className="flex flex-1 flex-col justify-center space-y-2">
+                      <h3 className="text-base font-bold sm:text-lg">{item.dishSnapshot.name}</h3>
+                      <div className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                        <span className="text-muted-foreground">
+                          {formatCurrency(item.unitPrice)}
+                        </span>
+                        <span className="text-muted-foreground/50">×</span>
+                        <span className="rounded-md bg-secondary px-2 py-0.5 font-bold text-secondary-foreground">
+                          {item.quantity}
+                        </span>
+                        <span className="ml-auto text-base font-black text-primary">
+                          {formatCurrency(item.totalPrice)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Summary section */}
-      <div className="space-y-3 pt-4 sm:space-y-4">
+      <div className="pb-4 pt-8">
         {waitingForPaying.quantity > 0 && (
-          <div className="rounded-lg border border-orange-500 bg-orange-50 p-4 dark:bg-orange-950">
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-base font-semibold text-orange-700 dark:text-orange-300 sm:text-lg">
-                Waiting for paying · {waitingForPaying.quantity} dishes
-              </span>
-              <div className="flex flex-col items-end">
-                {discountAmount > 0 && (
-                  <div className="mb-1 text-sm text-green-600 dark:text-green-400">
-                    -{formatCurrency(discountAmount)} discount
+          <div className="relative overflow-hidden rounded-3xl border border-primary/20 bg-card shadow-xl dark:bg-card/90">
+            {/* Top accent line */}
+            <div className="absolute left-0 top-0 h-1.5 w-full bg-gradient-to-r from-primary via-accent to-primary"></div>
+
+            <div className="p-6 sm:p-8">
+              <div className="flex flex-col gap-4 border-b border-border/50 pb-6 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-card-foreground">Payment Summary</h3>
+                  <p className="mt-1 flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                    <span className="inline-block h-2 w-2 rounded-full bg-primary"></span>
+                    Waiting for paying: {waitingForPaying.quantity} dishes
+                  </p>
+                </div>
+
+                <div className="flex flex-col items-end">
+                  {discountAmount > 0 && (
+                    <div className="mb-2 flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-sm font-bold text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                      <Tag className="h-3.5 w-3.5" />-{formatCurrency(discountAmount)}
+                    </div>
+                  )}
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm font-semibold text-muted-foreground">Total:</span>
+                    <span className="text-3xl font-black tracking-tight text-primary sm:text-4xl">
+                      {formatCurrency(waitingForPaying.price - discountAmount)}
+                    </span>
                   </div>
-                )}
-                <span className="text-lg font-bold text-orange-700 dark:text-orange-300 sm:text-xl">
-                  {formatCurrency(waitingForPaying.price - discountAmount)}
-                </span>
-                <div className="flex flex-col items-end gap-0.5 text-sm text-orange-600 dark:text-orange-400">
-                  <span>≈ {formattedAmountVND}</span>
-                  <span>≈ {formattedAmountRUB}</span>
+                  <div className="mt-2 flex flex-col items-end gap-1 font-medium text-muted-foreground">
+                    <span className="text-sm">≈ {formattedAmountVND}</span>
+                    <span className="text-sm">≈ {formattedAmountRUB}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            {/* Coupon Input */}
-            <div className="mt-4 space-y-2">
-              <Label className="text-sm font-semibold text-orange-700 dark:text-orange-300">
-                Coupon Code (optional):
-              </Label>
-              <div className="flex gap-2">
-                <Input
-                  placeholder="Enter coupon code"
-                  value={couponCode}
-                  onChange={(e) => {
-                    setCouponCode(e.target.value.toUpperCase())
-                    setCouponError(null)
-                  }}
-                  onBlur={handleValidateCoupon}
-                  className="flex-1 uppercase"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleValidateCoupon}
-                  disabled={validateCouponMutation.isPending}
-                >
-                  Apply
-                </Button>
-              </div>
-              {couponError && (
-                <p className="text-sm text-red-600 dark:text-red-400">{couponError}</p>
-              )}
-              {discountAmount > 0 && (
-                <p className="text-sm text-green-600 dark:text-green-400">
-                  ✓ Coupon applied: {formatCurrency(discountAmount)} discount
-                </p>
-              )}
-            </div>
-
-            {/* Payment Method Selection */}
-            <div className="mt-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold text-orange-700 dark:text-orange-300">
-                  Select Payment Method:
+              {/* Coupon Input */}
+              <div className="mt-6 space-y-3">
+                <Label className="flex items-center gap-2 text-base font-bold text-card-foreground">
+                  <Tag className="h-4 w-4 text-primary" /> Coupon Code
                 </Label>
-                <PaymentTestInfoDialog paymentMethod={selectedPaymentMethod} />
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <Input
+                      placeholder="Enter code here"
+                      value={couponCode}
+                      onChange={(e) => {
+                        setCouponCode(e.target.value.toUpperCase())
+                        setCouponError(null)
+                      }}
+                      onBlur={handleValidateCoupon}
+                      className="h-12 rounded-xl bg-background/50 px-4 uppercase transition-all focus:bg-background"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="h-12 rounded-xl px-6 font-bold"
+                    onClick={handleValidateCoupon}
+                    disabled={validateCouponMutation.isPending}
+                  >
+                    Apply
+                  </Button>
+                </div>
+                {couponError && (
+                  <p className="flex items-center gap-1.5 text-sm font-medium text-destructive">
+                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-destructive"></span>
+                    {couponError}
+                  </p>
+                )}
+                {discountAmount > 0 && (
+                  <p className="flex items-center gap-1.5 text-sm font-bold text-green-600 dark:text-green-400">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Coupon applied successfully!
+                  </p>
+                )}
               </div>
-              <RadioGroup value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value={PaymentMethod.Cash} id="cash" />
-                  <Label htmlFor="cash" className="cursor-pointer">
-                    💵 Cash Payment
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value={PaymentMethod.VNPay} id="vnpay" />
-                  <Label htmlFor="vnpay" className="cursor-pointer">
-                    💳 VNPay (Auto convert to VND) 🇻🇳
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value={PaymentMethod.Stripe} id="stripe" />
-                  <Label htmlFor="stripe" className="cursor-pointer">
-                    💳 Stripe (Credit/Debit Card - USD) 🌍
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value={PaymentMethod.YooKassa} id="yookassa" />
-                  <Label htmlFor="yookassa" className="cursor-pointer">
-                    💳 YooKassa (Auto convert to RUB) 🇷🇺
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
 
-            {/* Payment Button */}
-            <Button
-              onClick={handlePayment}
-              disabled={isPaymentLoading}
-              className="mt-4 w-full"
-              size="lg"
-            >
-              {isPaymentLoading
-                ? 'Processing...'
-                : `Pay ${formatCurrency(waitingForPaying.price - discountAmount)}`}
-            </Button>
+              {/* Payment Method Selection */}
+              <div className="mt-8 space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-base font-bold text-card-foreground">
+                    Select Payment Method
+                  </Label>
+                  <PaymentTestInfoDialog paymentMethod={selectedPaymentMethod} />
+                </div>
+
+                <RadioGroup
+                  value={selectedPaymentMethod}
+                  onValueChange={setSelectedPaymentMethod}
+                  className="grid gap-3 sm:grid-cols-2"
+                >
+                  {[
+                    {
+                      id: PaymentMethod.Cash,
+                      icon: Wallet,
+                      label: 'Cash Payment',
+                      desc: 'Pay at counter',
+                    },
+                    {
+                      id: PaymentMethod.VNPay,
+                      icon: CircleDollarSign,
+                      label: 'VNPay',
+                      desc: 'Auto convert VND 🇻🇳',
+                    },
+                    {
+                      id: PaymentMethod.Stripe,
+                      icon: CreditCard,
+                      label: 'Stripe',
+                      desc: 'Credit/Debit USD 🌍',
+                    },
+                    {
+                      id: PaymentMethod.YooKassa,
+                      icon: CreditCard,
+                      label: 'YooKassa',
+                      desc: 'Auto convert RUB 🇷🇺',
+                    },
+                  ].map((method) => (
+                    <div
+                      key={method.id}
+                      className={cn(
+                        'relative flex cursor-pointer flex-col gap-1 rounded-xl border p-4 transition-all hover:border-primary/50 hover:bg-primary/5',
+                        selectedPaymentMethod === method.id
+                          ? 'border-primary bg-primary/10 shadow-sm'
+                          : 'border-border/50 bg-background/50'
+                      )}
+                    >
+                      <RadioGroupItem value={method.id} id={method.id} className="sr-only" />
+                      <Label
+                        htmlFor={method.id}
+                        className="flex cursor-pointer items-center justify-between font-bold"
+                      >
+                        <div className="flex items-center gap-2">
+                          <method.icon
+                            className={cn(
+                              'h-5 w-5',
+                              selectedPaymentMethod === method.id
+                                ? 'text-primary'
+                                : 'text-muted-foreground'
+                            )}
+                          />
+                          {method.label}
+                        </div>
+                        <div
+                          className={cn(
+                            'flex h-5 w-5 items-center justify-center rounded-full border-2',
+                            selectedPaymentMethod === method.id
+                              ? 'border-primary'
+                              : 'border-muted-foreground/30'
+                          )}
+                        >
+                          {selectedPaymentMethod === method.id && (
+                            <div className="h-2.5 w-2.5 rounded-full bg-primary" />
+                          )}
+                        </div>
+                      </Label>
+                      <p className="pl-7 text-xs font-medium text-muted-foreground">
+                        {method.desc}
+                      </p>
+                    </div>
+                  ))}
+                </RadioGroup>
+              </div>
+
+              {/* Payment Button */}
+              <Button
+                onClick={handlePayment}
+                disabled={isPaymentLoading}
+                className="mt-8 h-16 w-full rounded-2xl bg-gradient-to-r from-primary to-accent text-lg font-bold shadow-xl transition-all hover:opacity-90 hover:shadow-primary/25 disabled:opacity-50"
+                size="lg"
+              >
+                {isPaymentLoading ? (
+                  <span className="flex items-center gap-2">
+                    <span className="h-5 w-5 animate-spin rounded-full border-b-2 border-white"></span>
+                    Processing Payment...
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    Secure checkout ({formatCurrency(waitingForPaying.price - discountAmount)})
+                  </span>
+                )}
+              </Button>
+            </div>
           </div>
         )}
       </div>

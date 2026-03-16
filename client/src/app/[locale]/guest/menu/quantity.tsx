@@ -10,9 +10,10 @@ export default function Quantity({
   value: number
 }) {
   return (
-    <div className="flex gap-1 sm:gap-2">
+    <div className="flex items-center gap-1 rounded-full border border-border/50 bg-background/50 p-1 shadow-sm backdrop-blur-sm sm:gap-2">
       <Button
-        className="h-11 w-11 p-0 sm:h-10 sm:w-10"
+        variant="ghost"
+        className="h-9 w-9 rounded-full p-0 text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary sm:h-8 sm:w-8"
         size="icon"
         disabled={value === 0}
         onClick={() => onChange(value - 1)}
@@ -23,7 +24,7 @@ export default function Quantity({
         type="text"
         inputMode="numeric"
         pattern="[0-9]*"
-        className="h-11 w-12 p-1 text-center text-sm sm:h-10 sm:w-14"
+        className="h-9 w-12 border-none bg-transparent p-1 text-center text-base font-semibold focus-visible:ring-0 sm:h-8 sm:w-14"
         value={value}
         onChange={(e) => {
           let value = e.target.value
@@ -35,7 +36,7 @@ export default function Quantity({
         }}
       />
       <Button
-        className="h-11 w-11 p-0 sm:h-10 sm:w-10"
+        className="h-9 w-9 rounded-full bg-primary p-0 text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-md sm:h-8 sm:w-8"
         size="icon"
         onClick={() => onChange(value + 1)}
       >

@@ -1,5 +1,4 @@
 'use client'
-import { useAppStore } from '@/store/useAppStore'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,6 +13,7 @@ import { Link, usePathname, useRouter } from '@/i18n/routing'
 import { handleErrorApi } from '@/lib/utils'
 import { useAccountMe } from '@/queries/useAccount'
 import { useLogoutMutation } from '@/queries/useAuth'
+import { useAppStore } from '@/store/useAppStore'
 
 export default function DropdownAvatar() {
   const logoutMutation = useLogoutMutation()
@@ -37,7 +37,6 @@ export default function DropdownAvatar() {
     }
   }
 
-
   if (pathname.includes('/manage/login')) {
     return null
   }
@@ -45,10 +44,16 @@ export default function DropdownAvatar() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon" className="overflow-hidden rounded-full">
+        <Button
+          variant="outline"
+          size="icon"
+          className="overflow-hidden rounded-full border-border/50 transition-all hover:shadow-md hover:ring-2 hover:ring-primary/20"
+        >
           <Avatar>
             <AvatarImage src={account?.avatar ?? undefined} alt={account?.name} />
-            <AvatarFallback>{account?.name.slice(0, 2).toUpperCase()}</AvatarFallback>
+            <AvatarFallback className="bg-primary/10 font-bold text-primary">
+              {account?.name.slice(0, 2).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>

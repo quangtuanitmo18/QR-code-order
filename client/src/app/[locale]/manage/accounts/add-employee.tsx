@@ -1,4 +1,5 @@
 'use client'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -9,8 +10,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { toast } from '@/components/ui/use-toast'
+import { handleErrorApi } from '@/lib/utils'
+import { useAddAccountMutation } from '@/queries/useAccount'
+import { useUploadMediaMutation } from '@/queries/useMedia'
 import {
   CreateEmployeeAccountBody,
   CreateEmployeeAccountBodyType,
@@ -19,12 +25,6 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { PlusCircle, Upload } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { useAddAccountMutation } from '@/queries/useAccount'
-import { useUploadMediaMutation } from '@/queries/useMedia'
-import { toast } from '@/components/ui/use-toast'
-import { handleErrorApi } from '@/lib/utils'
 
 export default function AddEmployee() {
   const [file, setFile] = useState<File | null>(null)
@@ -86,8 +86,11 @@ export default function AddEmployee() {
   return (
     <Dialog onOpenChange={setOpen} open={open}>
       <DialogTrigger asChild>
-        <Button size="sm" className="h-7 gap-1">
-          <PlusCircle className="h-3.5 w-3.5" />
+        <Button
+          size="sm"
+          className="h-8 gap-2 rounded-full bg-gradient-to-r from-primary to-accent shadow-md transition-all hover:shadow-lg hover:brightness-105 active:scale-95"
+        >
+          <PlusCircle className="h-4 w-4" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add account</span>
         </Button>
       </DialogTrigger>

@@ -71,8 +71,11 @@ export default function AddTable() {
       open={open}
     >
       <DialogTrigger asChild>
-        <Button size="sm" className="h-7 gap-1">
-          <PlusCircle className="h-3.5 w-3.5" />
+        <Button
+          size="sm"
+          className="h-8 gap-2 rounded-full bg-gradient-to-r from-primary to-accent shadow-md transition-all hover:shadow-lg hover:brightness-105 active:scale-95"
+        >
+          <PlusCircle className="h-4 w-4" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add table</span>
         </Button>
       </DialogTrigger>
