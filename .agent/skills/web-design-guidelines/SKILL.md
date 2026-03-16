@@ -38,3 +38,21 @@ When a user provides a file or pattern argument:
 4. Output findings using the format specified in the guidelines
 
 If no files specified, ask the user which files to review.
+
+---
+
+## Related Skills
+
+| Skill                                              | When to Use                                                                |
+| -------------------------------------------------- | -------------------------------------------------------------------------- |
+| **[frontend-design](../frontend-design/SKILL.md)** | Before coding - Learn design principles (color, typography, UX psychology) |
+| **web-design-guidelines** (this)                   | After coding - Audit for accessibility, performance, and best practices    |
+
+## Design Workflow
+
+```
+1. DESIGN   → Read frontend-design principles
+2. CODE     → Implement the design
+3. AUDIT    → Run web-design-guidelines review ← YOU ARE HERE
+4. FIX      → Address findings from audit
+```
