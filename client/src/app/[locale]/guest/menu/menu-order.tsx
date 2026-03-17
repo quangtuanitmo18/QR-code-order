@@ -52,22 +52,23 @@ export default function MenuOrder() {
   }
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
         {dishes
           .filter((dish) => dish.status !== DishStatus.Hidden)
           .map((dish) => (
             <div
               key={dish.id}
               className={cn(
-                'flex gap-3 rounded-lg border bg-card p-3 shadow-sm sm:flex-col sm:gap-4 sm:p-4',
+                'group overflow-hidden rounded-2xl border border-border/40 bg-card shadow-premium transition-all hover:shadow-premium-lg sm:flex-col',
                 {
-                  'pointer-events-none opacity-60': dish.status === DishStatus.Unavailable,
+                  'pointer-events-none opacity-50': dish.status === DishStatus.Unavailable,
                 }
               )}
             >
-              <div className="relative flex-shrink-0 sm:w-full">
+              {/* Image */}
+              <div className="relative aspect-[3/2] flex-shrink-0 overflow-hidden sm:w-full">
                 {dish.status === DishStatus.Unavailable && (
-                  <span className="absolute inset-0 flex items-center justify-center rounded-md bg-black/50 text-sm font-semibold text-white">
+                  <span className="absolute inset-0 z-10 flex items-center justify-center rounded-md bg-black/60 text-sm font-semibold text-white backdrop-blur-sm">
                     Unavailable
                   </span>
                 )}
@@ -75,27 +76,32 @@ export default function MenuOrder() {
                   src={dish.image}
                   alt={dish.name}
                   height={200}
-                  width={200}
+                  width={300}
                   quality={75}
                   unoptimized
-                  className="h-[80px] w-[80px] rounded-md object-cover sm:h-[180px] sm:w-full md:h-[200px]"
+                  className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
+                {/* Price badge */}
+                <div className="absolute bottom-2 right-2 rounded-full bg-background/90 px-3 py-1 text-sm font-bold text-primary shadow-md backdrop-blur-sm">
+                  {formatCurrency(dish.price)}
+                </div>
               </div>
-              <div className="flex flex-1 flex-col space-y-1 sm:space-y-2">
+
+              {/* Content */}
+              <div className="flex flex-1 flex-col space-y-2 p-4 sm:p-5">
                 <h3 className="text-sm font-semibold sm:text-base">{dish.name}</h3>
                 {dish.category && dish.category !== 'Uncategorized' && (
-                  <span className="inline-block w-fit rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                  <span className="inline-block w-fit rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                     {dish.category}
                   </span>
                 )}
                 <p className="line-clamp-2 text-xs text-muted-foreground sm:text-sm">
                   {dish.description}
                 </p>
-                <p className="text-sm font-bold text-primary sm:text-base">
-                  {formatCurrency(dish.price)}
-                </p>
               </div>
-              <div className="flex flex-shrink-0 items-center justify-center sm:mt-auto sm:justify-start">
+
+              {/* Quantity selector */}
+              <div className="flex items-center justify-center border-t border-border/30 px-4 py-3 sm:justify-start">
                 <Quantity
                   onChange={(value) => handleQuantityChange(dish.id, value)}
                   value={orders.find((order) => order.dishId === dish.id)?.quantity ?? 0}
@@ -104,15 +110,17 @@ export default function MenuOrder() {
             </div>
           ))}
       </div>
-      <div className="sticky bottom-0 bg-background pb-4 pt-4">
+
+      {/* ── Sticky Order Bar ── */}
+      <div className="sticky bottom-0 pb-4 pt-4">
         <Button
-          className="w-full justify-between shadow-lg"
+          className="w-full justify-between rounded-2xl bg-primary px-6 py-6 text-base font-semibold text-primary-foreground shadow-glow-lg transition-all hover:bg-primary/90"
           size="lg"
           onClick={handleOrder}
           disabled={orders.length === 0}
         >
           <span>Order · {orders.length} dishes</span>
-          <span>{formatCurrency(totalPrice)}</span>
+          <span className="rounded-full bg-white/20 px-4 py-1">{formatCurrency(totalPrice)}</span>
         </Button>
       </div>
     </>

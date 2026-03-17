@@ -66,7 +66,7 @@ export default async function RootLayout(
   const messages = await getMessages()
   return (
     <html lang={locale} suppressHydrationWarning>
-      <body className={cn('bg-background font-sans antialiased', fontSans.variable)}>
+      <body className={cn('flex min-h-screen flex-col bg-background font-sans antialiased', fontSans.variable)}>
         <NextTopLoader showSpinner={false} color="hsl(var(--foreground))" />
         <NextIntlClientProvider messages={messages}>
           <AppProvider>
@@ -76,7 +76,7 @@ export default async function RootLayout(
               enableSystem
               disableTransitionOnChange
             >
-              {children}
+              <div className="flex flex-1 flex-col">{children}</div>
               <Footer />
               <Toaster />
             </ThemeProvider>

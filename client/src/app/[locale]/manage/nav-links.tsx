@@ -23,7 +23,7 @@ export default function NavLinks() {
     <TooltipProvider>
       <aside
         className={cn(
-          'hidden h-screen flex-col border-r bg-background transition-[width] duration-200 sm:flex',
+          'hidden h-screen flex-col border-r border-border/40 bg-card/50 transition-[width] duration-200 sm:flex',
           isExpanded ? 'w-56' : 'w-14'
         )}
       >
@@ -33,7 +33,7 @@ export default function NavLinks() {
               <Link
                 href="/"
                 className={cn(
-                  'group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-full bg-primary text-lg font-semibold text-primary-foreground md:h-8 md:w-8 md:text-base',
+                  'group flex h-9 w-9 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary text-lg font-semibold text-primary-foreground shadow-glow md:h-8 md:w-8 md:text-base',
                   'ml-1'
                 )}
               >
@@ -43,7 +43,7 @@ export default function NavLinks() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="ml-auto h-8 w-8 p-0"
+                className="ml-auto h-8 w-8 rounded-lg p-0 text-muted-foreground hover:text-foreground"
                 onClick={() => setIsExpanded(false)}
               >
                 <PanelLeft className="h-4 w-4 rotate-180 transition-transform" />
@@ -55,7 +55,7 @@ export default function NavLinks() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 p-0"
+                className="h-8 w-8 rounded-lg p-0 text-muted-foreground hover:text-foreground"
                 onClick={() => setIsExpanded(true)}
               >
                 <PanelLeft className="h-4 w-4 transition-transform" />
@@ -64,7 +64,7 @@ export default function NavLinks() {
             </div>
           )}
 
-          <div className="mt-2 flex flex-col gap-2">
+          <div className="mt-2 flex flex-col gap-1">
             {menuItems.map((Item, index) => {
               const isActive = pathname === Item.href
               if (!Item.roles.includes(role as any)) return null
@@ -73,16 +73,20 @@ export default function NavLinks() {
                 <Link
                   href={Item.href}
                   className={cn(
-                    'flex items-center rounded-lg px-2 py-2 text-sm transition-colors hover:text-foreground',
+                    'group relative flex items-center rounded-xl px-2.5 py-2.5 text-sm transition-all',
                     {
-                      'bg-accent text-accent-foreground': isActive,
-                      'text-muted-foreground': !isActive,
+                      'bg-primary/10 font-medium text-primary': isActive,
+                      'text-muted-foreground hover:bg-accent hover:text-foreground': !isActive,
                       'justify-center': !isExpanded,
                       'gap-3': isExpanded,
                     }
                   )}
                 >
-                  <Item.Icon className="h-5 w-5" />
+                  {/* Active indicator */}
+                  {isActive && (
+                    <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
+                  )}
+                  <Item.Icon className={cn('h-5 w-5 flex-shrink-0', isActive && 'text-primary')} />
                   {isExpanded && <span className="truncate">{Item.title}</span>}
                   <span className="sr-only">{Item.title}</span>
                 </Link>
@@ -107,16 +111,19 @@ export default function NavLinks() {
               <Link
                 href="/manage/setting"
                 className={cn(
-                  'flex items-center rounded-lg px-2 py-2 text-sm transition-colors hover:text-foreground',
+                  'group relative flex items-center rounded-xl px-2.5 py-2.5 text-sm transition-all',
                   {
-                    'bg-accent text-accent-foreground': isActive,
-                    'text-muted-foreground': !isActive,
+                    'bg-primary/10 font-medium text-primary': isActive,
+                    'text-muted-foreground hover:bg-accent hover:text-foreground': !isActive,
                     'justify-center': !isExpanded,
                     'gap-3': isExpanded,
                   }
                 )}
               >
-                <Settings className="h-5 w-5" />
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
+                )}
+                <Settings className={cn('h-5 w-5', isActive && 'text-primary')} />
                 {isExpanded && <span className="truncate">Setting</span>}
                 <span className="sr-only">Setting</span>
               </Link>
