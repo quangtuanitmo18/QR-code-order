@@ -32,13 +32,12 @@ export default async function Dashboard() {
   return (
     <main className="grid flex-1 items-start gap-4 p-3 sm:p-4 sm:px-6 sm:py-0 md:gap-8">
       <div className="space-y-2 sm:space-y-4">
-        <Card x-chunk="dashboard-06-chunk-0" className="overflow-hidden border-border/50 shadow-md">
-          <div className="h-1 w-full bg-gradient-to-r from-primary to-accent"></div>
-          <CardHeader className="bg-muted/10">
+        <Card className="overflow-hidden border-border/40 shadow-premium">
+          <CardHeader className="border-b border-border/30 bg-gradient-to-r from-primary/5 via-transparent to-transparent">
             <CardTitle className="text-xl sm:text-2xl">Dashboard</CardTitle>
             <CardDescription className="text-sm sm:text-base">Metrics Analysis</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <DashboardMain />
           </CardContent>
         </Card>

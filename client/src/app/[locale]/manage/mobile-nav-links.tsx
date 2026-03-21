@@ -28,21 +28,21 @@ export default function MobileNavLinks() {
         <Button
           size="icon"
           variant="outline"
-          className="min-h-[44px] min-w-[44px] sm:hidden sm:min-h-[40px] sm:min-w-[40px]"
+          className="min-h-[44px] min-w-[44px] rounded-xl border-border/50 sm:hidden sm:min-h-[40px] sm:min-w-[40px]"
         >
           <PanelLeft className="h-5 w-5" />
           <span className="sr-only">Toggle Menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[280px] sm:max-w-xs">
+      <SheetContent side="left" className="w-[280px] border-r border-border/40 sm:max-w-xs">
         <SheetHeader className="sr-only">
           <SheetTitle />
           <SheetDescription />
         </SheetHeader>
-        <nav className="grid gap-2 text-lg font-medium">
+        <nav className="grid gap-1.5 pt-4 text-lg font-medium">
           <Link
             href="#"
-            className="group flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-full bg-gradient-to-tr from-primary to-accent text-lg font-semibold text-primary-foreground shadow-md transition-all md:text-base"
+            className="group mb-4 flex h-10 w-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-primary text-lg font-semibold text-primary-foreground shadow-glow md:text-base"
           >
             <UtensilsCrossed className="h-5 w-5 transition-transform group-hover:scale-110" />
             <span className="sr-only">Acme Inc</span>
@@ -55,14 +55,17 @@ export default function MobileNavLinks() {
                 key={Item.href}
                 href={Item.href}
                 className={cn(
-                  'flex min-h-[44px] items-center gap-4 rounded-xl px-3 py-2 text-sm font-medium transition-all hover:text-foreground',
+                  'relative flex min-h-[44px] items-center gap-4 rounded-xl px-3 transition-all hover:bg-accent hover:text-foreground',
                   {
-                    'bg-gradient-to-r from-primary to-accent text-white shadow-md': isActive,
-                    'text-muted-foreground hover:bg-muted/50': !isActive,
+                    'bg-primary/10 font-medium text-primary': isActive,
+                    'text-muted-foreground': !isActive,
                   }
                 )}
               >
-                <Item.Icon className="h-5 w-5" />
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
+                )}
+                <Item.Icon className={cn('h-5 w-5', isActive && 'text-primary')} />
                 {Item.title}
               </Link>
             )

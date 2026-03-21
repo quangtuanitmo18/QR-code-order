@@ -4,65 +4,81 @@
 
 @layer base {
   :root {
-    --background: 30 25% 98%;
-    --foreground: 20 20% 10%;
+    /* ── Premium Restaurant Palette (Light) ── */
+    --background: 40 33% 98%;
+    --foreground: 20 14% 10%;
 
-    --card: 30 20% 99%;
-    --card-foreground: 20 20% 10%;
+    --card: 40 33% 99%;
+    --card-foreground: 20 14% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 20 20% 10%;
+    --popover-foreground: 20 14% 10%;
 
-    --primary: 25 95% 53%;
+    --primary: 38 92% 50%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 30 15% 93%;
-    --secondary-foreground: 20 20% 15%;
+    --secondary-foreground: 20 14% 20%;
 
-    --muted: 30 15% 94%;
-    --muted-foreground: 20 10% 45%;
+    --muted: 30 20% 95%;
+    --muted-foreground: 20 8% 46%;
 
-    --accent: 15 80% 55%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 38 50% 94%;
+    --accent-foreground: 20 14% 12%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
     --border: 30 15% 89%;
     --input: 30 15% 89%;
-    --ring: 25 95% 53%;
+    --ring: 38 92% 50%;
 
     --radius: 0.75rem;
+
+    /* ── Chart tokens ── */
+    --chart-1: 38 92% 50%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
   }
 
   .dark {
-    --background: 220 20% 8%;
-    --foreground: 30 15% 92%;
+    /* ── Premium Restaurant Palette (Dark) ── */
+    --background: 240 10% 6%;
+    --foreground: 40 15% 93%;
 
-    --card: 220 15% 12%;
-    --card-foreground: 30 15% 92%;
+    --card: 240 6% 10%;
+    --card-foreground: 40 15% 93%;
 
-    --popover: 220 15% 12%;
-    --popover-foreground: 30 15% 92%;
+    --popover: 240 6% 10%;
+    --popover-foreground: 40 15% 93%;
 
-    --primary: 25 90% 65%;
-    --primary-foreground: 220 20% 8%;
+    --primary: 38 92% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 15% 18%;
-    --secondary-foreground: 30 15% 92%;
+    --secondary: 240 5% 16%;
+    --secondary-foreground: 40 15% 93%;
 
-    --muted: 220 15% 18%;
-    --muted-foreground: 30 10% 55%;
+    --muted: 240 5% 16%;
+    --muted-foreground: 30 10% 60%;
 
-    --accent: 15 70% 60%;
-    --accent-foreground: 220 20% 8%;
+    --accent: 38 20% 16%;
+    --accent-foreground: 40 15% 93%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 220 15% 18%;
-    --input: 220 15% 18%;
-    --ring: 25 90% 65%;
+    --border: 240 5% 18%;
+    --input: 240 5% 18%;
+    --ring: 38 92% 50%;
+
+    /* ── Chart tokens ── */
+    --chart-1: 38 92% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
@@ -75,22 +91,79 @@
   }
 }
 
-@layer base {
-  :root {
-    --chart-1: 25 95% 53%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 15 80% 55%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 350 70% 55%;
+/* ── Premium animations ── */
+@layer utilities {
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out both;
   }
+  .animate-slide-up {
+    animation: slide-up 0.6s ease-out both;
+  }
+  .animate-scale-in {
+    animation: scale-in 0.4s ease-out both;
+  }
+}
 
-  .dark {
-    --chart-1: 25 90% 65%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 15 70% 60%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 350 65% 60%;
+@keyframes fade-in {
+  from {
+    opacity: 0;
   }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ── Smooth globals ── */
+a,
+button {
+  transition: color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease,
+    transform 0.15s ease;
+}
+
+/* ── Custom scrollbar ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.25);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.4);
 }
 
 /* Custom Virtuoso Scrollbar Fix */

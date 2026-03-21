@@ -36,5 +36,9 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
 }
 
 export default function TableNumberPage() {
-  return <GuestLoginForm />
+  return (
+    <div className="flex w-full flex-1 items-center justify-center">
+      <GuestLoginForm />
+    </div>
+  )
 }

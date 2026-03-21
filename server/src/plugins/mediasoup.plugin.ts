@@ -115,8 +115,19 @@ export function getMediasoupWorker(): Worker {
 }
 
 export const mediasoupPlugin = fastifyPlugin(async (fastify) => {
-  await createWorkers(fastify)
-
-  // Extend Fastify instance to easily access getMediasoupWorker if needed
-  fastify.decorate('getMediasoupWorker', getMediasoupWorker)
+  try {
+    await createWorkers(fastify)
+    // Extend Fastify instance to easily access getMediasoupWorker if needed
+    fastify.decorate('getMediasoupWorker', getMediasoupWorker)
+  } catch (err) {
+    fastify.log.warn(
+      '[Mediasoup] Failed to initialize workers (native binary may not be built). ' +
+        'Video call features will be unavailable. Error: ' +
+        (err instanceof Error ? err.message : String(err))
+    )
+    // Decorate with a stub so other plugins don't crash
+    fastify.decorate('getMediasoupWorker', () => {
+      throw new Error('Mediasoup workers not available — native binary not built')
+    })
+  }
 })

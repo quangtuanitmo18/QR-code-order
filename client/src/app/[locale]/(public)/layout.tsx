@@ -11,7 +11,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { Link } from '@/i18n/routing'
-import { Menu, UtensilsCrossed } from 'lucide-react'
+import { Menu } from 'lucide-react'
 
 export default async function Layout(
   props: Readonly<{
@@ -26,51 +26,67 @@ export default async function Layout(
   const { children, modal } = props
 
   return (
-    <div className="relative flex w-full flex-col">
-      <header className="sticky top-0 z-20 flex h-14 items-center gap-2 border-b border-border/40 bg-background/80 px-3 backdrop-blur-xl sm:h-16 sm:gap-4 sm:px-4 md:px-6">
-        <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-5 md:text-sm lg:gap-6">
-          <Link href="/" className="flex items-center gap-2 text-lg font-semibold md:text-base">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <UtensilsCrossed className="h-4 w-4" />
-            </div>
-            <span className="sr-only">Big boy</span>
-          </Link>
-          <NavItems className="flex-shrink-0 text-muted-foreground transition-colors duration-200 hover:text-primary" />
-        </nav>
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="min-h-[44px] min-w-[44px] shrink-0 md:hidden md:min-h-[40px] md:min-w-[40px]"
+    <div className="relative flex min-h-screen w-full flex-col">
+      {/* ── Glassmorphism Header ── */}
+      <header className="sticky top-0 z-20 border-b border-border/40 bg-background/80 backdrop-blur-xl">
+        <div className="sm:h-18 flex h-16 items-center gap-4 px-4 sm:px-6 md:px-8">
+          <nav className="hidden flex-col gap-6 text-lg font-medium md:flex md:flex-row md:items-center md:gap-1 md:text-sm lg:gap-1">
+            <Link
+              href="/"
+              className="mr-4 flex items-center gap-2.5 text-lg font-bold tracking-tight"
             >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle navigation menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[280px] sm:w-[320px]">
-            <SheetHeader className="sr-only">
-              <SheetTitle />
-              <SheetDescription />
-            </SheetHeader>
-            <nav className="grid gap-6 text-lg font-medium">
-              <Link href="/" className="flex items-center gap-2 text-lg font-semibold">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                  <UtensilsCrossed className="h-4 w-4" />
-                </div>
-                <span className="sr-only">Big boy</span>
-              </Link>
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-lg text-primary-foreground shadow-glow">
+                🍽
+              </span>
+              <span className="hidden bg-gradient-to-r from-primary to-amber-600 bg-clip-text text-transparent dark:to-amber-400 lg:inline">
+                Big Boy
+              </span>
+            </Link>
+            <NavItems className="relative rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-all hover:bg-accent hover:text-foreground" />
+          </nav>
 
-              <NavItems className="text-muted-foreground transition-colors duration-200 hover:text-primary" />
-            </nav>
-          </SheetContent>
-        </Sheet>
-        <div className="ml-auto flex items-center gap-2 sm:gap-4">
-          <SwitchLanguage />
-          <DarkModeToggle />
+          {/* Mobile menu trigger */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="min-h-[44px] min-w-[44px] shrink-0 rounded-xl border-border/50 md:hidden"
+              >
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Toggle navigation menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[280px] border-r border-border/40 sm:w-[320px]">
+              <SheetHeader className="sr-only">
+                <SheetTitle />
+                <SheetDescription />
+              </SheetHeader>
+              <nav className="grid gap-3 pt-4 text-lg font-medium">
+                <Link href="/" className="mb-4 flex items-center gap-2.5 text-lg font-bold">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-xl text-primary-foreground shadow-glow">
+                    🍽
+                  </span>
+                  <span className="bg-gradient-to-r from-primary to-amber-600 bg-clip-text text-transparent dark:to-amber-400">
+                    Big Boy
+                  </span>
+                </Link>
+
+                <NavItems className="rounded-lg px-3 py-2.5 text-base text-muted-foreground transition-all hover:bg-accent hover:text-foreground" />
+              </nav>
+            </SheetContent>
+          </Sheet>
+
+          {/* Right side controls */}
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <SwitchLanguage />
+            <DarkModeToggle />
+          </div>
         </div>
+        {/* Gradient accent line */}
+        <div className="h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
       </header>
-      <main className="flex flex-1 flex-col">
+      <main className="flex w-full flex-1 flex-col">
         {children}
         {modal}
       </main>
