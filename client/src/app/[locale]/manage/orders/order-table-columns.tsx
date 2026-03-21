@@ -32,12 +32,17 @@ import { DotsHorizontalIcon } from '@radix-ui/react-icons'
 import { ColumnDef } from '@tanstack/react-table'
 import Image from 'next/image'
 import { useContext } from 'react'
+import { useTranslations } from 'next-intl'
 
 type OrderRow = GetOrdersResType['data'][0]
-const orderTableColumns: ColumnDef<OrderRow>[] = [
+
+export const useOrderTableColumns = () => {
+  const t = useTranslations('Orders')
+  
+  const orderTableColumns: ColumnDef<OrderRow>[] = [
   {
     accessorKey: 'tableNumber',
-    header: 'Table',
+    header: t('table'),
     cell: ({ row }) => <div>{row.getValue('tableNumber')}</div>,
     filterFn: (row, columnId, filterValue: string) => {
       if (filterValue === undefined) return true
@@ -46,7 +51,7 @@ const orderTableColumns: ColumnDef<OrderRow>[] = [
   },
   {
     id: 'guestName',
-    header: 'Customer',
+    header: t('customer'),
     cell: function Cell({ row }) {
       const { orderObjectByGuestId } = useContext(OrderTableContext)
       const guest = row.original.guest
@@ -54,7 +59,7 @@ const orderTableColumns: ColumnDef<OrderRow>[] = [
         <div>
           {!guest && (
             <div>
-              <span>Deleted</span>
+              <span>{t('deleted')}</span>
             </div>
           )}
           {guest && (
@@ -75,12 +80,12 @@ const orderTableColumns: ColumnDef<OrderRow>[] = [
     },
     filterFn: (row, columnId, filterValue: string) => {
       if (filterValue === undefined) return true
-      return simpleMatchText(row.original.guest?.name ?? 'Deleted', String(filterValue))
+      return simpleMatchText(row.original.guest?.name ?? t('deleted'), String(filterValue))
     },
   },
   {
     id: 'items',
-    header: 'Items',
+    header: t('items'),
     cell: ({ row }) => (
       <div className="flex items-center gap-2">
         {row.original.items.length > 0 && (
@@ -129,7 +134,7 @@ const orderTableColumns: ColumnDef<OrderRow>[] = [
               <div className="flex items-center gap-2">
                 <span>
                   {row.original.items[0].dishSnapshot.name}
-                  {row.original.items.length > 1 && ` + ${row.original.items.length - 1} more`}
+                  {row.original.items.length > 1 && ` + ${row.original.items.length - 1} ${t('more')}`}
                 </span>
                 <Badge className="px-1" variant={'secondary'}>
                   x{row.original.items.reduce((sum, item) => sum + item.quantity, 0)}
@@ -138,7 +143,7 @@ const orderTableColumns: ColumnDef<OrderRow>[] = [
               <div className="space-y-0.5">
                 {row.original.discountAmount && row.original.discountAmount > 0 && (
                   <div className="text-xs text-green-600 dark:text-green-400">
-                    -{formatCurrency(row.original.discountAmount)} discount
+                    -{t('discountAmount', { discount: formatCurrency(row.original.discountAmount) })}
                   </div>
                 )}
                 <span className="italic">
@@ -158,7 +163,7 @@ const orderTableColumns: ColumnDef<OrderRow>[] = [
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: t('status'),
     cell: function Cell({ row }) {
       const { changeStatus } = useContext(OrderTableContext)
       const changeOrderStatus = async (status: (typeof OrderStatusValues)[number]) => {
@@ -191,12 +196,12 @@ const orderTableColumns: ColumnDef<OrderRow>[] = [
   },
   {
     id: 'orderHandlerName',
-    header: 'Handler',
+    header: t('handler'),
     cell: ({ row }) => <div>{row.original.orderHandler?.name ?? ''}</div>,
   },
   {
     accessorKey: 'createdAt',
-    header: () => <div>Create/Update</div>,
+    header: () => <div>{t('createUpdate')}</div>,
     cell: ({ row }) => (
       <div className="space-y-2 text-sm">
         <div className="flex items-center space-x-4">
@@ -226,9 +231,9 @@ const orderTableColumns: ColumnDef<OrderRow>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={openEditOrder}>Edit</DropdownMenuItem>
+            <DropdownMenuItem onClick={openEditOrder}>{t('edit')}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -236,4 +241,5 @@ const orderTableColumns: ColumnDef<OrderRow>[] = [
   },
 ]
 
-export default orderTableColumns
+  return orderTableColumns
+}

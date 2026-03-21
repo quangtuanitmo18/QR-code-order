@@ -42,8 +42,11 @@ export function middleware(request: NextRequest) {
 
   // 1. If not logged in then do not allow access to private paths (except unauth paths)
   if (privatePaths.some((path) => pathname.startsWith(path)) && !refreshToken && !isUnAuthPath) {
-    const url = new URL(`/${locale}/manage/login`, request.url)
-    url.searchParams.set('clearTokens', 'true')
+    const isGuestPath = guestPaths.some((path) => pathname.startsWith(path))
+    const url = new URL(isGuestPath ? `/${locale}` : `/${locale}/manage/login`, request.url)
+    if (!isGuestPath) {
+      url.searchParams.set('clearTokens', 'true')
+    }
     return NextResponse.redirect(url)
   }
 
@@ -88,7 +91,11 @@ export function middleware(request: NextRequest) {
     const isNotOwnerGoToOwnerPath =
       role !== Role.Owner && onlyOwnerPaths.some((path) => pathname.startsWith(path))
     if (isGuestGoToManagePath || isNotGuestGoToGuestPath || isNotOwnerGoToOwnerPath) {
-      return NextResponse.redirect(new URL(`/${locale}`, request.url))
+      let redirectUrl = `/${locale}`
+      if (isNotOwnerGoToOwnerPath) {
+        redirectUrl = `/${locale}/manage/dashboard`
+      }
+      return NextResponse.redirect(new URL(redirectUrl, request.url))
       // response.headers.set(
       //   'x-middleware-rewrite',
       //   new URL('/', request.url).toString()

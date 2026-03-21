@@ -1,5 +1,5 @@
 import { requireLoginedHook, requireOwnerHook } from '@/hooks/auth.hooks'
-import { ChatRequestBody, chatRequestSchema } from '@/schemaValidations/ai-chat.schema'
+import { ChatRequestBody, chatRequestSchema, executeActionSchema } from '@/schemaValidations/ai-chat.schema'
 import { adminAiChatService } from '@/services/admin-ai-chat.service'
 import { adminService } from '@/services/admin.service'
 import { getContextLogger } from '@/utils/logger'
@@ -60,13 +60,21 @@ export async function adminAiChatController(fastify: FastifyInstance) {
         return
       }
 
-      const { action, params } = request.body as { action: string; params: Record<string, any> }
+      const { action, params } = executeActionSchema.parse(request.body)
 
       try {
         let result: any
         if (action === 'admin_cancel_order') {
-          result = await adminService.cancelOrder(params.orderId, params.reason)
+          if (!params.orderId) {
+            reply.status(400).send({ error: 'orderId is required for cancel_order' })
+            return
+          }
+          result = await adminService.cancelOrder(params.orderId, params.reason || 'Admin action')
         } else if (action === 'admin_update_dish') {
+          if (!params.dishId || !params.updates) {
+            reply.status(400).send({ error: 'dishId and updates are required for update_dish' })
+            return
+          }
           result = await adminService.updateDish(params.dishId, params.updates)
         } else {
           reply.status(400).send({ error: `Unknown action: ${action}` })

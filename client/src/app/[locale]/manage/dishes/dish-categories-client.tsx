@@ -38,14 +38,18 @@ import { Pencil, PlusCircle, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
+import { useTranslations } from 'next-intl'
+
 function CategoryForm({
   category,
   onSuccess,
   onCancel,
+  t,
 }: {
   category?: DishCategoryType | null
   onSuccess: () => void
   onCancel: () => void
+  t: any
 }) {
   const createMutation = useCreateDishCategoryMutation()
   const updateMutation = useUpdateDishCategoryMutation()
@@ -62,10 +66,10 @@ function CategoryForm({
     try {
       if (category) {
         await updateMutation.mutateAsync({ id: category.id, ...values })
-        toast({ description: 'Category updated successfully' })
+        toast({ description: t('updateCategorySuccess') })
       } else {
         await createMutation.mutateAsync(values)
-        toast({ description: 'Category created successfully' })
+        toast({ description: t('createCategorySuccess') })
       }
       onSuccess()
     } catch (error) {
@@ -81,8 +85,8 @@ function CategoryForm({
           name="name"
           render={({ field }) => (
             <FormItem>
-              <Label htmlFor="cat-name">Name</Label>
-              <Input id="cat-name" placeholder="e.g. Main Course" {...field} />
+              <Label htmlFor="cat-name">{t('categoryName')}</Label>
+              <Input id="cat-name" placeholder={t('categoryNamePlaceholder')} {...field} />
               <FormMessage />
             </FormItem>
           )}
@@ -92,18 +96,18 @@ function CategoryForm({
           name="description"
           render={({ field }) => (
             <FormItem>
-              <Label htmlFor="cat-desc">Description (optional)</Label>
-              <Textarea id="cat-desc" placeholder="Brief description..." {...field} />
+              <Label htmlFor="cat-desc">{t('categoryDescription')}</Label>
+              <Textarea id="cat-desc" placeholder={t('categoryDescriptionPlaceholder')} {...field} />
               <FormMessage />
             </FormItem>
           )}
         />
         <DialogFooter>
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
-            {category ? 'Save Changes' : 'Create'}
+            {category ? t('saveChanges') : t('create')}
           </Button>
         </DialogFooter>
       </form>
@@ -112,6 +116,7 @@ function CategoryForm({
 }
 
 export default function DishCategoriesClient() {
+  const t = useTranslations('Dishes')
   const { data, isLoading } = useDishCategoryListQuery()
   const deleteMutation = useDeleteDishCategoryMutation()
 
@@ -136,10 +141,10 @@ export default function DishCategoriesClient() {
   }
 
   const handleDelete = async (id: number, name: string) => {
-    if (!confirm(`Delete category "${name}"? This cannot be undone.`)) return
+    if (!confirm(t('deleteCategoryConfirm', { name }))) return
     try {
       await deleteMutation.mutateAsync(id)
-      toast({ description: `Category "${name}" deleted` })
+      toast({ description: t('deleteCategorySuccess', { name }) })
     } catch (error) {
       handleErrorApi({ error })
     }
@@ -148,26 +153,26 @@ export default function DishCategoriesClient() {
   return (
     <>
       <div className="flex items-center justify-between py-2">
-        <p className="text-sm text-muted-foreground">{categories.length} categories</p>
+        <p className="text-sm text-muted-foreground">{t('categoriesCount', { count: categories.length })}</p>
         <Button size="sm" onClick={handleNew}>
           <PlusCircle className="mr-2 h-4 w-4" />
-          Add Category
+          {t('addCategory')}
         </Button>
       </div>
 
       {isLoading ? (
-        <div className="py-8 text-center text-sm text-muted-foreground">Loading...</div>
+        <div className="py-8 text-center text-sm text-muted-foreground">{t('loading')}</div>
       ) : categories.length === 0 ? (
         <div className="py-8 text-center text-sm text-muted-foreground">
-          No categories yet. Add one to get started.
+          {t('noCategories')}
         </div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t('categoryName')}</TableHead>
+              <TableHead>{t('categoryDescription')}</TableHead>
+              <TableHead className="text-right">{t('actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -200,9 +205,9 @@ export default function DishCategoriesClient() {
       <Dialog open={isFormOpen} onOpenChange={handleClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingCategory ? 'Edit Category' : 'New Category'}</DialogTitle>
+            <DialogTitle>{editingCategory ? t('editCategory') : t('newCategory')}</DialogTitle>
           </DialogHeader>
-          <CategoryForm category={editingCategory} onSuccess={handleClose} onCancel={handleClose} />
+          <CategoryForm category={editingCategory} onSuccess={handleClose} onCancel={handleClose} t={t} />
         </DialogContent>
       </Dialog>
     </>

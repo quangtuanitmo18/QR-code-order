@@ -28,8 +28,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { PlusCircle } from 'lucide-react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslations } from 'next-intl'
 
 export default function AddTable() {
+  const t = useTranslations('Tables')
   const [open, setOpen] = useState(false)
   const addTableMutation = useAddTableMutation()
   const form = useForm<CreateTableBodyType>({
@@ -76,12 +78,12 @@ export default function AddTable() {
           className="h-8 gap-2 rounded-full bg-gradient-to-r from-primary to-accent shadow-md transition-all hover:shadow-lg hover:brightness-105 active:scale-95"
         >
           <PlusCircle className="h-4 w-4" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add table</span>
+          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">{t('addTable')}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-screen overflow-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Add table</DialogTitle>
+          <DialogTitle>{t('addTable')}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -100,7 +102,7 @@ export default function AddTable() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="name">Table number</Label>
+                      <Label htmlFor="name">{t('tableNumber')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Input id="number" type="number" className="w-full" {...field} />
                         <FormMessage />
@@ -115,7 +117,7 @@ export default function AddTable() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="price">Capacity</Label>
+                      <Label htmlFor="price">{t('capacity')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Input id="capacity" className="w-full" {...field} type="number" />
                         <FormMessage />
@@ -130,12 +132,12 @@ export default function AddTable() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="description">Status</Label>
+                      <Label htmlFor="description">{t('status')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Chọn trạng thái" />
+                              <SelectValue placeholder={t('selectStatus')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -158,7 +160,7 @@ export default function AddTable() {
         </Form>
         <DialogFooter>
           <Button type="submit" form="add-table-form">
-            Add
+            {t('add')}
           </Button>
         </DialogFooter>
       </DialogContent>

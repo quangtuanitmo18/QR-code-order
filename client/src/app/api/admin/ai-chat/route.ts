@@ -40,7 +40,6 @@ export async function POST(req: Request) {
       headers,
     })
   } catch (error) {
-    console.error('[Admin AI Chat Proxy] Error:', error)
     return new Response(JSON.stringify({ error: 'Internal Server Error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },

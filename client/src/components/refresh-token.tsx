@@ -26,7 +26,11 @@ export default function RefreshToken() {
           })
           clearInterval(interval)
           disconnectSocket()
-          router.push('/manage/login')
+          if (pathname.includes('/manage')) {
+            router.push('/manage/login')
+          } else {
+            router.push('/')
+          }
         },
         onSuccess: () => {
           console.log('[RefreshToken] ✅ Token refreshed successfully', {

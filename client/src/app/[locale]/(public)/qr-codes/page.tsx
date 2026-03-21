@@ -48,7 +48,7 @@ export default async function QRCodesPage(props: Props) {
     const result = await tableApiRequest.sGetList()
     tables = result.data.filter((table: any) => table.status !== 'Hidden')
   } catch (error) {
-    console.error('Failed to fetch tables:', error)
+    // Suppress error in production to avoid console clutter, gracefully degrading to empty list
   }
 
   return (

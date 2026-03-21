@@ -85,17 +85,22 @@ export function createOrderAgentTools(context: { guestId?: number }) {
      */
     placeOrder: tool({
       description:
-        'Place an order for dishes. IMPORTANT: You MUST confirm the order details (dish names, quantities, total price) with the customer BEFORE calling this tool. Only call this after the customer explicitly confirms. Accepts an array of items with dish names and quantities.',
+        'Place an order for dishes. CRITICAL RULES: (1) ALWAYS call searchMenuSemantic or searchMenu FIRST to get dish IDs before ordering. (2) ALWAYS include the "dishId" field (numeric database ID) from search results for each item — NEVER place an order without it. (3) Only call this tool AFTER the customer explicitly confirms order details. The dishName is only for display purposes; dishId is what actually identifies the dish in the system.',
       inputSchema: z.object({
         items: z
           .array(
             z.object({
-              dishName: z.string().describe('The name of the dish to order'),
+              dishId: z
+                .number()
+                .describe(
+                  'REQUIRED: The numeric database ID of the dish returned by searchMenuSemantic or searchMenu. YOU MUST always include this — never omit it.'
+                ),
+              dishName: z.string().describe('The display name shown to the customer (for confirmation UI only)'),
               quantity: z.number().min(1).describe('How many of this dish to order')
             })
           )
           .min(1)
-          .describe('Array of dishes to order with quantities')
+          .describe('Array of dishes to order. Each item MUST have dishId from search results.')
       })
       // No execute — HITL: frontend will handle execution via REST API
     }),

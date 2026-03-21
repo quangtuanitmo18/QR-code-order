@@ -8,8 +8,20 @@ import { tool } from 'ai'
 import { z } from 'zod'
 
 /**
- * Shared SQL search logic — reusable by both searchMenu and searchMenuSemantic (fallback).
+ * @deprecated LEGACY FILE — NOT USED IN PRODUCTION
+ *
+ * This file was the original monolithic tool registry before the codebase was
+ * refactored into dedicated agent files (search.agent.ts, order.agent.ts, faq.agent.ts).
+ *
+ * It is currently ONLY used by the eval script:
+ *   src/scripts/eval-ai.ts
+ *
+ * Production tool registration happens in:
+ *   - src/services/agents/search.agent.ts  → searchMenu, searchMenuSemantic, getDishDetails, getMenuCategories, getPopularDishes
+ *   - src/services/agents/order.agent.ts   → placeOrder, cancelOrder, applyCoupon, getOrderStatus, getAvailableCoupons
+ *   - src/services/agents/faq.agent.ts     → searchFAQ, getRestaurantInfo
  */
+
 async function sqlSearchDishes(query: string, take = 5) {
   const lowerQuery = query.toLowerCase()
   const dishes = await prisma.dish.findMany({
@@ -88,11 +100,19 @@ export function createAiTools(context: { guestId?: number }) {
             return await sqlSearchDishes(query)
           }
 
-          return results.documents[0].map((doc: string | null, i: number) => ({
-            text: doc,
-            metadata: results.metadatas?.[0]?.[i] || {},
-            distance: results.distances?.[0]?.[i] ?? null
-          }))
+          return results.documents[0].map((_doc: string | null, i: number) => {
+            const meta = results.metadatas?.[0]?.[i] || ({} as Record<string, string>)
+            return {
+              id: meta.dishId ? Number(meta.dishId) : null,
+              name: meta.name || '',
+              price: meta.price ? Number(meta.price) : null,
+              category: meta.category || '',
+              ingredients: meta.ingredients || 'Not specified',
+              allergens: meta.allergens || 'None',
+              tags: meta.tags || 'None',
+              distance: results.distances?.[0]?.[i] ?? null
+            }
+          })
         } catch (error) {
           log?.warn({ err: error }, '[AI Tool: searchMenuSemantic] RAG failed, falling back to SQL search')
           try {
@@ -319,6 +339,7 @@ export function createAiTools(context: { guestId?: number }) {
               const snap = snapshotMap.get(item.dishSnapshotId)
               if (!snap) return null
               return {
+                id: snap.dishId,
                 name: snap.name,
                 category: snap.category,
                 price: snap.price,
@@ -411,14 +432,16 @@ export function createAiTools(context: { guestId?: number }) {
         items: z
           .array(
             z.object({
-              dishName: z.string().describe('The name of the dish to order'),
+              dishId: z.number().optional().describe('The database ID of the dish from search results. Use this when available for reliable lookup.'),
+              dishName: z.string().describe('The display name of the dish (used as fallback if dishId is unavailable)'),
               quantity: z.number().min(1).describe('How many of this dish to order')
             })
           )
           .min(1)
           .describe('Array of dishes to order with quantities')
       }),
-      execute: async ({ items }: { items: Array<{ dishName: string; quantity: number }> }) => {
+      execute: async ({ items }: { items: Array<{ dishId?: number; dishName: string; quantity: number }> }) => {
+
         const log = getContextLogger()
         try {
           if (!context.guestId) {
@@ -430,35 +453,40 @@ export function createAiTools(context: { guestId?: number }) {
           const resolvedDishes: Array<{ name: string; price: number; quantity: number }> = []
 
           for (const item of items) {
-            // Try exact match first (case-insensitive via SQLite LIKE default behavior)
-            const exactMatches = await prisma.dish.findMany({
-              where: {
-                name: { contains: item.dishName.toLowerCase() },
-                status: 'Available'
-              },
-              take: 10
-            })
+            let dish = null
 
-            // Filter for exact name match (case-insensitive)
-            let dish = exactMatches.find((d) => d.name.toLowerCase() === item.dishName.toLowerCase()) || null
+            // ID-first lookup: reliable even when AI uses translated/semantic names
+            if (item.dishId) {
+              dish = await prisma.dish.findFirst({
+                where: { id: item.dishId, status: 'Available' }
+              })
+            }
 
-            // Fallback to partial match if exact match fails
+            // Fallback: name-based lookup if no dishId or ID lookup failed
             if (!dish) {
-              const partialMatches = exactMatches
+              const matches = await prisma.dish.findMany({
+                where: {
+                  name: { contains: item.dishName.toLowerCase() },
+                  status: 'Available'
+                },
+                take: 10
+              })
 
-              if (partialMatches.length === 0) {
-                return {
-                  message: `Could not find dish "${item.dishName}". Please check the name and try again.`
+              dish = matches.find((d) => d.name.toLowerCase() === item.dishName.toLowerCase()) || null
+
+              if (!dish) {
+                if (matches.length === 0) {
+                  return {
+                    message: `Could not find dish "${item.dishName}". Please check the name and try again.`
+                  }
                 }
-              }
-
-              if (partialMatches.length > 1) {
-                return {
-                  message: `Multiple dishes match "${item.dishName}": ${partialMatches.map((d) => `"${d.name}" ($${d.price})`).join(', ')}. Please specify the exact dish name.`
+                if (matches.length > 1) {
+                  return {
+                    message: `Multiple dishes match "${item.dishName}": ${matches.map((d) => `"${d.name}" ($${d.price})`).join(', ')}. Please specify.`
+                  }
                 }
+                dish = matches[0]
               }
-
-              dish = partialMatches[0]
             }
 
             orderItems.push({ dishId: dish.id, quantity: item.quantity })

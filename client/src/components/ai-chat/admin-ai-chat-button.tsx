@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   DollarSign,
   Loader2,
+  RotateCcw,
   Search,
   Send,
   Sparkles,
@@ -81,6 +82,13 @@ export default function AdminAiChatButton() {
 
     sendMessage({ text })
     if (!customText) setInput('')
+  }
+
+  const resetChat = () => {
+    setSessionId(undefined)
+    setInput('')
+    setHitlResults({})
+    window.location.reload()
   }
 
   // Helper to map tool names to friendly UI text
@@ -309,21 +317,32 @@ export default function AdminAiChatButton() {
 
       {/* Chat Window */}
       {isOpen && (
-        <div className="fixed bottom-4 right-4 z-[100] flex h-[600px] w-[380px] flex-col overflow-hidden rounded-2xl border bg-background shadow-2xl sm:bottom-8 sm:right-8">
+        <div className="fixed inset-0 z-[100] flex flex-col overflow-hidden bg-background sm:inset-auto sm:bottom-8 sm:right-8 sm:h-[600px] sm:w-[380px] sm:rounded-2xl sm:border sm:shadow-2xl">
           {/* Header */}
           <div className="flex items-center justify-between bg-gradient-to-r from-primary to-primary/90 p-4 text-primary-foreground">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5" />
               <h3 className="font-semibold tracking-wide">{t('title')}</h3>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-primary-foreground hover:bg-primary/50 hover:text-white"
-              onClick={() => setIsOpen(false)}
-            >
-              <X className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-primary-foreground hover:bg-primary/50 hover:text-white"
+                onClick={resetChat}
+                title="New Chat"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-primary-foreground hover:bg-primary/50 hover:text-white"
+                onClick={() => setIsOpen(false)}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
 
           {/* Messages Area */}
@@ -349,7 +368,8 @@ export default function AdminAiChatButton() {
                       <button
                         key={idx}
                         onClick={() => handleSubmit(undefined, t(key as any))}
-                        className="rounded-lg border bg-card px-4 py-2 text-left text-sm text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground"
+                        disabled={isLoading}
+                        className="rounded-lg border bg-card px-4 py-2 text-left text-sm text-card-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50"
                         type="button"
                       >
                         {t(key as any)}
@@ -436,8 +456,7 @@ export default function AdminAiChatButton() {
                                       {t('actionSuccess')}
                                     </h4>
                                     <p className="text-xs text-muted-foreground">
-                                      {hitlState.result?.message ||
-                                        JSON.stringify(hitlState.result)}
+                                      {hitlState.result?.message ?? t('actionSuccess')}
                                     </p>
                                   </div>
                                 )
@@ -608,19 +627,17 @@ export default function AdminAiChatButton() {
                 </div>
               ))}
 
-              {/* Loading indicator */}
-              {isLoading &&
-                messages.length > 0 &&
-                messages[messages.length - 1]?.role === 'user' && (
-                  <div className="flex justify-start">
-                    <div className="max-w-[85%] rounded-2xl rounded-tl-sm border bg-card px-4 py-3 text-sm shadow-sm">
-                      <span className="flex items-center gap-2 font-medium text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                        {t('loading')}
-                      </span>
-                    </div>
+              {/* Loading indicator — show whenever AI is streaming */}
+              {isLoading && messages.length > 0 && (
+                <div className="flex justify-start">
+                  <div className="max-w-[85%] rounded-2xl rounded-tl-sm border bg-card px-4 py-3 text-sm shadow-sm">
+                    <span className="flex items-center gap-2 font-medium text-muted-foreground">
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      {t('loading')}
+                    </span>
                   </div>
-                )}
+                </div>
+              )}
 
               {/* Error display */}
               {error && (

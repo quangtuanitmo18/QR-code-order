@@ -30,6 +30,7 @@ import { PlusCircle } from 'lucide-react'
 import Image from 'next/image'
 import { useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslations } from 'next-intl'
 
 export default function AddOrder() {
   const [open, setOpen] = useState(false)
@@ -54,6 +55,8 @@ export default function AddOrder() {
   const [discountAmount, setDiscountAmount] = useState(0)
   const [couponError, setCouponError] = useState<string | null>(null)
   const validateCouponMutation = useValidateCouponMutation()
+
+  const t = useTranslations('Orders')
 
   const form = useForm<GuestLoginBodyType>({
     resolver: zodResolver(GuestLoginBody),
@@ -89,7 +92,7 @@ export default function AddOrder() {
     }
 
     if (totalPrice === 0) {
-      setCouponError('No items to apply coupon')
+      setCouponError(t('noItemsToApplyCoupon'))
       return
     }
 
@@ -109,7 +112,7 @@ export default function AddOrder() {
         setDiscountAmount(result.payload.discountAmount)
         setCouponError(null)
         toast({
-          description: `Coupon applied! Discount: ${formatCurrency(result.payload.discountAmount)}`,
+          description: t('couponApplied', { discount: formatCurrency(result.payload.discountAmount) }),
         })
       } else {
         setCouponError(result.payload.message)
@@ -117,7 +120,7 @@ export default function AddOrder() {
         setDiscountAmount(0)
       }
     } catch (error: any) {
-      setCouponError(error?.payload?.message || 'Failed to validate coupon')
+      setCouponError(error?.payload?.message || t('failedToValidateCoupon'))
       setCouponId(undefined)
       setDiscountAmount(0)
     }
@@ -135,7 +138,7 @@ export default function AddOrder() {
       }
       if (!guestId) {
         toast({
-          description: 'Please select a customer',
+          description: t('pleaseSelectCustomer'),
         })
         return
       }
@@ -178,15 +181,15 @@ export default function AddOrder() {
       <DialogTrigger asChild>
         <Button size="sm" className="h-7 gap-1">
           <PlusCircle className="h-3.5 w-3.5" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add order</span>
+          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">{t('addOrder')}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-screen overflow-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Add order</DialogTitle>
+          <DialogTitle>{t('addOrder')}</DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-          <Label htmlFor="isNewGuest">New customer</Label>
+          <Label htmlFor="isNewGuest">{t('newCustomer')}</Label>
           <div className="col-span-3 flex items-center">
             <Switch id="isNewGuest" checked={isNewGuest} onCheckedChange={setIsNewGuest} />
           </div>
@@ -205,7 +208,7 @@ export default function AddOrder() {
                   render={({ field }) => (
                     <FormItem>
                       <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                        <Label htmlFor="name">Customer name</Label>
+                        <Label htmlFor="name">{t('customerName')}</Label>
                         <div className="col-span-3 w-full space-y-2">
                           <Input id="name" className="w-full" {...field} />
                           <FormMessage />
@@ -220,7 +223,7 @@ export default function AddOrder() {
                   render={({ field }) => (
                     <FormItem>
                       <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                        <Label htmlFor="tableNumber">Select table</Label>
+                        <Label htmlFor="tableNumber">{t('selectTable')}</Label>
                         <div className="col-span-3 w-full space-y-2">
                           <div className="flex items-center gap-4">
                             <div>{field.value}</div>
@@ -248,12 +251,12 @@ export default function AddOrder() {
         )}
         {!isNewGuest && selectedGuest && (
           <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-            <Label htmlFor="selectedGuest">Customer selected</Label>
+            <Label htmlFor="selectedGuest">{t('customerSelected')}</Label>
             <div className="col-span-3 flex w-full items-center gap-4">
               <div>
                 {selectedGuest.name} (#{selectedGuest.id})
               </div>
-              <div>Table: {selectedGuest.tableNumber}</div>
+              <div>{t('table')}: {selectedGuest.tableNumber}</div>
             </div>
           </div>
         )}
@@ -269,7 +272,7 @@ export default function AddOrder() {
               <div className="relative flex-shrink-0">
                 {dish.status === DishStatus.Unavailable && (
                   <span className="absolute inset-0 flex items-center justify-center text-sm">
-                    Unavailable
+                    {t('unavailable')}
                   </span>
                 )}
                 <Image
@@ -298,10 +301,10 @@ export default function AddOrder() {
         {/* Coupon Input */}
         {orders.length > 0 && (
           <div className="space-y-2">
-            <Label className="text-sm font-semibold">Coupon Code (optional):</Label>
+            <Label className="text-sm font-semibold">{t('couponCode')}</Label>
             <div className="flex gap-2">
               <Input
-                placeholder="Enter coupon code"
+                placeholder={t('enterCouponCode')}
                 value={couponCode}
                 onChange={(e) => {
                   setCouponCode(e.target.value.toUpperCase())
@@ -316,7 +319,7 @@ export default function AddOrder() {
                 onClick={handleValidateCoupon}
                 disabled={validateCouponMutation.isPending}
               >
-                Apply
+                {t('apply')}
               </Button>
             </div>
             {couponError && (
@@ -324,7 +327,7 @@ export default function AddOrder() {
             )}
             {discountAmount > 0 && (
               <p className="text-sm text-green-600 dark:text-green-400">
-                ✓ Coupon applied: {formatCurrency(discountAmount)} discount
+                ✓ {t('couponApplied', { discount: formatCurrency(discountAmount) })}
               </p>
             )}
           </div>
@@ -336,7 +339,7 @@ export default function AddOrder() {
             onClick={handleOrder}
             disabled={orders.length === 0}
           >
-            <span>Order · {orders.length} dishes</span>
+            <span>{t('orderCountDishes', { count: orders.length })}</span>
             <span>
               {formatCurrency(totalPrice - discountAmount)}
               {discountAmount > 0 && (

@@ -178,7 +178,7 @@ export const columns: ColumnDef<ReviewItem>[] = [
         }
 
         return (
-          <button onClick={handleImageClick} className="flex items-center gap-1">
+          <button onClick={handleImageClick} className="flex cursor-pointer items-center gap-1">
             <Image
               src={images[0]}
               alt="Review"
@@ -283,7 +283,7 @@ export const columns: ColumnDef<ReviewItem>[] = [
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => setReviewForDelete(row.original)}
-              className="text-red-600"
+              className="text-destructive"
             >
               Delete
             </DropdownMenuItem>
@@ -476,7 +476,7 @@ function AlertDialogDeleteReview({
           })()}
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
+          <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
             {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
           </AlertDialogAction>
         </AlertDialogFooter>
@@ -559,15 +559,15 @@ export default function ReviewTable() {
       }}
     >
       <div className="w-full">
-        <div className="flex items-center gap-4 py-4">
+        <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:gap-4">
           <Input
             placeholder="Filter comments..."
             value={(table.getColumn('comment')?.getFilterValue() as string) ?? ''}
             onChange={(event) => table.getColumn('comment')?.setFilterValue(event.target.value)}
-            className="max-w-sm"
+            className="w-full sm:max-w-sm"
           />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full sm:w-[180px]">
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -578,7 +578,7 @@ export default function ReviewTable() {
             </SelectContent>
           </Select>
         </div>
-        <div className="rounded-md border">
+        <div className="overflow-x-auto rounded-md border">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (

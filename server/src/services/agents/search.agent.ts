@@ -115,12 +115,16 @@ export function createSearchAgentTools() {
       execute: async ({ dishName }: { dishName: string }) => {
         const log = getContextLogger()
         try {
-          const dish = await prisma.dish.findFirst({
-            where: {
-              name: { contains: dishName.toLowerCase() },
-              status: 'Available'
-            }
+          const lowerName = dishName.toLowerCase()
+
+          // Exact match first, then partial match
+          const candidates = await prisma.dish.findMany({
+            where: { name: { contains: lowerName }, status: 'Available' },
+            take: 5
           })
+
+          const dish =
+            candidates.find((d) => d.name.toLowerCase() === lowerName) || candidates[0] || null
 
           if (!dish) {
             return { message: `Dish "${dishName}" not found or not currently available.` }
@@ -183,7 +187,7 @@ export function createSearchAgentTools() {
      */
     getPopularDishes: tool({
       description:
-        'Get the most popular dishes ranked by how many times they have been ordered. Use when a customer asks for recommendations, best sellers, or what other people are ordering.',
+        'Get the most popular dishes ranked by how many times they have been ordered. Use when a customer asks for recommendations, best sellers, or what other people are ordering. Returns dish IDs for ordering.',
       inputSchema: z.object({
         limit: z.number().min(1).max(20).optional().default(5).describe('Number of top dishes to return (default 5)')
       }),
@@ -202,19 +206,29 @@ export function createSearchAgentTools() {
             return { message: 'No order data available yet. Try browsing our menu instead!' }
           }
 
-          // Fetch dish details for the popular items
+          // Fetch snapshots
           const snapshotIds = popularItems.map((item) => item.dishSnapshotId)
           const snapshots = await prisma.dishSnapshot.findMany({
             where: { id: { in: snapshotIds } }
           })
-
           const snapshotMap = new Map(snapshots.map((s) => [s.id, s]))
+
+          // Fetch live dish IDs from the snapshot’s dishId reference
+          // so AI can pass dishId when placing an order from popular list
+          const dishIds = snapshots.map((s) => s.dishId).filter(Boolean) as number[]
+          const liveDishes = await prisma.dish.findMany({
+            where: { id: { in: dishIds }, status: 'Available' },
+            select: { id: true, name: true }
+          })
+          const liveNameToId = new Map(liveDishes.map((d) => [d.name.toLowerCase(), d.id]))
 
           return popularItems
             .map((item) => {
               const snap = snapshotMap.get(item.dishSnapshotId)
               if (!snap) return null
+              const liveId = liveNameToId.get(snap.name.toLowerCase()) ?? null
               return {
+                id: liveId,        // dish ID for ordering — pass this as dishId in placeOrder
                 name: snap.name,
                 category: snap.category,
                 price: snap.price,

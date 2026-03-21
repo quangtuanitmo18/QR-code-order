@@ -23,3 +23,21 @@ export const chatRequestSchema = z.object({
 })
 
 export type ChatRequestBody = z.infer<typeof chatRequestSchema>
+
+/** Schema for admin AI HITL execute-action request */
+export const executeActionSchema = z.object({
+  action: z.enum(['admin_cancel_order', 'admin_update_dish']),
+  params: z.object({
+    orderId: z.number().optional(),
+    reason: z.string().optional(),
+    dishId: z.number().optional(),
+    updates: z
+      .object({
+        status: z.enum(['Available', 'Unavailable', 'Hidden']).optional(),
+        price: z.number().optional()
+      })
+      .optional()
+  })
+})
+
+export type ExecuteActionBody = z.infer<typeof executeActionSchema>

@@ -174,13 +174,16 @@ const request = async <Response>(
             removeTokensFromLocalStorage()
             clientLogoutRequest = null
             // Redirect về trang login có thể dẫn đến loop vô hạn
-            // Nếu không không được xử lý đúng cách
-            // Vì nếu rơi vào trường hợp tại trang Login, chúng ta có gọi các API cần access token
-            // Mà access token đã bị xóa thì nó lại nhảy vào đây, và cứ thế nó sẽ bị lặp
+            // Nếu không được xử lý đúng cách
             // Check if already at login page to prevent loop
             const currentPath = window.location.pathname
-            if (!currentPath.includes('/manage/login')) {
+            // Chỉ redirect nếu đang ở các trang cần xác thực (manage hoặc guest)
+            // Nếu ở trang public, chỉ cần xóa token (đã làm ở trên) và không chuyển hướng
+            if (currentPath.includes('/manage') && !currentPath.includes('/manage/login')) {
               location.href = `/${locale}/manage/login`
+            } else if (currentPath.includes('/guest')) {
+              // Guest routes redirect to homepage to re-login
+              location.href = `/${locale}`
             }
           }
         }

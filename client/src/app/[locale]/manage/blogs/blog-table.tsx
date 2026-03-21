@@ -54,7 +54,7 @@ import {
 import { format } from 'date-fns'
 import { Eye, FileEdit, Trash2 } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 
 type BlogPostItem = BlogPostListResType['data'][0]
 
@@ -125,7 +125,7 @@ export const columns: ColumnDef<BlogPostItem>[] = [
           {row.getValue('title')}
         </div>
         {row.original.excerpt && (
-          <div className="line-clamp-2 overflow-hidden text-ellipsis whitespace-nowrap text-xs text-muted-foreground">
+          <div className="line-clamp-2 overflow-hidden text-ellipsis text-xs text-muted-foreground">
             {row.original.excerpt}
           </div>
         )}
@@ -279,7 +279,7 @@ function AlertDialogArchiveBlogPost({
           <AlertDialogTitle>Archive blog post?</AlertDialogTitle>
           <AlertDialogDescription>
             Blog post{' '}
-            <span className="rounded bg-foreground px-1 text-primary-foreground">
+            <span className="rounded bg-muted px-1 font-semibold text-foreground">
               {blogPostArchive?.title}
             </span>{' '}
             will be archived. It will no longer be visible to the public.
@@ -315,9 +315,14 @@ export default function BlogTable() {
   // Local state for debounced search
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
 
+  // Track previous search to avoid pushing URL on mount
+  const prevSearchRef = useRef(searchQuery)
+
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
+      if (prevSearchRef.current === searchQuery) return
+      prevSearchRef.current = searchQuery
       setDebouncedSearch(searchQuery)
       // Update URL with search query
       const params = new URLSearchParams(searchParams.toString())
@@ -331,7 +336,7 @@ export default function BlogTable() {
     }, 500)
 
     return () => clearTimeout(timer)
-  }, [searchQuery, router, searchParams])
+  }, [searchQuery, router]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Fetch data with server-side filters
   const blogPostsQuery = useBlogPostsManageQuery({

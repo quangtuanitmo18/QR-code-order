@@ -32,14 +32,15 @@ import {
   useReactTable,
 } from '@tanstack/react-table'
 import Image from 'next/image'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 type DishItem = DishListResType['data'][0]
 
-export const columns: ColumnDef<DishItem>[] = [
+export const getColumns = (t: any): ColumnDef<DishItem>[] => [
   {
     id: 'dishName',
-    header: 'Dish name',
+    header: t('dishName'),
     cell: ({ row }) => (
       <div className="flex items-center space-x-4">
         <Image
@@ -60,12 +61,12 @@ export const columns: ColumnDef<DishItem>[] = [
   },
   {
     accessorKey: 'price',
-    header: 'Price',
+    header: t('price'),
     cell: ({ row }) => <div className="capitalize">{formatCurrency(row.getValue('price'))}</div>,
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: t('status'),
     cell: ({ row }) => <div>{getDishStatus(row.getValue('status'))}</div>,
   },
 ]
@@ -75,6 +76,8 @@ export function DishesDialog({ onChoose }: { onChoose: (dish: DishItem) => void 
   const [open, setOpen] = useState(false)
   const dishListQuery = useDishListQuery()
   const data = dishListQuery.data?.payload.data ?? []
+  const t = useTranslations('Orders')
+  const columns = useMemo(() => getColumns(t), [t])
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -121,17 +124,17 @@ export function DishesDialog({ onChoose }: { onChoose: (dish: DishItem) => void 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Change</Button>
+        <Button variant="outline">{t('change')}</Button>
       </DialogTrigger>
       <DialogContent className="max-h-full overflow-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Select dish</DialogTitle>
+          <DialogTitle>{t('selectDish')}</DialogTitle>
         </DialogHeader>
         <div>
           <div className="w-full">
             <div className="flex items-center py-4">
               <Input
-                placeholder="Lọc tên"
+                placeholder={t('filterName')}
                 value={(table.getColumn('dishName')?.getFilterValue() as string) ?? ''}
                 onChange={(event) =>
                   table.getColumn('dishName')?.setFilterValue(event.target.value)
@@ -175,7 +178,7 @@ export function DishesDialog({ onChoose }: { onChoose: (dish: DishItem) => void 
                   ) : (
                     <TableRow>
                       <TableCell colSpan={columns.length} className="h-24 text-center">
-                        No results.
+                        {t('noResults')}
                       </TableCell>
                     </TableRow>
                   )}
@@ -184,8 +187,10 @@ export function DishesDialog({ onChoose }: { onChoose: (dish: DishItem) => void 
             </div>
             <div className="flex items-center justify-end space-x-2 py-4">
               <div className="flex-1 py-4 text-xs text-muted-foreground">
-                Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
-                <strong>{data.length}</strong> results
+                {t('showingSummary', {
+                  count: table.getPaginationRowModel().rows.length,
+                  total: data.length,
+                })}
               </div>
 
               <div>

@@ -13,6 +13,7 @@ import { OrderStatusIcon, cn, getOrderStatus } from '@/lib/utils'
 import { TableListResType } from '@/schemaValidations/table.schema'
 import { Users } from 'lucide-react'
 import { Fragment, useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 // Ví dụ:
 // const statics: Statics = {
@@ -51,6 +52,7 @@ export default function OrderStatics({
   tableList: TableListResType['data']
   servingGuestByTableNumber: ServingGuestByTableNumber
 }) {
+  const t = useTranslations('Orders')
   const [selectedTableNumber, setSelectedTableNumber] = useState<number>(0)
   const selectedServingGuest = servingGuestByTableNumber[selectedTableNumber]
   return (
@@ -66,7 +68,7 @@ export default function OrderStatics({
         <DialogContent className="max-h-full overflow-auto">
           {selectedServingGuest && (
             <DialogHeader>
-              <DialogTitle>Customer is seating at table {selectedTableNumber}</DialogTitle>
+              <DialogTitle>{t('customerSeatingAtTable', { tableNumber: selectedTableNumber })}</DialogTitle>
             </DialogHeader>
           )}
           <div>
@@ -151,7 +153,7 @@ export default function OrderStatics({
                         <span className="text-xs sm:text-sm">{servingGuestCount}</span>
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent>Currently serving: {servingGuestCount} Customer</TooltipContent>
+                    <TooltipContent>{t('currentlyServing', { count: servingGuestCount })}</TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
@@ -162,7 +164,7 @@ export default function OrderStatics({
                 })}
               />
               {isEmptyTable && (
-                <div className="flex items-center justify-center text-xs sm:text-sm">Ready</div>
+                <div className="flex items-center justify-center text-xs sm:text-sm">{t('ready')}</div>
               )}
               {!isEmptyTable && (
                 <div className="flex flex-col gap-1 sm:gap-2">
@@ -178,7 +180,7 @@ export default function OrderStatics({
                       </TooltipTrigger>
                       <TooltipContent>
                         {getOrderStatus(OrderStatus.Pending)}:{' '}
-                        {countObject[OrderStatus.Pending] ?? 0} Order
+                        {t('orderCount', { count: countObject[OrderStatus.Pending] ?? 0 })}
                       </TooltipContent>
                     </Tooltip>
 
@@ -193,7 +195,7 @@ export default function OrderStatics({
                       </TooltipTrigger>
                       <TooltipContent>
                         {getOrderStatus(OrderStatus.Processing)}:{' '}
-                        {countObject[OrderStatus.Processing] ?? 0} Order
+                        {t('orderCount', { count: countObject[OrderStatus.Processing] ?? 0 })}
                       </TooltipContent>
                     </Tooltip>
                     <Tooltip>
@@ -207,7 +209,7 @@ export default function OrderStatics({
                       </TooltipTrigger>
                       <TooltipContent>
                         {getOrderStatus(OrderStatus.Delivered)}:{' '}
-                        {countObject[OrderStatus.Delivered] ?? 0} Order
+                        {t('orderCount', { count: countObject[OrderStatus.Delivered] ?? 0 })}
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

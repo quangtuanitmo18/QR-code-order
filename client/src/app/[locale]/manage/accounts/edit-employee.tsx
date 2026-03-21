@@ -33,6 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useTranslations } from 'next-intl'
 
 export default function EditEmployee({
   id,
@@ -73,6 +74,8 @@ export default function EditEmployee({
     }
     return avatar
   }, [file, avatar])
+
+  const t = useTranslations('ManageAccounts')
 
   useEffect(() => {
     if (data) {
@@ -136,8 +139,8 @@ export default function EditEmployee({
     >
       <DialogContent className="max-h-screen overflow-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Update account</DialogTitle>
-          <DialogDescription>Name, email, and password fields are required</DialogDescription>
+          <DialogTitle>{t('updateAccountTitle')}</DialogTitle>
+          <DialogDescription>{t('updateAccountDescription')}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -176,7 +179,7 @@ export default function EditEmployee({
                         onClick={() => avatarInputRef.current?.click()}
                       >
                         <Upload className="h-4 w-4 text-muted-foreground" />
-                        <span className="sr-only">Upload</span>
+                        <span className="sr-only">{t('upload')}</span>
                       </button>
                     </div>
                   </FormItem>
@@ -189,7 +192,7 @@ export default function EditEmployee({
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="name">Name</Label>
+                      <Label htmlFor="name">{t('name')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Input id="name" className="w-full" {...field} />
                         <FormMessage />
@@ -204,7 +207,7 @@ export default function EditEmployee({
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email">{t('email')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Input id="email" className="w-full" {...field} />
                         <FormMessage />
@@ -219,12 +222,12 @@ export default function EditEmployee({
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="role">Role</Label>
+                      <Label htmlFor="role">{t('role')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select a role" />
+                              <SelectValue placeholder={t('selectRole')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -250,7 +253,7 @@ export default function EditEmployee({
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="email">Change password</Label>
+                      <Label htmlFor="changePassword">{t('changePassword')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Switch checked={field.value} onCheckedChange={field.onChange} />
                         <FormMessage />
@@ -266,7 +269,7 @@ export default function EditEmployee({
                   render={({ field }) => (
                     <FormItem>
                       <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                        <Label htmlFor="password">New password</Label>
+                        <Label htmlFor="password">{t('newPassword')}</Label>
                         <div className="col-span-3 w-full space-y-2">
                           <Input id="password" className="w-full" type="password" {...field} />
                           <FormMessage />
@@ -283,7 +286,7 @@ export default function EditEmployee({
                   render={({ field }) => (
                     <FormItem>
                       <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                        <Label htmlFor="confirmPassword">Confirm new password</Label>
+                        <Label htmlFor="confirmPassword">{t('confirmNewPassword')}</Label>
                         <div className="col-span-3 w-full space-y-2">
                           <Input
                             id="confirmPassword"
@@ -303,7 +306,7 @@ export default function EditEmployee({
         </Form>
         <DialogFooter>
           <Button type="submit" form="edit-employee-form">
-            Save
+            {t('save')}
           </Button>
         </DialogFooter>
       </DialogContent>

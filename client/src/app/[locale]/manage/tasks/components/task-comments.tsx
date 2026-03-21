@@ -25,12 +25,14 @@ import { TaskCommentType } from '@/schemaValidations/task-comment.schema'
 import { format } from 'date-fns'
 import { Edit, MessageSquare, Send, Trash2, X } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 interface TaskCommentsProps {
   taskId: number
 }
 
 export function TaskComments({ taskId }: TaskCommentsProps) {
+  const t = useTranslations('Tasks')
   const [newComment, setNewComment] = useState('')
   const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
   const [editingContent, setEditingContent] = useState('')
@@ -49,8 +51,8 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
   const handleCreateComment = async () => {
     if (!newComment.trim()) {
       toast({
-        title: 'Error',
-        description: 'Comment cannot be empty',
+        title: t('error'),
+        description: t('commentEmpty'),
         variant: 'destructive',
       })
       return
@@ -63,8 +65,8 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
       })
       setNewComment('')
       toast({
-        title: 'Success',
-        description: 'Comment added successfully',
+        title: t('success'),
+        description: t('commentAdded'),
       })
     } catch (error) {
       handleErrorApi({ error })
@@ -84,8 +86,8 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
   const handleUpdateComment = async (commentId: number) => {
     if (!editingContent.trim()) {
       toast({
-        title: 'Error',
-        description: 'Comment cannot be empty',
+        title: t('error'),
+        description: t('commentEmpty'),
         variant: 'destructive',
       })
       return
@@ -100,8 +102,8 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
       setEditingCommentId(null)
       setEditingContent('')
       toast({
-        title: 'Success',
-        description: 'Comment updated successfully',
+        title: t('success'),
+        description: t('commentUpdated'),
       })
     } catch (error) {
       handleErrorApi({ error })
@@ -118,8 +120,8 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
       })
       setDeletingCommentId(null)
       toast({
-        title: 'Success',
-        description: 'Comment deleted successfully',
+        title: t('success'),
+        description: t('commentDeleted'),
       })
     } catch (error) {
       handleErrorApi({ error })
@@ -127,20 +129,20 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
   }
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading comments...</div>
+    return <div className="text-sm text-muted-foreground">{t('loadingComments')}</div>
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <MessageSquare className="h-5 w-5" />
-        <h3 className="text-lg font-semibold">Comments ({comments.length})</h3>
+        <h3 className="text-lg font-semibold">{t('comments')} ({comments.length})</h3>
       </div>
 
       {/* Add Comment Form */}
       <div className="space-y-2">
         <Textarea
-          placeholder="Add a comment..."
+          placeholder={t('addComment')}
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           rows={3}
@@ -153,7 +155,7 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
             size="sm"
           >
             <Send className="mr-2 h-4 w-4" />
-            {createMutation.isPending ? 'Posting...' : 'Post Comment'}
+            {createMutation.isPending ? t('posting') : t('postComment')}
           </Button>
         </div>
       </div>
@@ -163,7 +165,7 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
         {comments.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground">
             <MessageSquare className="mx-auto mb-2 h-12 w-12 opacity-50" />
-            <p>No comments yet. Be the first to comment!</p>
+            <p>{t('noComments')}</p>
           </div>
         ) : (
           comments.map((comment) => (
@@ -180,14 +182,14 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" size="sm" onClick={handleCancelEdit}>
                       <X className="mr-2 h-4 w-4" />
-                      Cancel
+                      {t('cancel')}
                     </Button>
                     <Button
                       size="sm"
                       onClick={() => handleUpdateComment(comment.id)}
                       disabled={!editingContent.trim() || updateMutation.isPending}
                     >
-                      {updateMutation.isPending ? 'Saving...' : 'Save'}
+                      {updateMutation.isPending ? t('saving') : t('save')}
                     </Button>
                   </div>
                 </div>
@@ -203,7 +205,7 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
                         </span>
                         {new Date(comment.updatedAt).getTime() !==
                           new Date(comment.createdAt).getTime() && (
-                          <span className="text-xs text-muted-foreground">(edited)</span>
+                          <span className="text-xs text-muted-foreground">{t('edited')}</span>
                         )}
                       </div>
                       <p className="whitespace-pre-wrap text-sm">{comment.content}</p>
@@ -234,18 +236,18 @@ export function TaskComments({ taskId }: TaskCommentsProps) {
       <AlertDialog open={!!deletingCommentId} onOpenChange={() => setDeletingCommentId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Comment</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteComment')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this comment? This action cannot be undone.
+              {t('deleteCommentConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteComment}
               className="bg-destructive text-destructive-foreground"
             >
-              Delete
+              {t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

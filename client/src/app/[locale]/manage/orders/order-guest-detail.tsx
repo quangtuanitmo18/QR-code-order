@@ -13,6 +13,7 @@ import { usePayForGuestMutation } from '@/queries/useOrder'
 import { GetOrdersResType, PayGuestOrdersResType } from '@/schemaValidations/order.schema'
 import Image from 'next/image'
 import { Fragment } from 'react'
+import { useTranslations } from 'next-intl'
 
 type Guest = GetOrdersResType['data'][0]['guest']
 type Orders = GetOrdersResType['data']
@@ -32,6 +33,8 @@ export default function OrderGuestDetail({
     : []
   const paidOrders = guest ? orders.filter((order) => order.status === OrderStatus.Paid) : []
   const payForGuestMutation = usePayForGuestMutation()
+
+  const t = useTranslations('Orders')
 
   // Flatten orders to line items for display
   const orderLines = orders.flatMap((order) =>
@@ -59,15 +62,15 @@ export default function OrderGuestDetail({
       {guest && (
         <Fragment>
           <div className="space-x-1">
-            <span className="font-semibold">Name:</span>
+            <span className="font-semibold">{t('name')}:</span>
             <span>{guest.name}</span>
             <span className="font-semibold">(#{guest.id})</span>
             <span>|</span>
-            <span className="font-semibold">Table:</span>
+            <span className="font-semibold">{t('table')}:</span>
             <span>{guest.tableNumber}</span>
           </div>
           <div className="space-x-1">
-            <span className="font-semibold">Registration Date:</span>
+            <span className="font-semibold">{t('registrationDate')}:</span>
 
             <span>{formatDateTimeToLocaleString(guest.createdAt)}</span>
           </div>
@@ -75,7 +78,7 @@ export default function OrderGuestDetail({
       )}
 
       <div className="space-y-1">
-        <div className="font-semibold">Order:</div>
+        <div className="font-semibold">{t('order')}:</div>
         {orderLines.map(({ order, item }, index) => {
           return (
             <div key={item.id} className="flex items-center gap-2 text-xs">
@@ -109,25 +112,25 @@ export default function OrderGuestDetail({
               <span className="w-[70px] truncate sm:w-[100px]" title={item.dishSnapshot.name}>
                 {item.dishSnapshot.name}
               </span>
-              <span className="font-semibold" title={`Total: ${item.quantity}`}>
+              <span className="font-semibold" title={t('quantityTitle', { count: item.quantity })}>
                 x{item.quantity}
               </span>
               <span className="italic">{formatCurrency(item.totalPrice)}</span>
               <span
                 className="hidden sm:inline"
-                title={`Create: ${formatDateTimeToLocaleString(
-                  order.createdAt
-                )} | Edit: ${formatDateTimeToLocaleString(order.updatedAt)}
-          `}
+                title={t('createEditTime', {
+                  create: formatDateTimeToLocaleString(order.createdAt),
+                  edit: formatDateTimeToLocaleString(order.updatedAt),
+                })}
               >
                 {formatDateTimeToLocaleString(order.createdAt)}
               </span>
               <span
                 className="sm:hidden"
-                title={`Create: ${formatDateTimeToLocaleString(
-                  order.createdAt
-                )} | Edit: ${formatDateTimeToLocaleString(order.updatedAt)}
-          `}
+                title={t('createEditTime', {
+                  create: formatDateTimeToLocaleString(order.createdAt),
+                  edit: formatDateTimeToLocaleString(order.updatedAt),
+                })}
               >
                 {formatDateTimeToTimeString(order.createdAt)}
               </span>
@@ -137,15 +140,16 @@ export default function OrderGuestDetail({
       </div>
 
       <div className="space-x-1">
-        <span className="font-semibold">Unpaid:</span>
+        <span className="font-semibold">{t('unpaid')}:</span>
         <Badge>
           <div className="space-y-0.5">
             {unpaidOrders.some((o) => o.discountAmount && o.discountAmount > 0) && (
               <div className="text-xs text-green-600 dark:text-green-400">
-                -{formatCurrency(
-                  unpaidOrders.reduce((acc, order) => acc + (order.discountAmount || 0), 0)
-                )}{' '}
-                discount
+                -{t('discount', {
+                  discount: formatCurrency(
+                    unpaidOrders.reduce((acc, order) => acc + (order.discountAmount || 0), 0)
+                  )
+                })}
               </div>
             )}
             <span>
@@ -159,15 +163,16 @@ export default function OrderGuestDetail({
         </Badge>
       </div>
       <div className="space-x-1">
-        <span className="font-semibold">Paid:</span>
+        <span className="font-semibold">{t('paid')}:</span>
         <Badge variant={'outline'}>
           <div className="space-y-0.5">
             {paidOrders.some((o) => o.discountAmount && o.discountAmount > 0) && (
               <div className="text-xs text-green-600 dark:text-green-400">
-                -{formatCurrency(
-                  paidOrders.reduce((acc, order) => acc + (order.discountAmount || 0), 0)
-                )}{' '}
-                discount
+                -{t('discount', {
+                  discount: formatCurrency(
+                    paidOrders.reduce((acc, order) => acc + (order.discountAmount || 0), 0)
+                  )
+                })}
               </div>
             )}
             <span>
@@ -189,7 +194,7 @@ export default function OrderGuestDetail({
           disabled={unpaidOrders.length === 0}
           onClick={pay}
         >
-          <span>Pay all ({unpaidOrders.length} orders)</span>
+          <span>{t('payAllOrders', { count: unpaidOrders.length })}</span>
         </Button>
       </div>
     </div>

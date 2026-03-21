@@ -23,12 +23,14 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { useAccountMe } from '@/queries/useAccount'
+import { useTranslations } from 'next-intl'
 
 interface TaskAttachmentsProps {
   taskId: number
 }
 
 export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
+  const t = useTranslations('Tasks')
   const [deletingAttachmentId, setDeletingAttachmentId] = useState<number | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -49,8 +51,8 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
     const maxSize = 10 * 1024 * 1024 // 10MB
     if (file.size > maxSize) {
       toast({
-        title: 'Error',
-        description: 'File size must be less than 10MB',
+        title: t('error'),
+        description: t('fileSizeError'),
         variant: 'destructive',
       })
       return
@@ -62,8 +64,8 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
         file,
       })
       toast({
-        title: 'Success',
-        description: 'File uploaded successfully',
+        title: t('success'),
+        description: t('fileUploaded'),
       })
       // Reset file input
       if (fileInputRef.current) {
@@ -84,8 +86,8 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
       })
       setDeletingAttachmentId(null)
       toast({
-        title: 'Success',
-        description: 'Attachment deleted successfully',
+        title: t('success'),
+        description: t('attachmentDeleted'),
       })
     } catch (error) {
       handleErrorApi({ error })
@@ -101,7 +103,7 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
   }
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading attachments...</div>
+    return <div className="text-sm text-muted-foreground">{t('loadingAttachments')}</div>
   }
 
   return (
@@ -109,7 +111,7 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Paperclip className="h-5 w-5" />
-          <h3 className="text-lg font-semibold">Attachments ({attachments.length})</h3>
+          <h3 className="text-lg font-semibold">{t('attachments')} ({attachments.length})</h3>
         </div>
         <div>
           <input
@@ -127,7 +129,7 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
             variant="outline"
           >
             <Upload className="mr-2 h-4 w-4" />
-            {uploadMutation.isPending ? 'Uploading...' : 'Upload File'}
+            {uploadMutation.isPending ? t('uploading') : t('uploadFile')}
           </Button>
         </div>
       </div>
@@ -137,7 +139,7 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
         {attachments.length === 0 ? (
           <div className="py-8 text-center text-muted-foreground">
             <Paperclip className="mx-auto mb-2 h-12 w-12 opacity-50" />
-            <p>No attachments yet. Upload a file to get started.</p>
+            <p>{t('noAttachments')}</p>
           </div>
         ) : (
           attachments.map((attachment) => (
@@ -192,18 +194,18 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
       <AlertDialog open={!!deletingAttachmentId} onOpenChange={() => setDeletingAttachmentId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Attachment</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteAttachment')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete this attachment? This action cannot be undone.
+              {t('deleteAttachmentConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteAttachment}
               className="bg-destructive text-destructive-foreground"
             >
-              Delete
+              {t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
-import { CheckCircle2, Loader2, MessagesSquare, Send, StopCircle, X, XCircle } from 'lucide-react'
+import { CheckCircle2, Loader2, MessagesSquare, Send, ShoppingCart, AlertTriangle, StopCircle, X, XCircle } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
@@ -98,7 +98,7 @@ export default function AiChatButton() {
         ...prev,
         [toolCallId]: {
           status: 'success',
-          result: data,
+          result: data.result ?? data, // unwrap {success, result} wrapper
         },
       }))
     } catch (error: any) {
@@ -198,7 +198,8 @@ export default function AiChatButton() {
                       <button
                         key={idx}
                         onClick={() => handleSubmit(undefined, t(key))}
-                        className="rounded-lg border bg-card px-4 py-2 text-sm text-card-foreground transition-colors hover:bg-accent"
+                        disabled={isLoading}
+                        className="rounded-lg border bg-card px-4 py-2 text-sm text-card-foreground transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
                         type="button"
                       >
                         {t(key)}
@@ -276,23 +277,45 @@ export default function AiChatButton() {
                             if (isMutationTool && (isInputReady || hitlState)) {
                               // Already executed via REST — show result
                               if (hitlState?.status === 'success') {
+                                const res = hitlState.result
                                 return (
                                   <div
                                     key={toolCallId}
                                     className="my-3 rounded-lg border border-green-500/30 bg-green-500/5 p-4 text-sm shadow-sm"
                                   >
-                                    <h4 className="mb-1 flex items-center gap-2 font-semibold text-green-600">
+                                    <h4 className="mb-2 flex items-center gap-2 font-semibold text-green-600">
                                       <CheckCircle2 className="h-4 w-4" />
                                       {t('actionSuccess')}
                                     </h4>
-                                    <p className="whitespace-pre-wrap text-xs text-muted-foreground">
-                                      {hitlState.result?.message ||
-                                        JSON.stringify(hitlState.result)}
-                                    </p>
+
+                                    {/* placeOrder: show message + item breakdown */}
+                                    {toolName === 'placeOrder' && res?.items ? (
+                                      <div>
+                                        <p className="mb-2 text-xs text-muted-foreground">{res.message}</p>
+                                        <ul className="mb-2 space-y-1">
+                                          {res.items.map((item: { name: string; quantity: number; unitPrice: number; subtotal: number }, idx: number) => (
+                                            <li key={idx} className="flex items-center justify-between rounded-md bg-background/60 px-3 py-1.5 text-xs">
+                                              <span className="font-medium">{item.name} <span className="text-muted-foreground">× {item.quantity}</span></span>
+                                              <span>${item.unitPrice}</span>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                        {res.totalAmount != null && (
+                                          <p className="text-right text-xs font-semibold text-green-700">
+                                            Total: ${res.totalAmount}
+                                          </p>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <p className="text-xs text-muted-foreground">
+                                        {res?.message ?? t('actionSuccess')}
+                                      </p>
+                                    )}
                                   </div>
                                 )
                               }
                               if (hitlState?.status === 'error' || hitlState?.status === 'denied') {
+                                const input = (part as any).input
                                 return (
                                   <div
                                     key={toolCallId}
@@ -304,10 +327,19 @@ export default function AiChatButton() {
                                         ? t('actionDenied')
                                         : t('actionFailed')}
                                     </h4>
-                                    {hitlState.error && hitlState.status !== 'denied' && (
-                                      <p className="text-xs text-muted-foreground">
-                                        {hitlState.error}
-                                      </p>
+                                    {hitlState.error && (
+                                      <p className="mb-3 text-xs text-muted-foreground">{hitlState.error}</p>
+                                    )}
+                                    {/* Retry button — only for actual errors, not user-denied */}
+                                    {hitlState.status === 'error' && (
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="w-full text-xs"
+                                        onClick={() => handleAction(toolCallId, toolName, input)}
+                                      >
+                                        {t('retryAction')}
+                                      </Button>
                                     )}
                                   </div>
                                 )
@@ -328,32 +360,65 @@ export default function AiChatButton() {
 
                               // Pending confirmation — show card with Approve/Deny buttons
                               const input = (part as any).input
+                              const isDestructiveAction = toolName === 'cancelOrder'
                               return (
                                 <div
                                   key={toolCallId}
-                                  className="my-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm shadow-sm"
+                                  className={`my-3 rounded-lg border p-4 text-sm shadow-sm ${
+                                    isDestructiveAction
+                                      ? 'border-destructive/30 bg-destructive/5'
+                                      : 'border-green-500/30 bg-green-500/5'
+                                  }`}
                                 >
-                                  <h4 className="mb-2 flex items-center gap-2 font-semibold text-destructive">
-                                    <XCircle className="h-4 w-4" />
+                                  <h4
+                                    className={`mb-2 flex items-center gap-2 font-semibold ${
+                                      isDestructiveAction ? 'text-destructive' : 'text-green-600'
+                                    }`}
+                                  >
+                                    {isDestructiveAction ? (
+                                      <AlertTriangle className="h-4 w-4" />
+                                    ) : (
+                                      <ShoppingCart className="h-4 w-4" />
+                                    )}
                                     {t('confirmTitle')}
                                   </h4>
-                                  <p className="mb-4 text-muted-foreground">
-                                    {toolName === 'placeOrder' &&
-                                      t('confirmPlaceOrder', { count: input?.items?.length || 0 })}
-                                    {toolName === 'cancelOrder' &&
-                                      t('confirmCancelOrder', { orderId: input?.orderId })}
-                                    {toolName === 'applyCoupon' &&
-                                      t('confirmApplyCoupon', {
-                                        couponCode: input?.couponCode,
-                                        orderId: input?.orderId,
-                                      })}
-                                  </p>
+
+                                  {/* Confirmation body — show item details for placeOrder */}
+                                  {toolName === 'placeOrder' && input?.items?.length > 0 ? (
+                                    <div className="mb-4">
+                                      <p className="mb-2 text-xs font-medium text-muted-foreground">
+                                        {t('confirmPlaceOrder', { count: input.items.length })}
+                                      </p>
+                                      <ul className="space-y-1">
+                                        {input.items.map((item: { dishName: string; quantity: number }, idx: number) => (
+                                          <li key={idx} className="flex items-center justify-between rounded-md bg-background/60 px-3 py-1.5 text-xs">
+                                            <span className="font-medium">{item.dishName}</span>
+                                            <span className="text-muted-foreground">× {item.quantity}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </div>
+                                  ) : (
+                                    <p className="mb-4 text-muted-foreground">
+                                      {toolName === 'cancelOrder' &&
+                                        t('confirmCancelOrder', { orderId: input?.orderId })}
+                                      {toolName === 'applyCoupon' &&
+                                        t('confirmApplyCoupon', {
+                                          couponCode: input?.couponCode,
+                                          orderId: input?.orderId,
+                                        })}
+                                    </p>
+                                  )}
 
                                   <div className="flex gap-2">
                                     <Button
                                       size="sm"
-                                      variant="destructive"
-                                      className="w-full"
+                                      variant={isDestructiveAction ? 'destructive' : 'default'}
+                                      className={`w-full ${
+                                        !isDestructiveAction
+                                          ? 'bg-green-600 text-white hover:bg-green-700'
+                                          : ''
+                                      }`}
                                       onClick={() => handleAction(toolCallId, toolName, input)}
                                     >
                                       {t('confirmApprove')}
@@ -405,12 +470,10 @@ export default function AiChatButton() {
                 </div>
               ))}
 
-              {/* Loading indicator */}
-              {isLoading &&
-                messages.length > 0 &&
-                messages[messages.length - 1]?.role === 'user' && (
-                  <div className="flex justify-start">
-                    <div className="max-w-[85%] rounded-2xl bg-muted px-4 py-2 text-sm">
+              {/* Loading indicator — show whenever AI is streaming, regardless of last message role */}
+              {isLoading && messages.length > 0 && (
+                <div className="flex justify-start">
+                  <div className="max-w-[85%] rounded-2xl bg-muted px-4 py-2 text-sm">
                       <span className="flex items-center gap-2">
                         <Loader2 className="h-3 w-3 animate-spin" />
                         {t('loading')}

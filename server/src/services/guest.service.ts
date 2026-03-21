@@ -3,6 +3,7 @@ import { DishStatus, OrderStatus, Role, TableStatus } from '@/constants/type'
 import prisma from '@/database'
 import { guestRepository } from '@/repositories/guest.repository'
 import { GuestCreateOrdersBodyType, GuestLoginBodyType } from '@/schemaValidations/guest.schema'
+import { hybridRagService } from '@/services/hybrid-rag.service'
 import { TokenPayload } from '@/types/jwt.types'
 import { AuthError } from '@/utils/errors'
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '@/utils/jwt'
@@ -267,6 +268,79 @@ export const guestService = {
           )
         }
         dish = exactMatches[0]
+      }
+
+      orderItems.push({ dishId: dish.id, quantity: item.quantity })
+      resolvedDishes.push({ name: dish.name, price: dish.price, quantity: item.quantity })
+    }
+
+    const orders = await this.createOrders(guestId, orderItems)
+    const createdOrder = orders[0]
+
+    return {
+      message: 'Order placed successfully! 🎉',
+      orderId: createdOrder.id,
+      status: createdOrder.status,
+      items: resolvedDishes.map((d) => ({
+        name: d.name,
+        quantity: d.quantity,
+        unitPrice: d.price,
+        subtotal: d.price * d.quantity
+      })),
+      totalAmount: createdOrder.totalAmount
+    }
+  },
+
+  /**
+   * Place an order by dish ID (preferred AI HITL flow).
+   * Uses dishId for reliable lookup, falls back to name-based search if no ID provided.
+   * Fixes the bug where AI uses translated/semantic names that don't match DB names
+   * (e.g. "Salad Rau Trộn" from ChromaDB vs "Mixed Green Salad" in the DB).
+   */
+  async placeOrderById(guestId: number, items: Array<{ dishId?: number; dishName: string; quantity: number }>) {
+    const orderItems: Array<{ dishId: number; quantity: number }> = []
+    const resolvedDishes: Array<{ name: string; price: number; quantity: number }> = []
+
+    for (const item of items) {
+      let dish = null
+
+      // ID-first: reliable even when AI uses translated/semantic names
+      if (item.dishId) {
+        dish = await prisma.dish.findFirst({
+          where: { id: item.dishId, status: 'Available' }
+        })
+      }
+
+      // Fallback 2: name-based SQL lookup (works for exact English names)
+      if (!dish) {
+        const matches = await prisma.dish.findMany({
+          where: { name: { contains: item.dishName.toLowerCase() }, status: 'Available' },
+          take: 10
+        })
+
+        dish = matches.find((d) => d.name.toLowerCase() === item.dishName.toLowerCase()) || null
+
+        if (!dish && matches.length === 1) {
+          dish = matches[0] // Accept single partial match
+        }
+
+        // Fallback 3: semantic search (handles translated/multilingual names like "Salad Trộn" → "Mixed Green Salad")
+        if (!dish) {
+          const semanticResults = await hybridRagService.searchMenu(item.dishName).catch(() => [])
+          const topMatch = semanticResults[0]
+
+          if (topMatch && topMatch.id) {
+            dish = await prisma.dish.findFirst({
+              where: { id: topMatch.id, status: 'Available' }
+            })
+          }
+
+          if (!dish) {
+            throw new Error(
+              `Could not find dish "${item.dishName}". Please search the menu first and ensure the dish name is correct.`
+            )
+          }
+        }
       }
 
       orderItems.push({ dishId: dish.id, quantity: item.quantity })

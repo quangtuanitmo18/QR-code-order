@@ -14,6 +14,7 @@ import {
 import { useRouter } from '@/i18n/routing'
 import { useBlogPostsQuery } from '@/queries/useBlog'
 import type { GetBlogPostsPublicQueryType } from '@/schemaValidations/blog-post.schema'
+import { useTranslations } from 'next-intl'
 import { useParams, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 
@@ -22,6 +23,7 @@ function BlogListContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const locale = params.locale as string
+  const t = useTranslations('Blog')
 
   // Get query params from URL
   const page = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1
@@ -37,18 +39,22 @@ function BlogListContent() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(searchQuery)
-      const newParams = new URLSearchParams(searchParams.toString())
-      if (searchQuery) {
-        newParams.set('search', searchQuery)
-      } else {
-        newParams.delete('search')
+      
+      const currentUrlSearch = searchParams.get('search') || ''
+      if (searchQuery !== currentUrlSearch) {
+        const newParams = new URLSearchParams(searchParams.toString())
+        if (searchQuery) {
+          newParams.set('search', searchQuery)
+        } else {
+          newParams.delete('search')
+        }
+        newParams.set('page', '1')
+        router.push(`/blogs?${newParams.toString()}`, { scroll: false })
       }
-      newParams.set('page', '1')
-      router.push(`/blogs?${newParams.toString()}`)
     }, 500)
 
     return () => clearTimeout(timer)
-  }, [searchQuery, router, locale, searchParams])
+  }, [searchQuery, router, searchParams])
 
   const query: GetBlogPostsPublicQueryType = {
     page,
@@ -107,7 +113,7 @@ function BlogListContent() {
   if (blogPostsQuery.isError) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="text-destructive">Failed to load blog posts</div>
+        <div className="text-destructive">{t('failedToLoad')}</div>
       </div>
     )
   }
@@ -120,27 +126,27 @@ function BlogListContent() {
       {/* Filters */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
         <Input
-          placeholder="Search blog posts..."
+          placeholder={t('searchPlaceholder')}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full sm:max-w-sm"
         />
         <Select value={category || 'all'} onValueChange={handleCategoryChange}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="All Categories" />
+            <SelectValue placeholder={t('allCategories')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Categories</SelectItem>
+            <SelectItem value="all">{t('allCategories')}</SelectItem>
             {/* Categories will be populated dynamically if needed */}
           </SelectContent>
         </Select>
         <Select value={featured ? 'featured' : 'all'} onValueChange={handleFeaturedChange}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="All Posts" />
+            <SelectValue placeholder={t('allPosts')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Posts</SelectItem>
-            <SelectItem value="featured">Featured Only</SelectItem>
+            <SelectItem value="all">{t('allPosts')}</SelectItem>
+            <SelectItem value="featured">{t('featuredOnly')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -148,7 +154,7 @@ function BlogListContent() {
       {/* Blog Posts Grid */}
       {data.length === 0 ? (
         <div className="flex items-center justify-center py-12">
-          <div className="text-muted-foreground">No blog posts found</div>
+          <div className="text-muted-foreground">{t('noPostsFound')}</div>
         </div>
       ) : (
         <>
@@ -170,10 +176,10 @@ function BlogListContent() {
                   router.push(`/blogs?${newParams.toString()}`)
                 }}
               >
-                Previous
+                {t('previous')}
               </Button>
               <span className="text-sm text-muted-foreground">
-                Page {page} of {pagination.totalPages}
+                {t('pageOf', { current: page, total: pagination.totalPages })}
               </span>
               <Button
                 variant="outline"
@@ -184,7 +190,7 @@ function BlogListContent() {
                   router.push(`/blogs?${newParams.toString()}`)
                 }}
               >
-                Next
+                {t('next')}
               </Button>
             </div>
           )}

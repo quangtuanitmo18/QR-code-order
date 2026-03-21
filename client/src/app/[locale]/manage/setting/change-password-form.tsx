@@ -14,6 +14,7 @@ import {
   setAccessTokenToLocalStorage,
   setRefreshTokenToLocalStorage,
 } from '@/lib/utils'
+import { useTranslations } from 'next-intl'
 
 export default function ChangePasswordForm() {
   const changePasswordMutation = useChangePasswordMutation()
@@ -25,6 +26,7 @@ export default function ChangePasswordForm() {
       confirmPassword: '',
     },
   })
+  const t = useTranslations('Setting')
   const onSubmit = async (data: ChangePasswordBodyType) => {
     if (changePasswordMutation.isPending) return
     try {
@@ -56,7 +58,7 @@ export default function ChangePasswordForm() {
       >
         <Card className="overflow-hidden" x-chunk="dashboard-07-chunk-4">
           <CardHeader>
-            <CardTitle>Change password</CardTitle>
+            <CardTitle>{t('changePassword')}</CardTitle>
             {/* <CardDescription>Lipsum dolor sit amet, consectetur adipiscing elit</CardDescription> */}
           </CardHeader>
           <CardContent>
@@ -67,7 +69,7 @@ export default function ChangePasswordForm() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid gap-3">
-                      <Label htmlFor="oldPassword">Old password</Label>
+                      <Label htmlFor="oldPassword">{t('oldPassword')}</Label>
                       <Input
                         autoComplete="current-password"
                         id="oldPassword"
@@ -86,7 +88,7 @@ export default function ChangePasswordForm() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid gap-3">
-                      <Label htmlFor="password">New password</Label>
+                      <Label htmlFor="password">{t('newPassword')}</Label>
                       <Input
                         autoComplete="new-password"
                         id="password"
@@ -105,7 +107,7 @@ export default function ChangePasswordForm() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid gap-3">
-                      <Label htmlFor="confirmPassword">Confirm new password</Label>
+                      <Label htmlFor="confirmPassword">{t('confirmNewPassword')}</Label>
                       <Input
                         autoComplete="new-password"
                         id="confirmPassword"
@@ -120,10 +122,10 @@ export default function ChangePasswordForm() {
               />
               <div className="flex items-center gap-2 md:ml-auto">
                 <Button variant="outline" size="sm" type="reset">
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button size="sm" type="submit">
-                  Save
+                  {t('save')}
                 </Button>
               </div>
             </div>

@@ -17,8 +17,10 @@ import { TaskComments } from './components/task-comments'
 import { TaskForm } from './components/task-form'
 import { TaskStatistics } from './components/task-statistics'
 import { TaskTable } from './components/task-table'
+import { useTranslations } from 'next-intl'
 
 export default function TasksClient() {
+  const t = useTranslations('Tasks')
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingTaskId, setEditingTaskId] = useState<number | null>(null)
   const [isViewingTask, setIsViewingTask] = useState(false)
@@ -82,11 +84,11 @@ export default function TasksClient() {
       <Dialog open={isFormOpen} onOpenChange={handleCloseForm}>
         <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingTaskId ? 'Edit Task' : 'Create New Task'}</DialogTitle>
+            <DialogTitle>{editingTaskId ? t('editTask') : t('createNewTask')}</DialogTitle>
             <DialogDescription>
               {editingTaskId
-                ? 'Update task details'
-                : 'Create a new task and assign it to a team member'}
+                ? t('updateTaskDetails')
+                : t('createTaskDesc')}
             </DialogDescription>
           </DialogHeader>
           <TaskForm task={editingTask} onClose={handleCloseForm} />
@@ -97,40 +99,40 @@ export default function TasksClient() {
       <Dialog open={isViewingTask} onOpenChange={handleCloseView}>
         <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{viewingTask?.title || 'Task Details'}</DialogTitle>
-            <DialogDescription>View task details, comments, and attachments</DialogDescription>
+            <DialogTitle>{viewingTask?.title || t('taskDetails')}</DialogTitle>
+            <DialogDescription>{t('viewTaskDetails')}</DialogDescription>
           </DialogHeader>
           {viewingTask && (
             <Tabs defaultValue="details" className="w-full">
               <TabsList>
-                <TabsTrigger value="details">Details</TabsTrigger>
-                <TabsTrigger value="comments">Comments</TabsTrigger>
-                <TabsTrigger value="attachments">Attachments</TabsTrigger>
+                <TabsTrigger value="details">{t('details')}</TabsTrigger>
+                <TabsTrigger value="comments">{t('comments')}</TabsTrigger>
+                <TabsTrigger value="attachments">{t('attachments')}</TabsTrigger>
               </TabsList>
               <TabsContent value="details" className="space-y-4">
                 <div className="space-y-4">
                   <div>
-                    <h3 className="mb-2 font-semibold">Description</h3>
+                    <h3 className="mb-2 font-semibold">{t('taskDescription')}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {viewingTask.description || 'No description provided'}
+                      {viewingTask.description || t('noDescription')}
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <h3 className="mb-2 font-semibold">Status</h3>
+                      <h3 className="mb-2 font-semibold">{t('status')}</h3>
                       <p className="text-sm">{viewingTask.status}</p>
                     </div>
                     <div>
-                      <h3 className="mb-2 font-semibold">Category</h3>
+                      <h3 className="mb-2 font-semibold">{t('category')}</h3>
                       <p className="text-sm">{viewingTask.category}</p>
                     </div>
                     <div>
-                      <h3 className="mb-2 font-semibold">Priority</h3>
+                      <h3 className="mb-2 font-semibold">{t('priority')}</h3>
                       <p className="text-sm">{viewingTask.priority}</p>
                     </div>
                     <div>
-                      <h3 className="mb-2 font-semibold">Assigned To</h3>
-                      <p className="text-sm">{viewingTask.assignedTo?.name || 'Unassigned'}</p>
+                      <h3 className="mb-2 font-semibold">{t('assignedTo')}</h3>
+                      <p className="text-sm">{viewingTask.assignedTo?.name || t('unassigned')}</p>
                     </div>
                   </div>
                   <div className="flex gap-4">
@@ -141,7 +143,7 @@ export default function TasksClient() {
                       }}
                       variant="outline"
                     >
-                      Edit Task
+                      {t('editTask')}
                     </Button>
                   </div>
                 </div>

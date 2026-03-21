@@ -29,6 +29,7 @@ import { UpdateTableBody, UpdateTableBodyType } from '@/schemaValidations/table.
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslations } from 'next-intl'
 
 export default function EditTable({
   id,
@@ -39,6 +40,7 @@ export default function EditTable({
   setId: (value: number | undefined) => void
   onSubmitSuccess?: () => void
 }) {
+  const t = useTranslations('Tables')
   const updateTableMutation = useUpdateTableMutation()
 
   const form = useForm<UpdateTableBodyType>({
@@ -103,7 +105,7 @@ export default function EditTable({
         }}
       >
         <DialogHeader>
-          <DialogTitle>Edit table</DialogTitle>
+          <DialogTitle>{t('editTable')}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -115,7 +117,7 @@ export default function EditTable({
             <div className="grid gap-4 py-4">
               <FormItem>
                 <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                  <Label htmlFor="name">Table number</Label>
+                  <Label htmlFor="name">{t('tableNumber')}</Label>
                   <div className="col-span-3 w-full space-y-2">
                     <Input
                       id="number"
@@ -134,7 +136,7 @@ export default function EditTable({
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="price">Capacity</Label>
+                      <Label htmlFor="price">{t('capacity')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Input id="capacity" className="w-full" {...field} type="number" />
                         <FormMessage />
@@ -149,12 +151,12 @@ export default function EditTable({
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="description">Status</Label>
+                      <Label htmlFor="description">{t('status')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
+                              <SelectValue placeholder={t('selectStatus')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -178,7 +180,7 @@ export default function EditTable({
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="price">Change QR Code</Label>
+                      <Label htmlFor="price">{t('changeQRCode')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <div className="flex items-center space-x-2">
                           <Switch
@@ -196,7 +198,7 @@ export default function EditTable({
               />
               <FormItem>
                 <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                  <Label>QR Code</Label>
+                  <Label>{t('qrCode')}</Label>
                   <div className="col-span-3 w-full space-y-2">
                     {data && (
                       <QRCodeTable
@@ -209,7 +211,7 @@ export default function EditTable({
               </FormItem>
               <FormItem>
                 <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                  <Label>Order URL</Label>
+                  <Label>{t('orderUrl')}</Label>
                   <div className="col-span-3 w-full space-y-2">
                     {data && (
                       <Link
@@ -234,7 +236,7 @@ export default function EditTable({
         </Form>
         <DialogFooter>
           <Button type="submit" form="edit-table-form">
-            Save
+            {t('save')}
           </Button>
         </DialogFooter>
       </DialogContent>

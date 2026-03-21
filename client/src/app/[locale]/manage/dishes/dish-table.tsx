@@ -51,7 +51,8 @@ import {
 } from '@tanstack/react-table'
 import DOMPurify from 'dompurify'
 import { useSearchParams } from 'next/navigation'
-import { Suspense, createContext, useContext, useEffect, useState } from 'react'
+import { Suspense, createContext, useContext, useEffect, useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 
 type DishItem = DishListResType['data'][0]
 
@@ -67,14 +68,14 @@ const DishTableContext = createContext<{
   setDishDelete: (value: DishItem | null) => {},
 })
 
-export const columns: ColumnDef<DishItem>[] = [
+export const getColumns = (t: any): ColumnDef<DishItem>[] => [
   {
     accessorKey: 'id',
-    header: 'ID',
+    header: t('id'),
   },
   {
     accessorKey: 'image',
-    header: 'Image',
+    header: t('image'),
     cell: ({ row }) => (
       <div>
         <Avatar className="aspect-square h-[100px] w-[100px] rounded-md object-cover">
@@ -86,21 +87,21 @@ export const columns: ColumnDef<DishItem>[] = [
   },
   {
     accessorKey: 'name',
-    header: 'Name',
+    header: t('name'),
     cell: ({ row }) => <div className="capitalize">{row.getValue('name')}</div>,
   },
   {
     accessorKey: 'price',
-    header: 'Price',
+    header: t('price'),
     cell: ({ row }) => <div className="capitalize">{formatCurrency(row.getValue('price'))}</div>,
   },
   {
     accessorKey: 'description',
-    header: 'Description',
+    header: t('descriptionLabel'),
     cell: ({ row }) => (
       <div
         dangerouslySetInnerHTML={{
-          __html: DOMPurify.sanitize(row.getValue('description')),
+          __html: DOMPurify.sanitize(row.getValue('description') || ''),
         }}
         className="whitespace-pre-line"
       />
@@ -108,12 +109,12 @@ export const columns: ColumnDef<DishItem>[] = [
   },
   {
     accessorKey: 'category',
-    header: 'Category',
+    header: t('category'),
     cell: ({ row }) => <div>{row.getValue('category')}</div>,
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: t('status'),
     cell: ({ row }) => <div>{getDishStatus(row.getValue('status'))}</div>,
   },
   {
@@ -137,10 +138,10 @@ export const columns: ColumnDef<DishItem>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={openEditDish}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={openDeleteDish}>Delete</DropdownMenuItem>
+            <DropdownMenuItem onClick={openEditDish}>{t('edit')}</DropdownMenuItem>
+            <DropdownMenuItem onClick={openDeleteDish}>{t('delete')}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -151,9 +152,11 @@ export const columns: ColumnDef<DishItem>[] = [
 function AlertDialogDeleteDish({
   dishDelete,
   setDishDelete,
+  t,
 }: {
   dishDelete: DishItem | null
   setDishDelete: (value: DishItem | null) => void
+  t: any
 }) {
   const { mutateAsync } = useDeleteDishMutation()
   const deleteDish = async () => {
@@ -182,18 +185,14 @@ function AlertDialogDeleteDish({
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete dish?</AlertDialogTitle>
+          <AlertDialogTitle>{t('deleteDish')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Dish{' '}
-            <span className="rounded bg-foreground px-1 text-primary-foreground">
-              {dishDelete?.name}
-            </span>{' '}
-            will be permanently deleted.
+            {t('deleteConfirm', { name: dishDelete?.name })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={deleteDish}>Continue</AlertDialogAction>
+          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+          <AlertDialogAction onClick={deleteDish}>{t('continue')}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -210,6 +209,7 @@ export default function DishTable() {
 }
 
 function DishTableInner() {
+  const t = useTranslations('Dishes')
   const searchParam = useSearchParams()
   const page = searchParam.get('page') ? Number(searchParam.get('page')) : 1
   const pageIndex = page - 1
@@ -225,6 +225,8 @@ function DishTableInner() {
     pageIndex, // Gía trị mặc định ban đầu, không có ý nghĩa khi data được fetch bất đồng bộ
     pageSize: PAGE_SIZE, //default page size
   })
+
+  const columns = useMemo(() => getColumns(t), [t])
 
   const table = useReactTable({
     data,
@@ -259,12 +261,12 @@ function DishTableInner() {
     <DishTableContext.Provider value={{ dishIdEdit, setDishIdEdit, dishDelete, setDishDelete }}>
       <div className="w-full space-y-3 sm:space-y-4">
         <EditDish id={dishIdEdit} setId={setDishIdEdit} />
-        <AlertDialogDeleteDish dishDelete={dishDelete} setDishDelete={setDishDelete} />
+        <AlertDialogDeleteDish dishDelete={dishDelete} setDishDelete={setDishDelete} t={t} />
 
         {/* Filter and Add button */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:py-4">
           <Input
-            placeholder="Filter name..."
+            placeholder={t('filterName')}
             value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
             onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
             className="w-full sm:max-w-sm"
@@ -306,7 +308,7 @@ function DishTableInner() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
+                    {t('noResults')}
                   </TableCell>
                 </TableRow>
               )}
@@ -317,8 +319,8 @@ function DishTableInner() {
         {/* Pagination */}
         <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2 sm:py-4">
           <div className="text-center text-xs text-muted-foreground sm:flex-1 sm:text-left">
-            Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
-            <strong>{data.length}</strong> results
+            {t('showing')} <strong>{table.getPaginationRowModel().rows.length}</strong> {t('of')}{' '}
+            <strong>{data.length}</strong> {t('results')}
           </div>
 
           <div className="flex justify-center">

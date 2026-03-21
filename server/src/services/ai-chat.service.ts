@@ -230,7 +230,8 @@ class AiChatService {
         system: effectiveSystemPrompt,
         messages: modelMessages,
         tools: Object.keys(agentTools).length > 0 ? agentTools : undefined,
-        stopWhen: stepCountIs(5),
+        stopWhen: stepCountIs(8),
+
         abortSignal: abortController.signal,
         onFinish: async (event) => {
           clearTimeout(timeout)

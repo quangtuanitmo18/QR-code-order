@@ -48,6 +48,7 @@ import { debounce } from 'lodash'
 import { Edit, MessageSquare, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { categories, priorities, statuses } from '../data/constants'
+import { useTranslations } from 'next-intl'
 
 interface TaskTableProps {
   onNewTask: () => void
@@ -56,6 +57,7 @@ interface TaskTableProps {
 }
 
 export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps) {
+  const t = useTranslations('Tasks')
   // Server-side state
   const [filters, setFilters] = useState<GetTasksQueryParamsType>({
     page: 1,
@@ -133,8 +135,8 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
     try {
       await deleteMutation.mutateAsync(deletingTask.id)
       toast({
-        title: 'Success',
-        description: 'Task deleted successfully',
+        title: t('success'),
+        description: t('taskDeleted'),
       })
       setDeletingTask(null)
     } catch (error) {
@@ -163,7 +165,7 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
             <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
               {/* Search Input */}
               <Input
-                placeholder="Search by title..."
+                placeholder={t('searchByTitle')}
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 className="w-full sm:max-w-sm"
@@ -178,7 +180,7 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="all">{t('allStatus')}</SelectItem>
                   {statuses.map((status) => (
                     <SelectItem key={status.value} value={status.value}>
                       {status.label}
@@ -196,7 +198,7 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
+                  <SelectItem value="all">{t('allCategories')}</SelectItem>
                   {categories.map((category) => (
                     <SelectItem key={category.value} value={category.value}>
                       {category.label}
@@ -214,7 +216,7 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
                   <SelectValue placeholder="Priority" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Priorities</SelectItem>
+                  <SelectItem value="all">{t('allPriorities')}</SelectItem>
                   {priorities.map((priority) => (
                     <SelectItem key={priority.value} value={priority.value}>
                       {priority.label}
@@ -228,7 +230,7 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
             <div className="sm:ml-auto">
               <Button onClick={onNewTask}>
                 <Plus className="mr-2 h-4 w-4" />
-                New Task
+                {t('newTask')}
               </Button>
             </div>
           </div>
@@ -239,14 +241,14 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Priority</TableHead>
-                <TableHead>Assigned To</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Created At</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t('taskTitle')}</TableHead>
+                <TableHead>{t('status')}</TableHead>
+                <TableHead>{t('category')}</TableHead>
+                <TableHead>{t('priority')}</TableHead>
+                <TableHead>{t('assignedTo')}</TableHead>
+                <TableHead>{t('dueDate')}</TableHead>
+                <TableHead>{t('createdAt')}</TableHead>
+                <TableHead className="text-right">{t('actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -277,7 +279,7 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
                         {priorities.find((p) => p.value === task.priority)?.label || task.priority}
                       </Badge>
                     </TableCell>
-                    <TableCell>{task.assignedTo ? task.assignedTo.name : 'Unassigned'}</TableCell>
+                    <TableCell>{task.assignedTo ? task.assignedTo.name : t('unassigned')}</TableCell>
                     <TableCell>
                       {task.dueDate ? format(new Date(task.dueDate), 'MMM dd, yyyy') : '-'}
                     </TableCell>
@@ -290,24 +292,24 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                          <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           {onViewTask && (
                             <DropdownMenuItem onClick={() => onViewTask(task)}>
                               <MessageSquare className="mr-2 h-4 w-4" />
-                              View Details
+                              {t('viewDetails')}
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem onClick={() => onEditTask(task)}>
                             <Edit className="mr-2 h-4 w-4" />
-                            Edit
+                            {t('edit')}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive"
                             onClick={() => setDeletingTask(task)}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
+                            {t('delete')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -317,7 +319,7 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
               ) : (
                 <TableRow>
                   <TableCell colSpan={8} className="h-24 text-center">
-                    No tasks found.
+                    {t('noTasksFound')}
                   </TableCell>
                 </TableRow>
               )}
@@ -328,9 +330,11 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
         {/* Pagination */}
         {pagination.totalPages > 0 && (
           <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2 sm:py-4">
-            <div className="text-center text-xs text-muted-foreground sm:flex-1 sm:text-left">
-              Showing <strong>{tasks.length}</strong> of <strong>{pagination.total}</strong> results
-            </div>
+            <div className="text-center text-xs text-muted-foreground sm:flex-1 sm:text-left"
+              dangerouslySetInnerHTML={{
+                __html: t('showingResults', { count: `<strong>${tasks.length}</strong>`, total: `<strong>${pagination.total}</strong>` }),
+              }}
+            />
             <div className="flex justify-center">
               <AutoPagination
                 page={pagination.page}
@@ -347,19 +351,18 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
       <AlertDialog open={!!deletingTask} onOpenChange={() => setDeletingTask(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Task</AlertDialogTitle>
+            <AlertDialogTitle>{t('deleteTask')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{deletingTask?.title}&quot;? This action cannot
-              be undone.
+              {t('deleteTaskConfirm', { title: deletingTask?.title || '' })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               className="bg-destructive text-destructive-foreground"
             >
-              Delete
+              {t('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

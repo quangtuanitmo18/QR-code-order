@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useAccountMe, useUpdateMeMutation } from '@/queries/useAccount'
 import { useUploadMediaMutation } from '@/queries/useMedia'
 import { toast } from '@/components/ui/use-toast'
@@ -28,6 +29,7 @@ export default function UpdateProfileForm() {
       avatar: undefined,
     },
   })
+  const t = useTranslations('Setting')
 
   const avatar = form.watch('avatar')
   const name = form.watch('name')
@@ -91,7 +93,7 @@ export default function UpdateProfileForm() {
       >
         <Card x-chunk="dashboard-07-chunk-0">
           <CardHeader>
-            <CardTitle>Profile</CardTitle>
+            <CardTitle>{t('profile')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid gap-6">
@@ -124,7 +126,7 @@ export default function UpdateProfileForm() {
                         onClick={() => avatarInputRef.current?.click()}
                       >
                         <Upload className="h-4 w-4 text-muted-foreground" />
-                        <span className="sr-only">Upload</span>
+                        <span className="sr-only">{t('upload')}</span>
                       </button>
                     </div>
                   </FormItem>
@@ -137,7 +139,7 @@ export default function UpdateProfileForm() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid gap-3">
-                      <Label htmlFor="name">Name</Label>
+                      <Label htmlFor="name">{t('name')}</Label>
                       <Input id="name" type="text" className="w-full" {...field} />
                       <FormMessage />
                     </div>
@@ -147,10 +149,10 @@ export default function UpdateProfileForm() {
 
               <div className="flex items-center gap-2 md:ml-auto">
                 <Button variant="outline" size="sm" type="reset">
-                  Cancel
+                  {t('cancel')}
                 </Button>
                 <Button size="sm" type="submit">
-                  Save
+                  {t('save')}
                 </Button>
               </div>
             </div>

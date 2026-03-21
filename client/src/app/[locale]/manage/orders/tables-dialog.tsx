@@ -15,7 +15,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import AutoPagination from '@/components/auto-pagination'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -36,10 +37,10 @@ import { useTableListQuery } from '@/queries/useTable'
 
 type TableItem = TableListResType['data'][0]
 
-export const columns: ColumnDef<TableItem>[] = [
+export const getColumns = (t: any): ColumnDef<TableItem>[] => [
   {
     accessorKey: 'number',
-    header: 'Number of tables',
+    header: t('tableNumber'),
     cell: ({ row }) => <div className="capitalize">{row.getValue('number')}</div>,
     filterFn: (row, columnId, filterValue: string) => {
       if (filterValue === undefined) return true
@@ -48,12 +49,12 @@ export const columns: ColumnDef<TableItem>[] = [
   },
   {
     accessorKey: 'capacity',
-    header: 'Capacity',
+    header: t('capacity'),
     cell: ({ row }) => <div className="capitalize">{row.getValue('capacity')}</div>,
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: t('status'),
     cell: ({ row }) => <div>{getTableStatus(row.getValue('status'))}</div>,
   },
 ]
@@ -64,6 +65,8 @@ export function TablesDialog({ onChoose }: { onChoose: (table: TableItem) => voi
   const [open, setOpen] = useState(false)
   const tableListQuery = useTableListQuery()
   const data = tableListQuery.data?.payload.data ?? []
+  const t = useTranslations('Orders')
+  const columns = useMemo(() => getColumns(t), [t])
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
@@ -110,17 +113,17 @@ export function TablesDialog({ onChoose }: { onChoose: (table: TableItem) => voi
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Change</Button>
+        <Button variant="outline">{t('change')}</Button>
       </DialogTrigger>
       <DialogContent className="max-h-full overflow-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Select table</DialogTitle>
+          <DialogTitle>{t('selectTable')}</DialogTitle>
         </DialogHeader>
         <div>
           <div className="w-full">
             <div className="flex items-center py-4">
               <Input
-                placeholder="Table number"
+                placeholder={t('tableNumber')}
                 value={(table.getColumn('number')?.getFilterValue() as string) ?? ''}
                 onChange={(event) => table.getColumn('number')?.setFilterValue(event.target.value)}
                 className="w-[80px]"
@@ -174,7 +177,7 @@ export function TablesDialog({ onChoose }: { onChoose: (table: TableItem) => voi
                   ) : (
                     <TableRow>
                       <TableCell colSpan={columns.length} className="h-24 text-center">
-                        No results.
+                        {t('noResults')}
                       </TableCell>
                     </TableRow>
                   )}
@@ -183,8 +186,10 @@ export function TablesDialog({ onChoose }: { onChoose: (table: TableItem) => voi
             </div>
             <div className="flex items-center justify-end space-x-2 py-4">
               <div className="flex-1 py-4 text-xs text-muted-foreground">
-                Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
-                <strong>{data.length}</strong> results
+                {t('showingSummary', {
+                  count: table.getPaginationRowModel().rows.length,
+                  total: data.length,
+                })}
               </div>
               <div>
                 <AutoPagination

@@ -29,6 +29,7 @@ import { format } from 'date-fns'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { categories, priorities, statuses } from '../data/constants'
+import { useTranslations } from 'next-intl'
 
 interface TaskFormProps {
   task?: TaskType | null
@@ -36,6 +37,7 @@ interface TaskFormProps {
 }
 
 export function TaskForm({ task, onClose }: TaskFormProps) {
+  const t = useTranslations('Tasks')
   const createMutation = useCreateTaskMutation()
   const updateMutation = useUpdateTaskMutation()
   const employeesQuery = useGetEmployeesQuery()
@@ -95,20 +97,20 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
         }
         await updateMutation.mutateAsync({ id: task.id, ...updateData })
         toast({
-          title: 'Success',
-          description: 'Task updated successfully',
+          title: t('success'),
+          description: t('taskUpdated'),
         })
       } else {
         // Validate required fields for create mode
         if (!data.title || !data.category) {
           form.setError('root', {
-            message: 'Title and category are required',
+            message: t('titleCatRequired'),
           })
           if (!data.title) {
-            form.setError('title', { message: 'Title is required' })
+            form.setError('title', { message: t('titleRequired') })
           }
           if (!data.category) {
-            form.setError('category', { message: 'Category is required' })
+            form.setError('category', { message: t('categoryRequired') })
           }
           return
         }
@@ -124,8 +126,8 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
         }
         await createMutation.mutateAsync(createData)
         toast({
-          title: 'Success',
-          description: 'Task created successfully',
+          title: t('success'),
+          description: t('taskCreated'),
         })
       }
       onClose()
@@ -142,11 +144,11 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
           name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Task Title</FormLabel>
+              <FormLabel>{t('taskTitleLabel')}</FormLabel>
               <FormControl>
-                <Input placeholder="Enter task title..." {...field} />
+                <Input placeholder={t('enterTaskTitle')} {...field} />
               </FormControl>
-              <FormDescription>The title of the task</FormDescription>
+              <FormDescription>{t('titleDesc')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -157,16 +159,16 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t('taskDescription')}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Optional description for this task"
+                  placeholder={t('descPlaceholder')}
                   {...field}
                   value={field.value || ''}
                   rows={4}
                 />
               </FormControl>
-              <FormDescription>Optional description of the task</FormDescription>
+              <FormDescription>{t('descDesc')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -178,11 +180,11 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
             name="category"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Category</FormLabel>
+                <FormLabel>{t('category')}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
+                      <SelectValue placeholder={t('selectCategory')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -203,11 +205,11 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
             name="priority"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Priority</FormLabel>
+                <FormLabel>{t('priority')}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select priority" />
+                      <SelectValue placeholder={t('selectPriority')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -230,11 +232,11 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Status</FormLabel>
+                <FormLabel>{t('status')}</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder={t('selectStatus')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -260,7 +262,7 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
             name="assignedToId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Assign To</FormLabel>
+                <FormLabel>{t('assignTo')}</FormLabel>
                 <Select
                   onValueChange={(value) => {
                     // Use "unassigned" as special value instead of empty string
@@ -270,11 +272,11 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select employee (optional)" />
+                      <SelectValue placeholder={t('selectEmployee')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                    <SelectItem value="unassigned">{t('unassigned')}</SelectItem>
                     {employees.map((employee) => (
                       <SelectItem key={employee.id} value={employee.id.toString()}>
                         {employee.name} ({employee.email})
@@ -282,7 +284,7 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
                     ))}
                   </SelectContent>
                 </Select>
-                <FormDescription>Optional: Assign this task to an employee</FormDescription>
+                <FormDescription>{t('assignDesc')}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -294,7 +296,7 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
           name="dueDate"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Due Date (Optional)</FormLabel>
+              <FormLabel>{t('dueDateLabel')}</FormLabel>
               <FormControl>
                 <Input
                   type="datetime-local"
@@ -305,7 +307,7 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
                   }}
                 />
               </FormControl>
-              <FormDescription>Optional due date for this task</FormDescription>
+              <FormDescription>{t('dueDateDesc')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -313,14 +315,14 @@ export function TaskForm({ task, onClose }: TaskFormProps) {
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onClose}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
             {createMutation.isPending || updateMutation.isPending
-              ? 'Saving...'
+              ? t('saving')
               : task
-                ? 'Update'
-                : 'Create'}
+                ? t('update')
+                : t('create')}
           </Button>
         </div>
       </form>

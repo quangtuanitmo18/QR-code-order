@@ -1,0 +1,7 @@
+src/app/[locale]/manage/tables/table-table.tsx(171,35): error TS2322: Type 'number | undefined' is not assignable to type 'string | number | Date'.
+  Type 'undefined' is not assignable to type 'string | number | Date'.
+src/hooks/usePushNotifications.ts(5,37): error TS7016: Could not find a declaration file for module 'firebase/messaging'. 'D:/laragon/www/pet-projects/QR-code-order/client/node_modules/firebase/messaging/dist/esm/index.esm.js' implicitly has an 'any' type.
+  If the 'firebase' package actually exposes this module, try adding a new declaration (.d.ts) file containing `declare module 'firebase/messaging';`
+src/hooks/usePushNotifications.ts(75,37): error TS7006: Parameter 'payload' implicitly has an 'any' type.
+src/lib/firebase.ts(2,54): error TS7016: Could not find a declaration file for module 'firebase/messaging'. 'D:/laragon/www/pet-projects/QR-code-order/client/node_modules/firebase/messaging/dist/esm/index.esm.js' implicitly has an 'any' type.
+  If the 'firebase' package actually exposes this module, try adding a new declaration (.d.ts) file containing `declare module 'firebase/messaging';`

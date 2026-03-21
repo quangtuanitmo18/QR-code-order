@@ -28,7 +28,6 @@ export async function POST(req: Request) {
 
     return NextResponse.json(data)
   } catch (error) {
-    console.error('[Admin AI Execute Action Proxy] Error:', error)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }

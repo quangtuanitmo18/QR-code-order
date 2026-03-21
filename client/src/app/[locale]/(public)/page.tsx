@@ -105,7 +105,7 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
           <div className="mx-auto max-w-5xl">
             <div className="mb-8 text-center">
               <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">
-                Testimonials
+                {t('testimonials')}
               </p>
               <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">{t('reviewsTitle')}</h2>
             </div>
@@ -199,7 +199,7 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
           <div className="mx-auto max-w-7xl">
             <div className="mb-8 text-center">
               <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">
-                Stories
+                {t('stories')}
               </p>
               <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">
                 {t('featuredArticles')}
@@ -230,7 +230,7 @@ export default async function Home(props: { params: Promise<{ locale: string }> 
         <div className="mx-auto max-w-7xl">
           <div className="mb-10 text-center">
             <p className="mb-2 text-xs font-semibold uppercase tracking-widest text-primary">
-              Our Menu
+              {t('ourMenu')}
             </p>
             <h2 className="text-2xl font-bold sm:text-3xl md:text-4xl">{t('h2')}</h2>
           </div>

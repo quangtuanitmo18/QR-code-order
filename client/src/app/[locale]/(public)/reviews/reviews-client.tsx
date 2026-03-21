@@ -17,6 +17,7 @@ import { Role } from '@/constants/type'
 import { decodeToken, getAccessTokenFromLocalStorage } from '@/lib/utils'
 import { useReviewListQuery, useReviewStatsQuery } from '@/queries/useReview'
 import { ChevronLeft, ChevronRight, MessageSquareHeart, PenSquare } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import { useEffect, useState } from 'react'
 
 export default function ReviewsClient() {
@@ -24,6 +25,7 @@ export default function ReviewsClient() {
   const [showReviewDialog, setShowReviewDialog] = useState(false)
   const [guestId, setGuestId] = useState<number | null>(null)
   const pageSize = 10
+  const t = useTranslations('Reviews')
 
   useEffect(() => {
     const token = getAccessTokenFromLocalStorage()
@@ -63,10 +65,10 @@ export default function ReviewsClient() {
             </div>
             <div>
               <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl md:text-5xl">
-                Customer Reviews
+                {t('title')}
               </h1>
               <p className="mt-2 max-w-2xl text-lg text-muted-foreground">
-                See what our customers are saying about their dining experience
+                {t('description')}
               </p>
             </div>
           </div>
@@ -77,7 +79,7 @@ export default function ReviewsClient() {
               className="rounded-full px-8 py-6 text-base font-bold shadow-xl shadow-primary/20 transition-transform hover:-translate-y-1"
             >
               <PenSquare className="mr-2 h-5 w-5" />
-              Write a Review
+              {t('writeReview')}
             </Button>
           )}
         </div>
@@ -89,22 +91,22 @@ export default function ReviewsClient() {
             value="reviews"
             className="rounded-full text-base font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
-            All Reviews
+            {t('allReviews')}
           </TabsTrigger>
           <TabsTrigger
             value="stats"
             className="rounded-full text-base font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm"
           >
-            Statistics
+            {t('statistics')}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="reviews" className="mt-8 space-y-8">
           <div className="rounded-3xl border border-border/50 bg-card/50 p-6 shadow-sm backdrop-blur-sm sm:p-8">
             <div className="mb-8 flex items-end justify-between border-b border-border/50 pb-4">
-              <h2 className="text-2xl font-bold tracking-tight">Latest Feedback</h2>
+              <h2 className="text-2xl font-bold tracking-tight">{t('latestFeedback')}</h2>
               <span className="rounded-full bg-primary/10 px-3 py-1 text-sm font-bold text-primary">
-                {allReviews.length > 0 ? `${allReviews.length} Total` : 'Loading...'}
+                {allReviews.length > 0 ? t('total', { count: allReviews.length }) : t('loading')}
               </span>
             </div>
 
@@ -137,8 +139,11 @@ export default function ReviewsClient() {
                   {totalPages > 1 && (
                     <div className="mt-10 flex flex-col items-center justify-between gap-4 rounded-2xl bg-muted/30 p-4 sm:flex-row sm:px-6">
                       <div className="text-sm font-medium text-muted-foreground">
-                        Showing {startIndex + 1}-{Math.min(endIndex, allReviews.length)} of{' '}
-                        {allReviews.length} reviews
+                        {t('showingReviews', {
+                          start: startIndex + 1,
+                          end: Math.min(endIndex, allReviews.length),
+                          total: allReviews.length
+                        })}
                       </div>
                       <div className="flex gap-2">
                         <Button
@@ -149,7 +154,7 @@ export default function ReviewsClient() {
                           disabled={currentPage === 1}
                         >
                           <ChevronLeft className="mr-1 h-4 w-4" />
-                          Previous
+                          {t('previous')}
                         </Button>
                         <Button
                           variant="outline"
@@ -158,7 +163,7 @@ export default function ReviewsClient() {
                           onClick={() => setCurrentPage((p) => p + 1)}
                           disabled={currentPage >= totalPages}
                         >
-                          Next
+                          {t('next')}
                           <ChevronRight className="ml-1 h-4 w-4" />
                         </Button>
                       </div>
@@ -170,8 +175,8 @@ export default function ReviewsClient() {
                   <div className="mb-4 rounded-full bg-muted p-4">
                     <MessageSquareHeart className="h-8 w-8 text-muted-foreground/50" />
                   </div>
-                  <p className="text-lg font-medium">No reviews yet.</p>
-                  <p className="text-sm">Be the first to share your experience!</p>
+                  <p className="text-lg font-medium">{t('noReviewsYet')}</p>
+                  <p className="text-sm">{t('beTheFirst')}</p>
                 </div>
               )}
             </div>
@@ -193,7 +198,7 @@ export default function ReviewsClient() {
             </div>
           ) : (
             <div className="flex flex-col items-center justify-center rounded-3xl border border-border/50 bg-card/50 py-16 text-center text-muted-foreground">
-              <p className="text-lg font-medium">No statistics available yet</p>
+              <p className="text-lg font-medium">{t('noStats')}</p>
             </div>
           )}
         </TabsContent>
@@ -204,8 +209,8 @@ export default function ReviewsClient() {
         <Dialog open={showReviewDialog} onOpenChange={setShowReviewDialog}>
           <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-3xl border-border/50 p-0 sm:p-6">
             <DialogHeader className="p-6 pb-0 sm:p-0">
-              <DialogTitle className="text-2xl font-bold">Write a Review</DialogTitle>
-              <DialogDescription>Share your experience and help other customers</DialogDescription>
+              <DialogTitle className="text-2xl font-bold">{t('writeReviewTitle')}</DialogTitle>
+              <DialogDescription>{t('writeReviewDesc')}</DialogDescription>
             </DialogHeader>
             <div className="p-6 sm:p-0 sm:pt-6">
               <ReviewForm

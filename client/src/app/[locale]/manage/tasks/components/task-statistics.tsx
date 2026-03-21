@@ -4,8 +4,10 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useGetTaskStatisticsQuery } from '@/queries/useTask'
 import { BarChart3, CheckCircle2, Clock, ListTodo } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export function TaskStatistics() {
+  const t = useTranslations('Tasks')
   // Fetch statistics without any filters (total counts) - dedicated API endpoint
   const { data, isLoading } = useGetTaskStatisticsQuery()
 
@@ -36,7 +38,7 @@ export function TaskStatistics() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Total Tasks</p>
+              <p className="text-sm font-medium text-muted-foreground">{t('totalTasks')}</p>
               <div className="mt-1 flex items-baseline gap-2">
                 <span className="text-2xl font-bold">{statistics.total}</span>
                 <span className="flex items-center gap-0.5 text-sm text-green-500"></span>
@@ -53,7 +55,7 @@ export function TaskStatistics() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Completed</p>
+              <p className="text-sm font-medium text-muted-foreground">{t('completed')}</p>
               <div className="mt-1 flex items-baseline gap-2">
                 <span className="text-2xl font-bold">{statistics.completed}</span>
                 <span className="flex items-center gap-0.5 text-sm text-green-500"></span>
@@ -70,7 +72,7 @@ export function TaskStatistics() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">In Progress</p>
+              <p className="text-sm font-medium text-muted-foreground">{t('inProgress')}</p>
               <div className="mt-1 flex items-baseline gap-2">
                 <span className="text-2xl font-bold">{statistics.inProgress}</span>
                 <span className="flex items-center gap-0.5 text-sm text-green-500"></span>
@@ -87,7 +89,7 @@ export function TaskStatistics() {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Pending</p>
+              <p className="text-sm font-medium text-muted-foreground">{t('pending')}</p>
               <div className="mt-1 flex items-baseline gap-2">
                 <span className="text-2xl font-bold">{statistics.pending}</span>
                 <span className="flex items-center gap-0.5 text-sm text-orange-500"></span>

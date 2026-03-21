@@ -1,13 +1,12 @@
 'use client'
 
-import { TrendingUp } from 'lucide-react'
-import { Bar, BarChart, XAxis, YAxis } from 'recharts'
+import { Bar, BarChart, LabelList, XAxis, YAxis } from 'recharts'
+import { UtensilsCrossed } from 'lucide-react'
 
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card'
@@ -18,99 +17,77 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart'
 import { DashboardIndicatorResType } from '@/schemaValidations/indicator.schema'
-import { useMemo } from 'react'
-
-const colors = [
-  'var(--color-chrome)',
-  'var(--color-safari)',
-  'var(--color-firefox)',
-  'var(--color-edge)',
-  'var(--color-other)',
-]
-
-const chartConfig = {
-  visitors: {
-    label: 'Visitors',
-  },
-  chrome: {
-    label: 'Chrome',
-    color: 'hsl(var(--chart-1))',
-  },
-  safari: {
-    label: 'Safari',
-    color: 'hsl(var(--chart-2))',
-  },
-  firefox: {
-    label: 'Firefox',
-    color: 'hsl(var(--chart-3))',
-  },
-  edge: {
-    label: 'Edge',
-    color: 'hsl(var(--chart-4))',
-  },
-  other: {
-    label: 'Other',
-    color: 'hsl(var(--chart-5))',
-  },
-} satisfies ChartConfig
+import { useTranslations } from 'next-intl'
 
 export function DishBarChart({
   chartData,
 }: {
   chartData: Pick<DashboardIndicatorResType['data']['dishIndicator'][0], 'name' | 'successOrders'>[]
 }) {
-  const chartDateColors = useMemo(
-    () =>
-      chartData.map((data, index) => {
-        return {
-          ...data,
-          fill: colors[index] ?? colors[colors.length - 1],
-        }
-      }),
-    [chartData]
-  )
+  const t = useTranslations('DashboardMain')
+
+  const chartConfig = {
+    successOrders: {
+      label: t('paidOrders'),
+      color: 'hsl(var(--primary))',
+    },
+  } satisfies ChartConfig
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Dish Ranking</CardTitle>
-        <CardDescription>Most Ordered</CardDescription>
+        <CardTitle>{t('dishRanking')}</CardTitle>
+        <CardDescription>{t('mostOrdered')}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
-          <BarChart
-            accessibilityLayer
-            data={chartDateColors}
-            layout="vertical"
-            margin={{
-              left: 0,
-            }}
-          >
-            <YAxis
-              dataKey="name"
-              type="category"
-              tickLine={false}
-              tickMargin={2}
-              axisLine={false}
-              tickFormatter={(value) => {
-                return value
-
-                // return chartConfig[value as keyof typeof chartConfig]?.label
+        {chartData.length === 0 ? (
+          <div className="flex aspect-auto h-[250px] w-full flex-col items-center justify-center text-muted-foreground">
+            <UtensilsCrossed className="mb-4 h-12 w-12 opacity-20" />
+            <p className="font-medium">{t('noDishes')}</p>
+            <p className="text-sm opacity-70">{t('noDishesDesc')}</p>
+          </div>
+        ) : (
+          <ChartContainer config={chartConfig}>
+            <BarChart
+              accessibilityLayer
+              data={chartData}
+              layout="vertical"
+              margin={{
+                left: 0,
+                right: 30, // Extra space for value labels
               }}
-            />
-            <XAxis dataKey="successOrders" type="number" hide />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-            <Bar dataKey="successOrders" name={'Paid Orders: '} layout="vertical" radius={5} />
-          </BarChart>
-        </ChartContainer>
+            >
+              <YAxis
+                dataKey="name"
+                type="category"
+                tickLine={false}
+                tickMargin={10}
+                axisLine={false}
+                width={120} // Fixed width to ensure long text doesn't push bars off and aligns uniformly
+                tickFormatter={(value) => {
+                  return value.length > 20 ? value.substring(0, 20) + '...' : value
+                }}
+              />
+              <XAxis dataKey="successOrders" type="number" hide />
+              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+              <Bar 
+                dataKey="successOrders" 
+                fill="var(--color-successOrders)" 
+                radius={[0, 4, 4, 0]}
+                barSize={32}
+              >
+                <LabelList 
+                  dataKey="successOrders" 
+                  position="right" 
+                  offset={8} 
+                  className="fill-foreground font-semibold" 
+                  fontSize={12} 
+                />
+              </Bar>
+            </BarChart>
+          </ChartContainer>
+        )}
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        {/* <div className='flex gap-2 font-medium leading-none'>
-          Trending up by 5.2% this month <TrendingUp className='h-4 w-4' />
-        </div> */}
-        {/* <div className='leading-none text-muted-foreground'>
-          Showing total visitors for the last 6 months
-        </div> */}
-      </CardFooter>
     </Card>
   )
 }

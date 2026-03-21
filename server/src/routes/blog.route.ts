@@ -23,6 +23,7 @@ import {
   UpdateBlogPostBodyType
 } from '@/schemaValidations/blog-post.schema'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
+import { z } from 'zod'
 
 export default async function blogRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
   // ============= PUBLIC ROUTES =============
@@ -175,12 +176,9 @@ export default async function blogRoutes(fastify: FastifyInstance, options: Fast
       schema: {
         params: BlogPostIdParams,
         response: {
-          200: {
-            type: 'object',
-            properties: {
-              message: { type: 'string' }
-            }
-          }
+          200: z.object({
+            message: z.string()
+          })
         }
       }
     },

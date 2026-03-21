@@ -25,8 +25,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { PlusCircle, Upload } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslations } from 'next-intl'
 
 export default function AddEmployee() {
+  const t = useTranslations('ManageAccounts')
   const [file, setFile] = useState<File | null>(null)
   const [open, setOpen] = useState(false)
   const addAccountMutation = useAddAccountMutation()
@@ -91,13 +93,13 @@ export default function AddEmployee() {
           className="h-8 gap-2 rounded-full bg-gradient-to-r from-primary to-accent shadow-md transition-all hover:shadow-lg hover:brightness-105 active:scale-95"
         >
           <PlusCircle className="h-4 w-4" />
-          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Add account</span>
+          <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">{t('addEmployee')}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-h-screen overflow-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Add account</DialogTitle>
-          <DialogDescription>Name, email, and password fields are required</DialogDescription>
+          <DialogTitle>{t('addAccountTitle')}</DialogTitle>
+          <DialogDescription>{t('addAccountDescription')}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -139,7 +141,7 @@ export default function AddEmployee() {
                         onClick={() => avatarInputRef.current?.click()}
                       >
                         <Upload className="h-4 w-4 text-muted-foreground" />
-                        <span className="sr-only">Upload</span>
+                        <span className="sr-only">{t('upload')}</span>
                       </button>
                     </div>
                   </FormItem>
@@ -152,7 +154,7 @@ export default function AddEmployee() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="name">Name</Label>
+                      <Label htmlFor="name">{t('name')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Input id="name" className="w-full" {...field} />
                         <FormMessage />
@@ -167,7 +169,7 @@ export default function AddEmployee() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="email">Email</Label>
+                      <Label htmlFor="email">{t('email')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Input id="email" className="w-full" {...field} />
                         <FormMessage />
@@ -182,7 +184,7 @@ export default function AddEmployee() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="password">Password</Label>
+                      <Label htmlFor="password">{t('password')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Input id="password" className="w-full" type="password" {...field} />
                         <FormMessage />
@@ -197,7 +199,7 @@ export default function AddEmployee() {
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="confirmPassword">Confirm password</Label>
+                      <Label htmlFor="confirmPassword">{t('confirmPassword')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Input id="confirmPassword" className="w-full" type="password" {...field} />
                         <FormMessage />
@@ -211,7 +213,7 @@ export default function AddEmployee() {
         </Form>
         <DialogFooter>
           <Button type="submit" form="add-employee-form">
-            Add
+            {t('add')}
           </Button>
         </DialogFooter>
       </DialogContent>

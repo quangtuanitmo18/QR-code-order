@@ -3,6 +3,7 @@ import MobileNavLinks from '@/app/[locale]/manage/mobile-nav-links'
 import NavLinks from '@/app/[locale]/manage/nav-links'
 import AdminAiChatButton from '@/components/ai-chat/admin-ai-chat-button'
 import DarkModeToggle from '@/components/dark-mode-toggle'
+import SwitchLanguage from '@/components/switch-language'
 
 export default function Layout({
   children,
@@ -16,7 +17,8 @@ export default function Layout({
         <header className="sticky top-0 z-30 flex h-14 items-center gap-2 border-b border-border/40 bg-background/80 px-3 backdrop-blur-xl sm:static sm:h-auto sm:gap-4 sm:border-0 sm:bg-transparent sm:px-6 sm:backdrop-blur-none">
           <MobileNavLinks />
           <div className="relative ml-auto flex-1 md:grow-0">
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-2 pr-2 sm:gap-4 sm:pr-4 sm:border-r sm:border-border/50">
+              <SwitchLanguage />
               <DarkModeToggle />
             </div>
           </div>

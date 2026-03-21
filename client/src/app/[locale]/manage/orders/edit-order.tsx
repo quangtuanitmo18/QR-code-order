@@ -30,6 +30,7 @@ import { UpdateOrderBody, UpdateOrderBodyType } from '@/schemaValidations/order.
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslations } from 'next-intl'
 
 export default function EditOrder({
   id,
@@ -45,6 +46,8 @@ export default function EditOrder({
     id: id as number,
     enabled: Boolean(id),
   })
+
+  const t = useTranslations('Orders')
 
   const form = useForm<UpdateOrderBodyType>({
     resolver: zodResolver(UpdateOrderBody),
@@ -98,7 +101,7 @@ export default function EditOrder({
     >
       <DialogContent className="max-h-screen overflow-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Edit order</DialogTitle>
+          <DialogTitle>{t('editOrderTitle')}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -114,11 +117,11 @@ export default function EditOrder({
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <FormLabel>Status</FormLabel>
+                      <FormLabel>{t('status')}</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl className="col-span-3">
                           <SelectTrigger className="w-[200px]">
-                            <SelectValue placeholder="Status" />
+                            <SelectValue placeholder={t('status')} />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -139,7 +142,7 @@ export default function EditOrder({
         </Form>
         <DialogFooter>
           <Button type="submit" form="edit-order-form">
-            Save
+            {t('save')}
           </Button>
         </DialogFooter>
       </DialogContent>

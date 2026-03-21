@@ -52,7 +52,8 @@ import { getTableStatus, handleErrorApi } from '@/lib/utils'
 import { useDeleteTableMutation, useTableListQuery } from '@/queries/useTable'
 import { TableListResType } from '@/schemaValidations/table.schema'
 import { useSearchParams } from 'next/navigation'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 
 type TableItem = TableListResType['data'][0]
 
@@ -68,10 +69,10 @@ const TableTableContext = createContext<{
   setTableDelete: (value: TableItem | null) => {},
 })
 
-export const columns: ColumnDef<TableItem>[] = [
+export const getColumns = (t: any): ColumnDef<TableItem>[] => [
   {
     accessorKey: 'number',
-    header: 'Table number',
+    header: t('tableNumber'),
     cell: ({ row }) => <div className="capitalize">{row.getValue('number')}</div>,
     filterFn: (rows, columnId, filterValue) => {
       if (!filterValue) return true
@@ -80,17 +81,17 @@ export const columns: ColumnDef<TableItem>[] = [
   },
   {
     accessorKey: 'capacity',
-    header: 'Capacity',
+    header: t('capacity'),
     cell: ({ row }) => <div className="capitalize">{row.getValue('capacity')}</div>,
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: t('status'),
     cell: ({ row }) => <div>{getTableStatus(row.getValue('status'))}</div>,
   },
   {
     accessorKey: 'token',
-    header: 'QR Code',
+    header: t('qrCode'),
     cell: ({ row }) => (
       <div>
         <QRCodeTable token={row.getValue('token')} tableNumber={row.getValue('number')} />
@@ -118,10 +119,10 @@ export const columns: ColumnDef<TableItem>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={openEditTable}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={openDeleteTable}>Delete</DropdownMenuItem>
+            <DropdownMenuItem onClick={openEditTable}>{t('edit')}</DropdownMenuItem>
+            <DropdownMenuItem onClick={openDeleteTable}>{t('delete')}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -136,6 +137,7 @@ function AlertDialogDeleteTable({
   tableDelete: TableItem | null
   setTableDelete: (value: TableItem | null) => void
 }) {
+  const t = useTranslations('Tables')
   const { mutateAsync } = useDeleteTableMutation()
   const deleteTable = async () => {
     if (tableDelete) {
@@ -164,18 +166,14 @@ function AlertDialogDeleteTable({
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete table?</AlertDialogTitle>
+          <AlertDialogTitle>{t('deleteTable')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Table{' '}
-            <span className="rounded bg-foreground px-1 text-primary-foreground">
-              {tableDelete?.number}
-            </span>{' '}
-            will be permanently deleted.
+            {t('deleteConfirm', { tableNumber: tableDelete?.number })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={deleteTable}>Continue</AlertDialogAction>
+          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+          <AlertDialogAction onClick={deleteTable}>{t('continue')}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -184,6 +182,7 @@ function AlertDialogDeleteTable({
 // Số lượng item trên 1 trang
 const PAGE_SIZE = 10
 export default function TableTable() {
+  const t = useTranslations('Tables')
   const searchParam = useSearchParams()
   const page = searchParam.get('page') ? Number(searchParam.get('page')) : 1
   const pageIndex = page - 1
@@ -200,6 +199,8 @@ export default function TableTable() {
     pageIndex, // Gía trị mặc định ban đầu, không có ý nghĩa khi data được fetch bất đồng bộ
     pageSize: PAGE_SIZE, //default page size
   })
+
+  const columns = useMemo(() => getColumns(t), [t])
 
   const table = useReactTable({
     data,
@@ -241,7 +242,7 @@ export default function TableTable() {
         {/* Filter and Add button */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:py-4">
           <Input
-            placeholder="Filter table number"
+            placeholder={t('filterTableNumber')}
             value={(table.getColumn('number')?.getFilterValue() as string) ?? ''}
             onChange={(event) => {
               table.getColumn('number')?.setFilterValue(event.target.value)
@@ -285,7 +286,7 @@ export default function TableTable() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
+                    {t('noResults')}
                   </TableCell>
                 </TableRow>
               )}
@@ -296,8 +297,8 @@ export default function TableTable() {
         {/* Pagination */}
         <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2 sm:py-4">
           <div className="text-center text-xs text-muted-foreground sm:flex-1 sm:text-left">
-            Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
-            <strong>{data.length}</strong> results
+            {t('showing')} <strong>{table.getPaginationRowModel().rows.length}</strong> {t('of')}{' '}
+            <strong>{data.length}</strong> {t('results')}
           </div>
 
           <div className="flex justify-center">

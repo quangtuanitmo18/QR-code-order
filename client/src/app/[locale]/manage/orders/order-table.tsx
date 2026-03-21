@@ -2,7 +2,7 @@
 import AddOrder from '@/app/[locale]/manage/orders/add-order'
 import EditOrder from '@/app/[locale]/manage/orders/edit-order'
 import OrderStatics from '@/app/[locale]/manage/orders/order-statics'
-import orderTableColumns from '@/app/[locale]/manage/orders/order-table-columns'
+import { useOrderTableColumns } from '@/app/[locale]/manage/orders/order-table-columns'
 import { useOrderService } from '@/app/[locale]/manage/orders/order.service'
 import AutoPagination from '@/components/auto-pagination'
 import { Input } from '@/components/ui/input'
@@ -97,6 +97,7 @@ export default function OrderTable() {
   })
   const updateOrderMutation = useUpdateOrderMutation()
   const { statics, orderObjectByGuestId, servingGuestByTableNumber } = useOrderService(orderList)
+  const orderTableColumns = useOrderTableColumns()
 
   const changeStatus = async (body: {
     orderId: number

@@ -52,7 +52,8 @@ import { handleErrorApi } from '@/lib/utils'
 import { useDeleteAccountMutation, useGetAccountList } from '@/queries/useAccount'
 import { AccountListResType, AccountType } from '@/schemaValidations/account.schema'
 import { useSearchParams } from 'next/navigation'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 
 type AccountItem = AccountListResType['data'][0]
 
@@ -68,14 +69,14 @@ const AccountTableContext = createContext<{
   setEmployeeDelete: (value: AccountItem | null) => {},
 })
 
-export const columns: ColumnDef<AccountType>[] = [
+export const getColumns = (t: any): ColumnDef<AccountType>[] => [
   {
     accessorKey: 'id',
     header: 'ID',
   },
   {
     accessorKey: 'avatar',
-    header: 'Avatar',
+    header: t('avatar'),
     cell: ({ row }) => (
       <div>
         <Avatar className="aspect-square h-[100px] w-[100px] rounded-md object-cover">
@@ -87,7 +88,7 @@ export const columns: ColumnDef<AccountType>[] = [
   },
   {
     accessorKey: 'name',
-    header: 'Name',
+    header: t('name'),
     cell: ({ row }) => <div className="capitalize">{row.getValue('name')}</div>,
   },
   {
@@ -98,7 +99,7 @@ export const columns: ColumnDef<AccountType>[] = [
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
         >
-          Email
+          {t('email')}
           <CaretSortIcon className="ml-2 h-4 w-4" />
         </Button>
       )
@@ -125,10 +126,10 @@ export const columns: ColumnDef<AccountType>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={openEditEmployee}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={openDeleteEmployee}>Delete</DropdownMenuItem>
+            <DropdownMenuItem onClick={openEditEmployee}>{t('edit')}</DropdownMenuItem>
+            <DropdownMenuItem onClick={openDeleteEmployee}>{t('delete')}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -143,6 +144,7 @@ function AlertDialogDeleteAccount({
   employeeDelete: AccountItem | null
   setEmployeeDelete: (value: AccountItem | null) => void
 }) {
+  const t = useTranslations('ManageAccounts')
   const { mutateAsync } = useDeleteAccountMutation()
   const deleteAccount = async () => {
     if (employeeDelete) {
@@ -170,18 +172,18 @@ function AlertDialogDeleteAccount({
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete account?</AlertDialogTitle>
+          <AlertDialogTitle>{t('deleteAccount')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Account{' '}
+            {t('account')}{' '}
             <span className="rounded bg-foreground px-1 text-primary-foreground">
               {employeeDelete?.name}
             </span>{' '}
-            will be permanently deleted.
+            {t('willBeDeleted')}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={deleteAccount}>Continue</AlertDialogAction>
+          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+          <AlertDialogAction onClick={deleteAccount}>{t('continue')}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -202,6 +204,8 @@ export default function AccountTable() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
+  const t = useTranslations('ManageAccounts')
+  const columns = useMemo(() => getColumns(t), [t])
   const [pagination, setPagination] = useState({
     pageIndex, // Gía trị mặc định ban đầu, không có ý nghĩa khi data được fetch bất đồng bộ
     pageSize: PAGE_SIZE, //default page size
@@ -255,7 +259,7 @@ export default function AccountTable() {
         {/* Filter and Add button */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:py-4">
           <Input
-            placeholder="Filter email..."
+            placeholder={t('filterEmail')}
             value={(table.getColumn('email')?.getFilterValue() as string) ?? ''}
             onChange={(event) => table.getColumn('email')?.setFilterValue(event.target.value)}
             className="w-full sm:max-w-sm"
@@ -297,7 +301,7 @@ export default function AccountTable() {
               ) : (
                 <TableRow>
                   <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
+                    {t('noResults')}
                   </TableCell>
                 </TableRow>
               )}
@@ -308,8 +312,10 @@ export default function AccountTable() {
         {/* Pagination */}
         <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2 sm:py-4">
           <div className="text-center text-xs text-muted-foreground sm:flex-1 sm:text-left">
-            Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
-            <strong>{data.length}</strong> results
+            {t('showingSummary', {
+              count: table.getPaginationRowModel().rows.length,
+              total: data.length,
+            })}
           </div>
 
           <div className="flex justify-center">

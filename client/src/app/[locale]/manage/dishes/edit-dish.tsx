@@ -32,6 +32,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Upload } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslations } from 'next-intl'
 
 export default function EditDish({
   id,
@@ -42,6 +43,7 @@ export default function EditDish({
   setId: (value: number | undefined) => void
   onSubmitSuccess?: () => void
 }) {
+  const t = useTranslations('Dishes')
   const [file, setFile] = useState<File | null>(null)
   const imageInputRef = useRef<HTMLInputElement | null>(null)
   const uploadMediaMutation = useUploadMediaMutation()
@@ -132,8 +134,8 @@ export default function EditDish({
     >
       <DialogContent className="max-h-screen overflow-auto sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Edit dish</DialogTitle>
-          <DialogDescription>The following fields are required: Name, Image</DialogDescription>
+          <DialogTitle>{t('editDishTitle')}</DialogTitle>
+          <DialogDescription>{t('requiredFieldsDesc')}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form
@@ -151,7 +153,7 @@ export default function EditDish({
                     <div className="flex items-start justify-start gap-2">
                       <Avatar className="aspect-square h-[100px] w-[100px] rounded-md object-cover">
                         <AvatarImage src={previewAvatarFromFile} />
-                        <AvatarFallback className="rounded-none">{name || 'Avatar'}</AvatarFallback>
+                        <AvatarFallback className="rounded-none">{name || t('avatarFallback')}</AvatarFallback>
                       </Avatar>
                       <input
                         type="file"
@@ -172,7 +174,7 @@ export default function EditDish({
                         onClick={() => imageInputRef.current?.click()}
                       >
                         <Upload className="h-4 w-4 text-muted-foreground" />
-                        <span className="sr-only">Upload</span>
+                        <span className="sr-only">{t('upload')}</span>
                       </button>
                     </div>
                   </FormItem>
@@ -185,7 +187,7 @@ export default function EditDish({
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="name">Dish name</Label>
+                      <Label htmlFor="name">{t('inputLabelName')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Input id="name" className="w-full" {...field} />
                         <FormMessage />
@@ -200,7 +202,7 @@ export default function EditDish({
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="price">Price</Label>
+                      <Label htmlFor="price">{t('inputLabelPrice')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Input id="price" className="w-full" {...field} type="number" />
                         <FormMessage />
@@ -215,7 +217,7 @@ export default function EditDish({
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="description">Description</Label>
+                      <Label htmlFor="description">{t('inputLabelDescription')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Textarea id="description" className="w-full" {...field} />
                         <FormMessage />
@@ -230,12 +232,12 @@ export default function EditDish({
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="category">Category</Label>
+                      <Label htmlFor="category">{t('inputLabelCategory')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Select onValueChange={field.onChange} value={field.value}>
                           <FormControl>
                             <SelectTrigger id="category">
-                              <SelectValue placeholder="Select a category" />
+                              <SelectValue placeholder={t('selectCategoryPlaceholder')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -258,7 +260,7 @@ export default function EditDish({
                 render={({ field }) => (
                   <FormItem>
                     <div className="grid grid-cols-4 items-center justify-items-start gap-4">
-                      <Label htmlFor="description">Status</Label>
+                      <Label htmlFor="description">{t('inputLabelStatus')}</Label>
                       <div className="col-span-3 w-full space-y-2">
                         <Select
                           onValueChange={field.onChange}
@@ -267,7 +269,7 @@ export default function EditDish({
                         >
                           <FormControl>
                             <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
+                              <SelectValue placeholder={t('selectStatusPlaceholder')} />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
@@ -290,7 +292,7 @@ export default function EditDish({
         </Form>
         <DialogFooter>
           <Button type="submit" form="edit-dish-form">
-            Save
+            {t('save')}
           </Button>
         </DialogFooter>
       </DialogContent>

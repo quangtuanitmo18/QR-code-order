@@ -43,12 +43,16 @@ export default async function BlogPage(props: Props) {
   const params = await props.params
   // searchParams is handled by BlogList client component
   // No need to read it here to avoid DYNAMIC_SERVER_USAGE error
+  const t = await getTranslations({
+    locale: params.locale,
+    namespace: 'Blog',
+  })
 
   return (
     <main className="container mx-auto space-y-8 px-4 py-8 sm:px-6 sm:py-12 md:px-8 md:py-16">
       <div className="space-y-4">
-        <h1 className="text-3xl font-bold sm:text-4xl md:text-5xl">Blog</h1>
-        <p className="text-lg text-muted-foreground">Discover our latest articles and insights</p>
+        <h1 className="text-3xl font-bold sm:text-4xl md:text-5xl">{t('title')}</h1>
+        <p className="text-lg text-muted-foreground">{t('discover')}</p>
       </div>
       <BlogList />
     </main>

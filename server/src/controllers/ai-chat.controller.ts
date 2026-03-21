@@ -66,8 +66,9 @@ export async function aiChatController(fastify: FastifyInstance) {
         let result: any
 
         if (action === 'placeOrder') {
-          const items = params.items as Array<{ dishName: string; quantity: number }>
-          result = await guestService.placeOrderByName(guestId, items)
+          const items = params.items as Array<{ dishId: number; dishName: string; quantity: number }>
+          result = await guestService.placeOrderById(guestId, items)
+
         } else if (action === 'cancelOrder') {
           result = await guestService.cancelOrder(params.orderId, guestId)
           result = { message: `Order #${params.orderId} has been cancelled successfully.`, ...result }
