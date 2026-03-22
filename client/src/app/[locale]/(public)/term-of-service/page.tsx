@@ -41,7 +41,7 @@ export default function TermsOfServicePage() {
               </time>
             </p>
             <p className="mt-4 leading-relaxed text-muted-foreground">
-              By accessing our website or placing an order, you agree to these terms. We've kept them
+              By accessing our website or placing an order, you agree to these terms. We&apos;ve kept them
               short and in plain English.
             </p>
           </div>
@@ -77,9 +77,9 @@ export default function TermsOfServicePage() {
             {/* §1 Introduction */}
             <TermSection id="intro" number="§1" title="Introduction" icon={IconDocument}>
               <p className="text-muted-foreground">
-                These Terms of Service ("Terms") govern your access to and use of the Big Boy
+                These Terms of Service (&quot;Terms&quot;) govern your access to and use of the Big Boy
                 Restaurant website, mobile-friendly ordering platform, and related digital services
-                (collectively, "Services"). By using our Services, you confirm that you are at least
+                (collectively, &quot;Services&quot;). By using our Services, you confirm that you are at least
                 13 years of age and agree to be bound by these Terms.
               </p>
               <p className="mt-3 text-muted-foreground">
@@ -160,8 +160,8 @@ export default function TermsOfServicePage() {
                 <div>
                   <p className="font-semibold text-foreground">Cancellations</p>
                   <p className="mt-1">
-                    Orders can be cancelled while in "Pending" status. Once the kitchen has begun
-                    preparation ("Processing"), cancellation is not guaranteed. Use the Cancel Order
+                    Orders can be cancelled while in &quot;Pending&quot; status. Once the kitchen has begun
+                    preparation (&quot;Processing&quot;), cancellation is not guaranteed. Use the Cancel Order
                     option in the AI assistant or contact staff directly.
                   </p>
                 </div>

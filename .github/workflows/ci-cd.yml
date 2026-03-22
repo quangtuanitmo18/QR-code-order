@@ -373,16 +373,8 @@ jobs:
             # Create log directories
             mkdir -p /var/log/qr-order/{client,server} || sudo mkdir -p /var/log/qr-order/{client,server}
 
-            # Stop current services before deploying new versions
-            if [ -d "temp_extract/client" ] && pm2 list | grep -q "qr-order-client"; then
-              echo "⏸️ Stopping client service..."
-              pm2 stop qr-order-client
-            fi
-
-            if [ -d "temp_extract/server" ] && pm2 list | grep -q "qr-order-server"; then
-              echo "⏸️ Stopping server service..."
-              pm2 stop qr-order-server
-            fi
+            # Note: Zero-downtime deployment - PM2 services are NOT stopped here.
+            # They will be reloaded gracefully after the new files are in place.
 
             # Move new files into place
             echo "🚚 Deploying new files..."
@@ -448,7 +440,8 @@ jobs:
 
             if [ -d "client" ]; then
               if pm2 list | grep -q "qr-order-client"; then
-                pm2 restart qr-order-client --update-env
+                echo "🔄 Reloading client service (Zero-downtime)..."
+                pm2 reload qr-order-client --update-env
               else
                 pm2 start ecosystem.config.js --only qr-order-client
               fi
@@ -456,7 +449,8 @@ jobs:
 
             if [ -d "server" ]; then
               if pm2 list | grep -q "qr-order-server"; then
-                pm2 restart qr-order-server --update-env
+                echo "🔄 Reloading server service (Zero-downtime)..."
+                pm2 reload qr-order-server --update-env
               else
                 pm2 start ecosystem.config.js --only qr-order-server
               fi

@@ -41,7 +41,7 @@ export default function PrivacyPolicyPage() {
             </p>
             <p className="mt-4 leading-relaxed text-muted-foreground">
               This policy explains what information we collect, why we collect it, and how you can
-              control it. We've written it in plain language—no jargon.
+              control it. We&apos;ve written it in plain language—no jargon.
             </p>
           </div>
         </div>
@@ -166,7 +166,7 @@ export default function PrivacyPolicyPage() {
                 <a href="mailto:privacy@bigboy.vn" className="font-medium text-primary underline-offset-4 hover:underline">
                   privacy@bigboy.vn
                 </a>
-                . We'll respond within 30 days.
+                . We&apos;ll respond within 30 days.
               </p>
             </PolicySection>
 

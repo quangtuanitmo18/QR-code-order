@@ -2,7 +2,7 @@ import fcmApiRequest from '@/apiRequests/fcm'
 import { Role } from '@/constants/type'
 import { messaging } from '@/lib/firebase'
 import { useAppStore } from '@/store/useAppStore'
-import { getToken, onMessage } from 'firebase/messaging'
+import { getToken, onMessage } from '@firebase/messaging'
 import { useEffect, useRef, useState } from 'react'
 
 export const usePushNotifications = () => {

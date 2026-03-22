@@ -144,7 +144,7 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
         error,
       })
     }
-  }, [deletingTask, deleteMutation])
+  }, [deletingTask, deleteMutation, t])
 
   if (isLoading && !data) {
     return (

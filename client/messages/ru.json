@@ -23,7 +23,10 @@
     "priceValue": "Соотношение цена/качество",
     "viewAllReviews": "Смотреть все отзывы",
     "featuredArticles": "Избранные статьи",
-    "viewAllBlogPosts": "Смотреть все записи блога"
+    "viewAllBlogPosts": "Смотреть все записи блога",
+    "testimonials": "Отзывы клиентов",
+    "stories": "Истории",
+    "ourMenu": "Наше меню"
   },
   "Login": {
     "title": "Вход",
@@ -91,7 +94,21 @@
   },
   "Reviews": {
     "title": "Отзывы клиентов",
-    "description": "Читайте, что говорят наши гости о своем опыте"
+    "description": "Читайте, что говорят наши гости о своем опыте",
+    "writeReview": "Написать отзыв",
+    "allReviews": "Все отзывы",
+    "statistics": "Статистика",
+    "latestFeedback": "Последние отзывы",
+    "total": "{count} Всего",
+    "loading": "Загрузка...",
+    "showingReviews": "Показано {start}-{end} из {total} отзывов",
+    "previous": "Предыдущая",
+    "next": "Следующая",
+    "noReviewsYet": "Пока нет отзывов.",
+    "beTheFirst": "Станьте первым, кто поделится своим опытом!",
+    "noStats": "Статистика пока недоступна",
+    "writeReviewTitle": "Написать отзыв",
+    "writeReviewDesc": "Поделитесь своим опытом и помогите другим клиентам"
   },
   "QRCodes": {
     "title": "QR-коды — список столов",
@@ -114,7 +131,18 @@
     "totalRevenue": "Общий доход",
     "customers": "Клиенты",
     "orders": "Заказы",
-    "tablesInUse": "Столы в использовании"
+    "tablesInUse": "Столы в использовании",
+    "today": "Сегодня",
+    "last7Days": "Последние 7 дней",
+    "thisMonth": "В этом месяце",
+    "revenue": "Доход",
+    "noRevenueData": "Данные о доходе не найдены",
+    "tryDifferentDate": "Попробуйте выбрать другой диапазон дат",
+    "dishRanking": "Рейтинг блюд",
+    "mostOrdered": "Самые заказываемые",
+    "paidOrders": "Оплаченные заказы",
+    "noDishes": "Блюда не заказаны",
+    "noDishesDesc": "Данные появятся здесь после завершения заказов"
   },
   "OrderTable": {
     "fromLabel": "С",

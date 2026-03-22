@@ -26,7 +26,7 @@ export default function AboutPage() {
             </h1>
             <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
               Big Boy started as a single kitchen with a stubborn belief: great ingredients, honest
-              cooking, and a warm table can change someone's day. Fifteen years later, that belief
+              cooking, and a warm table can change someone&apos;s day. Fifteen years later, that belief
               still drives us.
             </p>
           </div>

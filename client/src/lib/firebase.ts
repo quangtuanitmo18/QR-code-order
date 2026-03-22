@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getMessaging, isSupported, Messaging } from 'firebase/messaging';
+import { getMessaging, isSupported, Messaging } from '@firebase/messaging';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBnEKN2v2qz2RJWp2wtZkJoJ-FhAj90eeo",

@@ -51,9 +51,9 @@ import { toast } from '@/components/ui/use-toast'
 import { getTableStatus, handleErrorApi } from '@/lib/utils'
 import { useDeleteTableMutation, useTableListQuery } from '@/queries/useTable'
 import { TableListResType } from '@/schemaValidations/table.schema'
-import { useSearchParams } from 'next/navigation'
-import { createContext, useContext, useEffect, useState, useMemo } from 'react'
 import { useTranslations } from 'next-intl'
+import { useSearchParams } from 'next/navigation'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 
 type TableItem = TableListResType['data'][0]
 
@@ -168,7 +168,7 @@ function AlertDialogDeleteTable({
         <AlertDialogHeader>
           <AlertDialogTitle>{t('deleteTable')}</AlertDialogTitle>
           <AlertDialogDescription>
-            {t('deleteConfirm', { tableNumber: tableDelete?.number })}
+            {t('deleteConfirm', { tableNumber: tableDelete?.number || 0 })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
