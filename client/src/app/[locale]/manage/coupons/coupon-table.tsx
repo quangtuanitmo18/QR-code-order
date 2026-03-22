@@ -51,6 +51,7 @@ import {
 import { format } from 'date-fns'
 import { useSearchParams } from 'next/navigation'
 import { createContext, useContext, useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 type CouponItem = CouponListResType['data'][0]
 
@@ -66,24 +67,24 @@ const CouponTableContext = createContext<{
   setCouponDelete: (value: CouponItem | null) => {},
 })
 
-export const columns: ColumnDef<CouponItem>[] = [
+export const getColumns = (t: any): ColumnDef<CouponItem>[] => [
   {
     accessorKey: 'id',
-    header: 'ID',
+    header: t('id'),
   },
   {
     accessorKey: 'code',
-    header: 'Code',
+    header: t('code'),
     cell: ({ row }) => <div className="font-mono font-semibold">{row.getValue('code')}</div>,
   },
   {
     accessorKey: 'discountType',
-    header: 'Type',
+    header: t('type'),
     cell: ({ row }) => <div>{row.getValue('discountType')}</div>,
   },
   {
     accessorKey: 'discountValue',
-    header: 'Discount',
+    header: t('discount'),
     cell: ({ row }) => {
       const type = row.original.discountType
       const value = row.getValue('discountValue') as number
@@ -92,7 +93,7 @@ export const columns: ColumnDef<CouponItem>[] = [
   },
   {
     accessorKey: 'minOrderAmount',
-    header: 'Min Order',
+    header: t('minOrder'),
     cell: ({ row }) => {
       const value = row.getValue('minOrderAmount') as number | null
       return <div>{value ? formatCurrency(value) : '-'}</div>
@@ -100,28 +101,28 @@ export const columns: ColumnDef<CouponItem>[] = [
   },
   {
     accessorKey: 'maxTotalUsage',
-    header: 'Max Total',
+    header: t('maxTotal'),
     cell: ({ row }) => {
       const value = row.getValue('maxTotalUsage') as number | null
-      return <div>{value ?? 'Unlimited'}</div>
+      return <div>{value ?? t('unlimited')}</div>
     },
   },
   {
     accessorKey: 'maxUsagePerGuest',
-    header: 'Max Per Guest',
+    header: t('maxPerGuest'),
     cell: ({ row }) => {
       const value = row.getValue('maxUsagePerGuest') as number | null
-      return <div>{value ?? 'Unlimited'}</div>
+      return <div>{value ?? t('unlimited')}</div>
     },
   },
   {
     accessorKey: 'usageCount',
-    header: 'Used',
+    header: t('used'),
     cell: ({ row }) => <div>{row.getValue('usageCount')}</div>,
   },
   {
     accessorKey: 'startDate',
-    header: 'Start Date',
+    header: t('startDate'),
     cell: ({ row }) => {
       const date = row.getValue('startDate') as Date
       return <div>{format(new Date(date), 'MMM dd, yyyy')}</div>
@@ -129,7 +130,7 @@ export const columns: ColumnDef<CouponItem>[] = [
   },
   {
     accessorKey: 'endDate',
-    header: 'End Date',
+    header: t('endDate'),
     cell: ({ row }) => {
       const date = row.getValue('endDate') as Date
       return <div>{format(new Date(date), 'MMM dd, yyyy')}</div>
@@ -137,7 +138,7 @@ export const columns: ColumnDef<CouponItem>[] = [
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: t('status'),
     cell: ({ row }) => <div>{row.getValue('status')}</div>,
   },
   {
@@ -161,10 +162,10 @@ export const columns: ColumnDef<CouponItem>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={openEditCoupon}>Edit</DropdownMenuItem>
-            <DropdownMenuItem onClick={openDeleteCoupon}>Delete</DropdownMenuItem>
+            <DropdownMenuItem onClick={openEditCoupon}>{t('edit')}</DropdownMenuItem>
+            <DropdownMenuItem onClick={openDeleteCoupon}>{t('delete')}</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -179,6 +180,7 @@ function AlertDialogDeleteCoupon({
   couponDelete: CouponItem | null
   setCouponDelete: (value: CouponItem | null) => void
 }) {
+  const t = useTranslations('Coupons')
   const { mutateAsync } = useDeleteCouponMutation()
   const deleteCoupon = async () => {
     if (couponDelete) {
@@ -206,18 +208,19 @@ function AlertDialogDeleteCoupon({
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete coupon?</AlertDialogTitle>
+          <AlertDialogTitle>{t('deleteCoupon')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Coupon{' '}
-            <span className="rounded bg-foreground px-1 text-primary-foreground">
-              {couponDelete?.code}
-            </span>{' '}
-            will be permanently deleted.
+            {t.rich('deleteConfirm', {
+              code: couponDelete?.code ?? '',
+              span: (chunks) => (
+                <span className="rounded bg-foreground px-1 text-primary-foreground">{chunks}</span>
+              ),
+            })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={deleteCoupon}>Continue</AlertDialogAction>
+          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+          <AlertDialogAction onClick={deleteCoupon}>{t('continue')}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -226,6 +229,7 @@ function AlertDialogDeleteCoupon({
 
 const PAGE_SIZE = 10
 export default function CouponTable() {
+  const t = useTranslations('Coupons')
   const searchParam = useSearchParams()
   const page = searchParam.get('page') ? Number(searchParam.get('page')) : 1
   const pageIndex = page - 1
@@ -244,7 +248,7 @@ export default function CouponTable() {
 
   const table = useReactTable({
     data,
-    columns,
+    columns: getColumns(t),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -280,7 +284,7 @@ export default function CouponTable() {
         <AlertDialogDeleteCoupon couponDelete={couponDelete} setCouponDelete={setCouponDelete} />
         <div className="flex items-center justify-between gap-2">
           <Input
-            placeholder="Filter by code..."
+            placeholder={t('filterByCode')}
             value={(table.getColumn('code')?.getFilterValue() as string) ?? ''}
             onChange={(event) => table.getColumn('code')?.setFilterValue(event.target.value)}
             className="max-w-sm"
@@ -317,8 +321,8 @@ export default function CouponTable() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
+                  <TableCell colSpan={getColumns(t).length} className="h-24 text-center">
+                    {t('noResults')}
                   </TableCell>
                 </TableRow>
               )}
@@ -329,8 +333,10 @@ export default function CouponTable() {
         {/* Pagination */}
         <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2 sm:py-4">
           <div className="text-center text-xs text-muted-foreground sm:flex-1 sm:text-left">
-            Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
-            <strong>{data.length}</strong> results
+            {t('showingLength', {
+              length: table.getPaginationRowModel().rows.length,
+              total: data.length,
+            })}
           </div>
 
           <div className="flex justify-center">

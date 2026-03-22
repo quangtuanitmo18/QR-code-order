@@ -55,6 +55,7 @@ import { format } from 'date-fns'
 import { Eye, FileEdit, Trash2 } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 type BlogPostItem = BlogPostListResType['data'][0]
 
@@ -71,14 +72,14 @@ const BlogTableContext = createContext<{
 })
 
 // Helper function to get status badge
-function getStatusBadge(status: string) {
+function getStatusBadge(status: string, t: any) {
   switch (status) {
     case 'PUBLISHED':
-      return <Badge className="bg-green-500">Published</Badge>
+      return <Badge className="bg-green-500">{t('statusPublished')}</Badge>
     case 'DRAFT':
-      return <Badge variant="secondary">Draft</Badge>
+      return <Badge variant="secondary">{t('statusDraft')}</Badge>
     case 'ARCHIVED':
-      return <Badge variant="outline">Archived</Badge>
+      return <Badge variant="outline">{t('statusArchived')}</Badge>
     default:
       return <Badge>{status}</Badge>
   }
@@ -94,14 +95,14 @@ function parseTags(tags: string | null): string[] {
   }
 }
 
-export const columns: ColumnDef<BlogPostItem>[] = [
+export const getColumns = (t: any): ColumnDef<BlogPostItem>[] => [
   {
     accessorKey: 'id',
-    header: 'ID',
+    header: t('id'),
   },
   {
     accessorKey: 'featuredImage',
-    header: 'Image',
+    header: t('image'),
     cell: ({ row }) => {
       const image = row.getValue('featuredImage') as string | null
       return (
@@ -118,7 +119,7 @@ export const columns: ColumnDef<BlogPostItem>[] = [
   },
   {
     accessorKey: 'title',
-    header: 'Title',
+    header: t('title'),
     cell: ({ row }) => (
       <div className="max-w-[300px]">
         <div className="overflow-hidden text-ellipsis whitespace-nowrap font-medium">
@@ -134,17 +135,17 @@ export const columns: ColumnDef<BlogPostItem>[] = [
   },
   {
     accessorKey: 'status',
-    header: 'Status',
-    cell: ({ row }) => getStatusBadge(row.getValue('status')),
+    header: t('status'),
+    cell: ({ row }) => getStatusBadge(row.getValue('status'), t),
   },
   {
     accessorKey: 'featured',
-    header: 'Featured',
-    cell: ({ row }) => (row.getValue('featured') ? <Badge>Featured</Badge> : null),
+    header: t('featured'),
+    cell: ({ row }) => (row.getValue('featured') ? <Badge>{t('featured')}</Badge> : null),
   },
   {
     accessorKey: 'category',
-    header: 'Category',
+    header: t('category'),
     cell: ({ row }) => {
       const category = row.getValue('category') as string | null
       return category ? <Badge variant="outline">{category}</Badge> : <span>-</span>
@@ -152,7 +153,7 @@ export const columns: ColumnDef<BlogPostItem>[] = [
   },
   {
     accessorKey: 'tags',
-    header: 'Tags',
+    header: t('tags'),
     cell: ({ row }) => {
       const tags = parseTags(row.original.tags)
       return (
@@ -173,12 +174,12 @@ export const columns: ColumnDef<BlogPostItem>[] = [
   },
   {
     accessorKey: 'viewCount',
-    header: 'Views',
+    header: t('views'),
     cell: ({ row }) => <div>{row.getValue('viewCount')}</div>,
   },
   {
     accessorKey: 'publishedAt',
-    header: 'Published',
+    header: t('published'),
     cell: ({ row }) => {
       const publishedAt = row.getValue('publishedAt') as Date | null
       return publishedAt ? format(new Date(publishedAt), 'MMM dd, yyyy') : <span>-</span>
@@ -186,7 +187,7 @@ export const columns: ColumnDef<BlogPostItem>[] = [
   },
   {
     accessorKey: 'createdAt',
-    header: 'Created',
+    header: t('created'),
     cell: ({ row }) => {
       const createdAt = row.getValue('createdAt') as Date
       return format(new Date(createdAt), 'MMM dd, yyyy')
@@ -221,19 +222,19 @@ export const columns: ColumnDef<BlogPostItem>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={openPreview}>
               <Eye className="mr-2 h-4 w-4" />
-              Preview
+              {t('preview')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={openEdit}>
               <FileEdit className="mr-2 h-4 w-4" />
-              Edit
+              {t('edit')}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={openArchive} className="text-destructive">
               <Trash2 className="mr-2 h-4 w-4" />
-              Archive
+              {t('archive')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -249,6 +250,7 @@ function AlertDialogArchiveBlogPost({
   blogPostArchive: BlogPostItem | null
   setBlogPostArchive: (value: BlogPostItem | null) => void
 }) {
+  const t = useTranslations('Blogs')
   const { mutateAsync } = useArchiveBlogPostMutation()
   const archiveBlogPost = async () => {
     if (blogPostArchive) {
@@ -256,7 +258,7 @@ function AlertDialogArchiveBlogPost({
         const result = await mutateAsync(blogPostArchive.id)
         setBlogPostArchive(null)
         toast({
-          title: result.payload.message || 'Blog post archived successfully',
+          title: result.payload.message || t('archiveSuccess'),
         })
       } catch (error) {
         handleErrorApi({
@@ -276,18 +278,19 @@ function AlertDialogArchiveBlogPost({
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Archive blog post?</AlertDialogTitle>
+          <AlertDialogTitle>{t('archiveBlogPost')}</AlertDialogTitle>
           <AlertDialogDescription>
-            Blog post{' '}
-            <span className="rounded bg-muted px-1 font-semibold text-foreground">
-              {blogPostArchive?.title}
-            </span>{' '}
-            will be archived. It will no longer be visible to the public.
+            {t.rich('archiveConfirm', {
+              title: blogPostArchive?.title ?? '',
+              span: (chunks) => (
+                <span className="rounded bg-muted px-1 font-semibold text-foreground">{chunks}</span>
+              ),
+            })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={archiveBlogPost}>Archive</AlertDialogAction>
+          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+          <AlertDialogAction onClick={archiveBlogPost}>{t('archive')}</AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -298,6 +301,7 @@ function AlertDialogArchiveBlogPost({
 const PAGE_SIZE = 20
 
 export default function BlogTable() {
+  const t = useTranslations('Blogs')
   const searchParams = useSearchParams()
   const router = useRouter()
   const page = searchParams.get('page') ? Number(searchParams.get('page')) : 1
@@ -357,7 +361,7 @@ export default function BlogTable() {
 
   const table = useReactTable({
     data: allPosts,
-    columns,
+    columns: getColumns(t),
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onPaginationChange: setPagination,
@@ -413,7 +417,7 @@ export default function BlogTable() {
           <div className="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center">
             {/* Search */}
             <Input
-              placeholder="Search by title or content..."
+              placeholder={t('searchByTitleOrContent')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full sm:max-w-sm"
@@ -422,25 +426,25 @@ export default function BlogTable() {
             {/* Status Filter */}
             <Select value={statusFilter || 'all'} onValueChange={handleStatusFilterChange}>
               <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="All Status" />
+                <SelectValue placeholder={t('allStatuses')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="DRAFT">Draft</SelectItem>
-                <SelectItem value="PUBLISHED">Published</SelectItem>
-                <SelectItem value="ARCHIVED">Archived</SelectItem>
+                <SelectItem value="all">{t('allStatuses')}</SelectItem>
+                <SelectItem value="DRAFT">{t('statusDraft')}</SelectItem>
+                <SelectItem value="PUBLISHED">{t('statusPublished')}</SelectItem>
+                <SelectItem value="ARCHIVED">{t('statusArchived')}</SelectItem>
               </SelectContent>
             </Select>
 
             {/* Sort */}
             <Select value={sortBy} onValueChange={handleSortChange}>
               <SelectTrigger className="w-full sm:w-[180px]">
-                <SelectValue placeholder="Sort by" />
+                <SelectValue placeholder={t('sortBy')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="newest">Newest First</SelectItem>
-                <SelectItem value="oldest">Oldest First</SelectItem>
-                <SelectItem value="viewCount">Most Views</SelectItem>
+                <SelectItem value="newest">{t('newestFirst')}</SelectItem>
+                <SelectItem value="oldest">{t('oldestFirst')}</SelectItem>
+                <SelectItem value="viewCount">{t('mostViews')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -448,7 +452,7 @@ export default function BlogTable() {
           {/* Create button */}
           <div className="sm:ml-auto">
             <Button asChild>
-              <Link href="/manage/blogs/create">Create New Post</Link>
+              <Link href="/manage/blogs/create">{t('createNewPost')}</Link>
             </Button>
           </div>
         </div>
@@ -456,14 +460,14 @@ export default function BlogTable() {
         {/* Loading state */}
         {isLoading && (
           <div className="flex items-center justify-center py-8">
-            <div className="text-muted-foreground">Loading blog posts...</div>
+            <div className="text-muted-foreground">{t('loadingBlogPosts')}</div>
           </div>
         )}
 
         {/* Error state */}
         {isError && (
           <div className="flex items-center justify-center py-8">
-            <div className="text-destructive">Failed to load blog posts</div>
+            <div className="text-destructive">{t('failedToLoad')}</div>
           </div>
         )}
 
@@ -500,8 +504,8 @@ export default function BlogTable() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={columns.length} className="h-24 text-center">
-                        No blog posts found.
+                      <TableCell colSpan={getColumns(t).length} className="h-24 text-center">
+                        {t('noBlogPostsFound')}
                       </TableCell>
                     </TableRow>
                   )}
@@ -513,8 +517,10 @@ export default function BlogTable() {
             {table.getPageCount() > 0 && (
               <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2 sm:py-4">
                 <div className="text-center text-xs text-muted-foreground sm:flex-1 sm:text-left">
-                  Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
-                  <strong>{allPosts.length}</strong> results
+                  {t('showingLength', {
+                    length: table.getPaginationRowModel().rows.length,
+                    total: allPosts.length,
+                  })}
                 </div>
 
                 <div className="flex justify-center">

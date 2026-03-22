@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import AutoPagination from '@/components/auto-pagination'
 import ImageLightbox from '@/components/image-lightbox'
 import {
@@ -118,23 +119,23 @@ const ReviewTableContext = createContext<{
   setLightboxOpen: () => {},
 })
 
-export const columns: ColumnDef<ReviewItem>[] = [
+export const getColumns = (t: any): ColumnDef<ReviewItem>[] => [
   {
     accessorKey: 'id',
-    header: 'ID',
+    header: t('id'),
     cell: ({ row }) => <div className="w-12">{row.getValue('id')}</div>,
   },
   {
     accessorKey: 'guest',
-    header: 'Guest',
+    header: t('guest'),
     cell: ({ row }) => {
       const guest = row.original.guest
-      return <div className="font-medium">{guest?.name || 'Unknown'}</div>
+      return <div className="font-medium">{guest?.name || t('unknown')}</div>
     },
   },
   {
     accessorKey: 'overallRating',
-    header: 'Rating',
+    header: t('rating'),
     cell: ({ row }) => {
       const rating = row.getValue('overallRating') as number
       return (
@@ -147,7 +148,7 @@ export const columns: ColumnDef<ReviewItem>[] = [
   },
   {
     accessorKey: 'comment',
-    header: 'Comment',
+    header: t('comment'),
     cell: ({ row }) => {
       const comment = row.getValue('comment') as string
       return (
@@ -159,7 +160,7 @@ export const columns: ColumnDef<ReviewItem>[] = [
   },
   {
     accessorKey: 'images',
-    header: 'Images',
+    header: t('images'),
     cell: function Images({ row }) {
       const imagesJson = row.getValue('images') as string | null
       const { setLightboxImages, setLightboxInitialIndex, setLightboxOpen } =
@@ -201,17 +202,17 @@ export const columns: ColumnDef<ReviewItem>[] = [
   },
   {
     accessorKey: 'status',
-    header: 'Status',
+    header: t('status'),
     cell: ({ row }) => {
       const status = row.getValue('status') as string
       const variant =
         status === 'VISIBLE' ? 'default' : status === 'HIDDEN' ? 'secondary' : 'destructive'
-      return <Badge variant={variant}>{status}</Badge>
+      return <Badge variant={variant}>{t(status.toLowerCase())}</Badge>
     },
   },
   {
     accessorKey: 'createdAt',
-    header: 'Date',
+    header: t('date'),
     cell: ({ row }) => {
       const date = row.getValue('createdAt') as string
       return <div className="text-sm">{format(new Date(date), 'MMM dd, yyyy')}</div>
@@ -219,7 +220,7 @@ export const columns: ColumnDef<ReviewItem>[] = [
   },
   {
     accessorKey: 'replyContent',
-    header: 'Reply',
+    header: t('reply'),
     cell: ({ row }) => {
       const hasReply = row.getValue('replyContent')
       return hasReply ? (
@@ -235,6 +236,7 @@ export const columns: ColumnDef<ReviewItem>[] = [
     cell: function Actions({ row }) {
       const { setReviewForReply, setReviewForDelete } = useContext(ReviewTableContext)
       const updateStatusMutation = useAdminUpdateReviewStatusMutation()
+      const t = useTranslations('Reviews')
 
       const handleApprove = async () => {
         try {
@@ -242,7 +244,7 @@ export const columns: ColumnDef<ReviewItem>[] = [
             id: row.original.id,
             body: { status: 'VISIBLE' },
           })
-          toast({ title: 'Success', description: 'Review approved successfully' })
+          toast({ title: 'Success', description: t('reviewApproved') })
         } catch (error: any) {
           handleErrorApi({ error })
         }
@@ -254,7 +256,7 @@ export const columns: ColumnDef<ReviewItem>[] = [
             id: row.original.id,
             body: { status: 'HIDDEN' },
           })
-          toast({ title: 'Success', description: 'Review hidden successfully' })
+          toast({ title: 'Success', description: t('reviewHidden') })
         } catch (error: any) {
           handleErrorApi({ error })
         }
@@ -269,24 +271,25 @@ export const columns: ColumnDef<ReviewItem>[] = [
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {row.original.status !== 'VISIBLE' && (
-              <DropdownMenuItem onClick={handleApprove}>Approve</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleApprove}>{t('approve')}</DropdownMenuItem>
             )}
             {row.original.status === 'VISIBLE' && (
-              <DropdownMenuItem onClick={handleHide}>Hide</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleHide}>{t('hide')}</DropdownMenuItem>
             )}
             <DropdownMenuItem onClick={() => setReviewForReply(row.original)}>
-              {row.original.replyContent ? 'Edit Reply' : 'Reply'}
+              {t('reply')}
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => setReviewForDelete(row.original)}
-              className="text-destructive"
-            >
-              Delete
-            </DropdownMenuItem>
+            {row.original.status !== 'DELETED' && (
+              <DropdownMenuItem
+                onClick={() => setReviewForDelete(row.original)}
+                className="text-red-600"
+              >
+                {t('deleted')}
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       )
@@ -295,6 +298,7 @@ export const columns: ColumnDef<ReviewItem>[] = [
 ]
 
 function ReplyDialog({ review, onClose }: { review: ReviewItem | null; onClose: () => void }) {
+  const t = useTranslations('Reviews')
   const [replyContent, setReplyContent] = useState('')
   const replyMutation = useAdminReplyToReviewMutation()
   const { setLightboxImages, setLightboxInitialIndex, setLightboxOpen } =
@@ -311,7 +315,7 @@ function ReplyDialog({ review, onClose }: { review: ReviewItem | null; onClose: 
   const handleSubmit = async () => {
     if (!review) return
     if (replyContent.trim().length < 10) {
-      toast({ description: 'Reply must be at least 10 characters' })
+      toast({ description: t('replyMinLength') })
       return
     }
 
@@ -320,7 +324,7 @@ function ReplyDialog({ review, onClose }: { review: ReviewItem | null; onClose: 
         id: review.id,
         body: { replyContent },
       })
-      toast({ title: 'Success', description: 'Reply added successfully' })
+      toast({ title: 'Success', description: t('replyAdded') })
       onClose()
     } catch (error: any) {
       handleErrorApi({ error })
@@ -382,26 +386,26 @@ function ReplyDialog({ review, onClose }: { review: ReviewItem | null; onClose: 
               return null
             })()}
           <div className="space-y-2">
-            <Label htmlFor="reply">Your Reply</Label>
+            <Label htmlFor="reply">{t('yourReply')}</Label>
             <Textarea
               id="reply"
-              placeholder="Type your reply here..."
+              placeholder={t('typeReplyHere')}
               value={replyContent}
               onChange={(e) => setReplyContent(e.target.value)}
               rows={5}
               className="resize-none"
             />
             <p className="text-xs text-muted-foreground">
-              {replyContent.length}/500 characters (min 10)
+              {t('charactersLimit', { current: replyContent.length })}
             </p>
           </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={replyMutation.isPending}>
-            {replyMutation.isPending ? 'Submitting...' : 'Submit Reply'}
+            {replyMutation.isPending ? t('submitting') : t('submitReply')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -416,6 +420,7 @@ function AlertDialogDeleteReview({
   review: ReviewItem | null
   onClose: () => void
 }) {
+  const t = useTranslations('Reviews')
   const deleteMutation = useAdminDeleteReviewMutation()
 
   const handleDelete = async () => {
@@ -423,7 +428,7 @@ function AlertDialogDeleteReview({
 
     try {
       await deleteMutation.mutateAsync(review.id)
-      toast({ title: 'Success', description: 'Review deleted successfully' })
+      toast({ title: 'Success', description: t('reviewDeleted') })
       onClose()
     } catch (error: any) {
       handleErrorApi({ error })
@@ -475,9 +480,13 @@ function AlertDialogDeleteReview({
             return null
           })()}
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={handleDelete} className="bg-destructive hover:bg-destructive/90">
-            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+          <AlertDialogCancel onClick={onClose}>{t('cancel')}</AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleDelete}
+            className="bg-red-600 hover:bg-red-700"
+            disabled={deleteMutation.isPending}
+          >
+            {deleteMutation.isPending ? t('submitting') : t('deleted')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -514,9 +523,11 @@ export default function ReviewTable() {
 
   const data = reviewListQuery.data?.payload?.data ?? []
 
+  const t = useTranslations('Reviews')
+
   const table = useReactTable({
     data,
-    columns,
+    columns: getColumns(t),
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -561,20 +572,20 @@ export default function ReviewTable() {
       <div className="w-full">
         <div className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:gap-4">
           <Input
-            placeholder="Filter comments..."
+            placeholder={t('filterComments')}
             value={(table.getColumn('comment')?.getFilterValue() as string) ?? ''}
             onChange={(event) => table.getColumn('comment')?.setFilterValue(event.target.value)}
             className="w-full sm:max-w-sm"
           />
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="All statuses" />
+              <SelectValue placeholder={t('allStatuses')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="VISIBLE">Visible</SelectItem>
-              <SelectItem value="HIDDEN">Hidden</SelectItem>
-              <SelectItem value="DELETED">Deleted</SelectItem>
+              <SelectItem value="all">{t('allStatuses')}</SelectItem>
+              <SelectItem value="VISIBLE">{t('visible')}</SelectItem>
+              <SelectItem value="HIDDEN">{t('hidden')}</SelectItem>
+              <SelectItem value="DELETED">{t('deleted')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -608,8 +619,8 @@ export default function ReviewTable() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
+                  <TableCell colSpan={getColumns(t).length} className="h-24 text-center">
+                    {t('noReviewsFound')}
                   </TableCell>
                 </TableRow>
               )}
@@ -617,9 +628,13 @@ export default function ReviewTable() {
           </Table>
         </div>
         <div className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center sm:justify-end sm:gap-2 sm:py-4">
-          <div className="text-center text-xs text-muted-foreground sm:flex-1 sm:text-left">
-            Showing <strong>{table.getPaginationRowModel().rows.length}</strong> of{' '}
-            <strong>{data.length}</strong> reviews
+          <div className="flex items-center justify-between py-4">
+            <div className="text-sm text-muted-foreground">
+              {t('showingLength', {
+                length: table.getPaginationRowModel().rows.length,
+                total: data.length,
+              })}
+            </div>
           </div>
           <div className="flex justify-center">
             <AutoPagination

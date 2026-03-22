@@ -72,7 +72,7 @@ const AccountTableContext = createContext<{
 export const getColumns = (t: any): ColumnDef<AccountType>[] => [
   {
     accessorKey: 'id',
-    header: 'ID',
+    header: t('id'),
   },
   {
     accessorKey: 'avatar',

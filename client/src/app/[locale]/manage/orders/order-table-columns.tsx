@@ -181,7 +181,7 @@ export const useOrderTableColumns = () => {
           value={row.getValue('status')}
         >
           <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Theme" />
+            <SelectValue placeholder={t('status')} />
           </SelectTrigger>
           <SelectContent>
             {OrderStatusValues.map((status) => (

@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import AutoPagination from '@/components/auto-pagination'
 import {
   AlertDialog,
@@ -70,6 +71,7 @@ export function SpinRewardTable({
   onEdit,
   onNewReward,
 }: SpinRewardTableProps) {
+  const t = useTranslations('SpinRewards')
   const [deletingReward, setDeletingReward] = useState<SpinRewardType | null>(null)
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -95,20 +97,20 @@ export function SpinRewardTable({
       await deleteMutation.mutateAsync(deletingReward.id)
       toast({
         title: 'Success',
-        description: 'Reward deleted successfully',
+        description: t('deleteSuccess'),
       })
       setDeletingReward(null)
     } catch (error) {
       handleErrorApi({ error: error as any })
     }
-  }, [deletingReward, deleteMutation])
+  }, [deletingReward, deleteMutation, t])
 
   // Define columns
   const columns = useMemo<ColumnDef<SpinRewardType>[]>(
     () => [
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('name'),
         cell: ({ row }) => (
           <div className="flex items-center gap-2 font-medium">
             <div
@@ -121,7 +123,7 @@ export function SpinRewardTable({
       },
       {
         accessorKey: 'event.name',
-        header: 'Event',
+        header: t('event'),
         cell: ({ row }) =>
           row.original.event ? (
             <Badge variant="outline">{row.original.event.name}</Badge>
@@ -131,39 +133,39 @@ export function SpinRewardTable({
       },
       {
         accessorKey: 'type',
-        header: 'Type',
+        header: t('type'),
         cell: ({ row }) => <Badge variant="outline">{row.original.type}</Badge>,
       },
       {
         accessorKey: 'probability',
-        header: 'Probability',
+        header: t('probability'),
         cell: ({ row }) => `${(row.original.probability * 100).toFixed(1)}%`,
       },
       {
         accessorKey: 'quantity',
-        header: 'Quantity',
+        header: t('quantity'),
         cell: ({ row }) =>
           row.original.maxQuantity
             ? `${row.original.currentQuantity}/${row.original.maxQuantity}`
-            : 'Unlimited',
+            : t('unlimited'),
       },
       {
         accessorKey: 'isActive',
-        header: 'Status',
+        header: t('status'),
         cell: ({ row }) => (
           <Badge variant={row.original.isActive ? 'default' : 'secondary'}>
-            {row.original.isActive ? 'Active' : 'Inactive'}
+            {row.original.isActive ? t('active') : t('inactive')}
           </Badge>
         ),
       },
       {
         accessorKey: 'order',
-        header: 'Order',
+        header: t('order'),
         cell: ({ row }) => row.original.order,
       },
       {
         id: 'actions',
-        header: () => <div className="text-right">Actions</div>,
+        header: () => <div className="text-right">{t('actions')}</div>,
         cell: ({ row }) => {
           const reward = row.original
           return (
@@ -176,12 +178,12 @@ export function SpinRewardTable({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={() => onEdit(reward)}>
                     <span className="flex items-center gap-2">
                       <Edit className="h-4 w-4" />
-                      Edit
+                      {t('edit')}
                     </span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -190,7 +192,7 @@ export function SpinRewardTable({
                   >
                     <span className="flex items-center gap-2">
                       <Trash2 className="h-4 w-4" />
-                      Delete
+                      {t('delete')}
                     </span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -200,7 +202,7 @@ export function SpinRewardTable({
         },
       },
     ],
-    [onEdit]
+    [onEdit, t]
   )
 
   // Setup React Table
@@ -230,7 +232,7 @@ export function SpinRewardTable({
   if (rewards.length === 0) {
     return (
       <div className="py-8 text-center text-muted-foreground">
-        <p>No rewards found. Create your first reward to get started.</p>
+        <p>{t('noRewardsFound')}</p>
       </div>
     )
   }
@@ -241,17 +243,17 @@ export function SpinRewardTable({
         {/* Search, Event Filter, and New Reward Button */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:py-4">
           <Input
-            placeholder="Filter by name..."
+            placeholder={t('filterByName')}
             value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
             onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
             className="w-full sm:max-w-sm"
           />
           <Select value={selectedEventId} onValueChange={setSelectedEventId}>
             <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Filter by event" />
+              <SelectValue placeholder={t('filterByEvent')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Events</SelectItem>
+              <SelectItem value="all">{t('allEvents')}</SelectItem>
               {events.map((event) => (
                 <SelectItem key={event.id} value={event.id.toString()}>
                   {event.name}
@@ -263,7 +265,7 @@ export function SpinRewardTable({
             <div className="sm:ml-auto">
               <Button onClick={onNewReward}>
                 <Plus className="mr-2 h-4 w-4" />
-                New Reward
+                {t('newReward')}
               </Button>
             </div>
           )}

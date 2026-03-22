@@ -69,7 +69,7 @@ const initFromDate = startOfDay(new Date())
 const initToDate = endOfDay(new Date())
 
 export default function OrderTable() {
-  const t = useTranslations('OrderTable')
+  const t = useTranslations('Orders')
   const searchParam = useSearchParams()
   const socket = useAppStore((state) => state.socket)
   const [openStatusFilter, setOpenStatusFilter] = useState(false)
@@ -238,20 +238,20 @@ export default function OrderTable() {
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-2">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{t('fromLabel')}</span>
+              <span className="text-sm font-medium">{t('from')}</span>
               <Input
                 type="datetime-local"
-                placeholder={t('fromPlaceholder')}
+                placeholder={t('fromDate')}
                 className="flex-1 text-sm sm:w-auto"
                 value={format(fromDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
                 onChange={(event) => setFromDate(new Date(event.target.value))}
               />
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium">{t('toLabel')}</span>
+              <span className="text-sm font-medium">{t('to')}</span>
               <Input
                 type="datetime-local"
-                placeholder={t('toPlaceholder')}
+                placeholder={t('toDate')}
                 className="flex-1 text-sm sm:w-auto"
                 value={format(toDate, 'yyyy-MM-dd HH:mm').replace(' ', 'T')}
                 onChange={(event) => setToDate(new Date(event.target.value))}
@@ -269,7 +269,7 @@ export default function OrderTable() {
         {/* Search filters */}
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
           <Input
-            placeholder={t('customerNamePlaceholder')}
+            placeholder={t('nameOrId')}
             value={(table.getColumn('guestName')?.getFilterValue() as string) ?? ''}
             onChange={(event) => table.getColumn('guestName')?.setFilterValue(event.target.value)}
             className="w-full sm:max-w-[150px]"
@@ -295,7 +295,7 @@ export default function OrderTable() {
                         .getColumn('status')
                         ?.getFilterValue() as (typeof OrderStatusValues)[number]
                     )
-                  : t('statusPlaceholder')}
+                  : t('status')}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>

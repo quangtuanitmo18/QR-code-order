@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Bell, Check, CheckCheck, X } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { Button } from '@/components/ui/button'
@@ -24,6 +25,7 @@ import { handleErrorApi } from '@/lib/utils'
 import { cn } from '@/lib/utils'
 
 export function CalendarNotifications() {
+  const t = useTranslations('Calendar')
   const notificationsQuery = useGetNotificationsQuery({ unreadOnly: false })
   const markAsReadMutation = useMarkNotificationAsReadMutation()
   const markAllAsReadMutation = useMarkAllNotificationsAsReadMutation()
@@ -37,7 +39,7 @@ export function CalendarNotifications() {
       notificationsQuery.refetch()
       toast({
         title: 'Success',
-        description: 'Notification marked as read',
+        description: t('markReadSuccess'),
       })
     } catch (error) {
       handleErrorApi({ error })
@@ -50,7 +52,7 @@ export function CalendarNotifications() {
       notificationsQuery.refetch()
       toast({
         title: 'Success',
-        description: 'All notifications marked as read',
+        description: t('markAllReadSuccess'),
       })
     } catch (error) {
       handleErrorApi({ error })

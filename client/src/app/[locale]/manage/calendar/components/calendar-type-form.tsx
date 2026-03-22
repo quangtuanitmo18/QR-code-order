@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -74,6 +75,7 @@ export function CalendarTypeForm({
   onOpenChange,
   onSuccess,
 }: CalendarTypeFormProps) {
+  const t = useTranslations('Calendar')
   const isEdit = !!calendarType
   const createMutation = useCreateCalendarTypeMutation()
   const updateMutation = useUpdateCalendarTypeMutation()
@@ -117,13 +119,13 @@ export function CalendarTypeForm({
         })
         toast({
           title: 'Success',
-          description: 'Calendar type updated successfully',
+          description: t('updateTypeSuccess'),
         })
       } else {
         await createMutation.mutateAsync(data as CreateCalendarTypeBodyType)
         toast({
           title: 'Success',
-          description: 'Calendar type created successfully',
+          description: t('createTypeSuccess'),
         })
       }
       onOpenChange(false)

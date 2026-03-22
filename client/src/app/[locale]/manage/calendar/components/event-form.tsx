@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { format } from 'date-fns'
 import { CalendarIcon, Clock, MapPin, Tag, Type, Users } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
@@ -58,6 +59,7 @@ const recurringTypes = [
 ]
 
 export function EventForm({ event, open, onOpenChange, onSave, onDelete }: EventFormProps) {
+  const t = useTranslations('Calendar')
   const createEventMutation = useCreateEventMutation()
   const updateEventMutation = useUpdateEventMutation()
   const deleteEventMutation = useDeleteEventMutation()
@@ -202,14 +204,14 @@ export function EventForm({ event, open, onOpenChange, onSave, onDelete }: Event
         })
         toast({
           title: 'Success',
-          description: 'Event updated successfully',
+          description: t('updateEventSuccess'),
         })
       } else {
         // Create new event
         await createEventMutation.mutateAsync(eventData as CreateEventBodyType)
         toast({
           title: 'Success',
-          description: 'Event created successfully',
+          description: t('createEventSuccess'),
         })
       }
 
@@ -227,7 +229,7 @@ export function EventForm({ event, open, onOpenChange, onSave, onDelete }: Event
       await deleteEventMutation.mutateAsync(event.id)
       toast({
         title: 'Success',
-        description: 'Event deleted successfully',
+        description: t('deleteEventSuccess'),
       })
       onDelete?.()
       onOpenChange(false)

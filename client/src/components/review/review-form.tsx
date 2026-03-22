@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -27,6 +28,7 @@ const criteriaLabels = {
 } as const
 
 export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewFormProps) {
+  const t = useTranslations('Reviews')
   const [ratings, setRatings] = useState({
     overallRating: 0,
     foodQuality: 0,
@@ -63,7 +65,7 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
 
     // Check limit
     if (files.length + selectedFiles.length > 5) {
-      toast({ description: 'Maximum 5 images allowed' })
+      toast({ description: t('maxImages') })
       return
     }
 
@@ -96,7 +98,7 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
     // Validate all ratings
     const missingRatings = Object.entries(ratings).filter(([_, value]) => value === 0)
     if (missingRatings.length > 0) {
-      toast({ description: 'Please provide all ratings' })
+      toast({ description: t('provideAllRatings') })
       return
     }
 
@@ -125,7 +127,7 @@ export default function ReviewForm({ guestId, guestName, onSuccess }: ReviewForm
       await createReviewMutation.mutateAsync(reviewData)
       toast({
         title: 'Success',
-        description: 'Thank you for your review! It will be published after admin approval.',
+        description: t('reviewSubmitted'),
       })
       reset()
       setRatings({

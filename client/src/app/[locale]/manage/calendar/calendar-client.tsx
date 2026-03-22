@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import { CalendarSidebar } from './components/calendar-sidebar'
 import { CalendarMain } from './components/calendar-main'
@@ -30,6 +31,7 @@ import { handleErrorApi } from '@/lib/utils'
 import { toast } from '@/components/ui/use-toast'
 
 export default function CalendarClient() {
+  const t = useTranslations('Calendar')
   const role = useAppStore((state) => state.role)
   const calendar = useCalendar()
   const [editingCalendarType, setEditingCalendarType] = useState<CalendarTypeType | null>(null)
@@ -58,7 +60,7 @@ export default function CalendarClient() {
       await deleteMutation.mutateAsync(deletingCalendarType.id)
       toast({
         title: 'Success',
-        description: 'Calendar type deleted successfully',
+        description: t('deleteTypeSuccess'),
       })
       setDeletingCalendarType(null)
     } catch (error) {

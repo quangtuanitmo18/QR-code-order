@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -42,6 +43,7 @@ interface SpinEventFormProps {
 }
 
 export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps) {
+  const t = useTranslations('SpinEvents')
   const createMutation = useCreateSpinEventMutation()
   const updateMutation = useUpdateSpinEventMutation()
   const employeesQuery = useGetEmployeesQuery()
@@ -120,7 +122,7 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
         await updateMutation.mutateAsync({ id: event.id, ...updateData })
         toast({
           title: 'Success',
-          description: 'Event updated successfully',
+          description: t('updateSuccess'),
         })
       } else {
         // Validate required fields for create mode
@@ -148,7 +150,7 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
         await createMutation.mutateAsync(createData)
         toast({
           title: 'Success',
-          description: 'Event created successfully',
+          description: t('createSuccess'),
         })
       }
       onSuccess()
@@ -177,11 +179,11 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Event Name</FormLabel>
+              <FormLabel>{t('eventName')}</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Tết 2025" {...field} />
+                <Input placeholder={t('exampleName')} {...field} />
               </FormControl>
-              <FormDescription>The name of the spin event</FormDescription>
+              <FormDescription>{t('nameDescription')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -192,15 +194,15 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t('description')}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Optional description for this event"
+                  placeholder={t('optionalDescription')}
                   {...field}
                   value={field.value || ''}
                 />
               </FormControl>
-              <FormDescription>Optional description of the event</FormDescription>
+              <FormDescription>{t('eventDescription')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -212,7 +214,7 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
             name="startDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Start Date</FormLabel>
+                <FormLabel>{t('startDate')}</FormLabel>
                 <FormControl>
                   <Input
                     type="datetime-local"
@@ -233,7 +235,7 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
             name="endDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>End Date (Optional)</FormLabel>
+                <FormLabel>{t('endDateOptional')}</FormLabel>
                 <FormControl>
                   <Input
                     type="datetime-local"
@@ -244,7 +246,7 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
                     }}
                   />
                 </FormControl>
-                <FormDescription>Leave empty for no end date</FormDescription>
+                <FormDescription>{t('leaveEmptyForNoEndDate')}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -257,8 +259,8 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Active</FormLabel>
-                <FormDescription>Only active events can be used for spins</FormDescription>
+                <FormLabel className="text-base">{t('active')}</FormLabel>
+                <FormDescription>{t('activeDescription')}</FormDescription>
               </div>
               <FormControl>
                 <input
@@ -274,8 +276,8 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
 
         {/* Assign Employees Section */}
         <div className="space-y-2">
-          <FormLabel>Assign Employees</FormLabel>
-          <FormDescription>Select employees who can participate in this spin event</FormDescription>
+          <FormLabel>{t('assignEmployees')}</FormLabel>
+          <FormDescription>{t('assignEmployeesDesc')}</FormDescription>
           <div className="space-y-3">
             {/* Selected Employees Display */}
             {selectedEmployeeIds.length > 0 && (
@@ -319,15 +321,15 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
                 <SelectValue
                   placeholder={
                     availableEmployees.length === 0
-                      ? 'All employees selected'
-                      : 'Select an employee to add...'
+                      ? t('allEmployeesSelected')
+                      : t('selectEmployeeToAdd')
                   }
                 />
               </SelectTrigger>
               <SelectContent>
                 {availableEmployees.length === 0 ? (
                   <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                    No more employees available
+                    {t('noMoreEmployees')}
                   </div>
                 ) : (
                   availableEmployees.map((employee) => (
@@ -343,14 +345,14 @@ export function SpinEventForm({ event, onSuccess, onCancel }: SpinEventFormProps
 
         <div className="flex justify-end gap-2">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancel
+            {t('cancel')}
           </Button>
           <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
             {createMutation.isPending || updateMutation.isPending
-              ? 'Saving...'
+              ? t('saving')
               : event
-                ? 'Update'
-                : 'Create'}
+                ? t('update')
+                : t('create')}
           </Button>
         </div>
       </form>

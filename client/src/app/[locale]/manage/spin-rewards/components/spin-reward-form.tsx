@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -51,6 +52,7 @@ const colorOptions = [
 ]
 
 export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormProps) {
+  const t = useTranslations('SpinRewards')
   const createMutation = useCreateSpinRewardMutation()
   const updateMutation = useUpdateSpinRewardMutation()
   // When editing, load all events (including inactive) to show the current event
@@ -130,13 +132,13 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
         await updateMutation.mutateAsync({ id: reward.id, body: cleanedData })
         toast({
           title: 'Success',
-          description: 'Reward updated successfully',
+          description: t('updateSuccess'),
         })
       } else {
         await createMutation.mutateAsync(data)
         toast({
           title: 'Success',
-          description: 'Reward created successfully',
+          description: t('createSuccess'),
         })
       }
       onSuccess()
@@ -174,8 +176,8 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
               </Select>
               <FormDescription>
                 {reward
-                  ? 'Event cannot be changed after creation'
-                  : 'Select the event this reward belongs to'}
+                  ? t('eventCannotBeChanged')
+                  : t('selectEventForReward')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -187,9 +189,9 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name *</FormLabel>
+              <FormLabel>{t('name')} *</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Bonus 100k" {...field} />
+                <Input placeholder={t('exampleName')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -201,9 +203,9 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
           name="description"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Description</FormLabel>
+              <FormLabel>{t('description')}</FormLabel>
               <FormControl>
-                <Textarea placeholder="Optional description" {...field} value={field.value || ''} />
+                <Textarea placeholder={t('optionalDescription')} {...field} value={field.value || ''} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -216,9 +218,9 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
             name="type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Type *</FormLabel>
+                <FormLabel>{t('type')} *</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., BONUS, FREE_MEAL, DISCOUNT, ..." {...field} />
+                  <Input placeholder={t('exampleType')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -230,11 +232,11 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
             name="color"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Color *</FormLabel>
+                <FormLabel>{t('color')} *</FormLabel>
                 <Select onValueChange={field.onChange} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder={t('selectAColor')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -257,7 +259,7 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
             name="probability"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Probability (0.0 - 1.0) *</FormLabel>
+                <FormLabel>{t('probability')} (0.0 - 1.0) *</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -268,7 +270,7 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />
                 </FormControl>
-                <FormDescription>Current: {(field.value * 100).toFixed(1)}%</FormDescription>
+                <FormDescription>{t('currentProbability', { probability: (field.value * 100).toFixed(1) })}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -279,7 +281,7 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
             name="order"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Order *</FormLabel>
+                <FormLabel>{t('order')} *</FormLabel>
                 <FormControl>
                   <Input
                     type="number"
@@ -288,7 +290,7 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />
                 </FormControl>
-                <FormDescription>Display order on wheel</FormDescription>
+                <FormDescription>{t('displayOrderOnWheel')}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -300,12 +302,12 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
           name="maxQuantity"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Max Quantity (Optional)</FormLabel>
+              <FormLabel>{t('maximumQuantity')} ({t('optional')})</FormLabel>
               <FormControl>
                 <Input
                   type="number"
                   min="1"
-                  placeholder="Leave empty for unlimited"
+                  placeholder={t('leaveEmptyForUnlimited')}
                   {...field}
                   value={field.value || ''}
                   onChange={(e) =>
@@ -314,7 +316,7 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
                 />
               </FormControl>
               <FormDescription>
-                Maximum number of times this reward can be won. Leave empty for unlimited.
+                {t('maxQuantityDescription')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -326,15 +328,15 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
           name="value"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Value (Optional)</FormLabel>
+              <FormLabel>{t('value')} ({t('optional')})</FormLabel>
               <FormControl>
                 <Input
-                  placeholder='JSON string, e.g., {"amount": 100000}'
+                  placeholder={t('jsonStringForValue')}
                   {...field}
                   value={field.value || ''}
                 />
               </FormControl>
-              <FormDescription>JSON string for reward value</FormDescription>
+              <FormDescription>{t('jsonStringForRewardValue')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -345,10 +347,10 @@ export function SpinRewardForm({ reward, onSuccess, onCancel }: SpinRewardFormPr
           name="icon"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Icon (Optional)</FormLabel>
+              <FormLabel>{t('iconName')} ({t('optional')})</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Icon name from lucide-react"
+                  placeholder={t('iconNameHelper')}
                   {...field}
                   value={field.value || ''}
                 />

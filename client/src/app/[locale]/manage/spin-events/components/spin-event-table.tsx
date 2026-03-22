@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import AutoPagination from '@/components/auto-pagination'
 import {
   AlertDialog,
@@ -66,6 +67,7 @@ export function SpinEventTable({
   onEdit,
   onNewEvent,
 }: SpinEventTableProps) {
+  const t = useTranslations('SpinEvents')
   const [deletingEvent, setDeletingEvent] = useState<SpinEventType | null>(null)
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -82,7 +84,7 @@ export function SpinEventTable({
       await deleteMutation.mutateAsync(deletingEvent.id)
       toast({
         title: 'Success',
-        description: 'Event deleted successfully',
+        description: t('deleteSuccess'),
       })
       setDeletingEvent(null)
     } catch (error) {
@@ -90,7 +92,7 @@ export function SpinEventTable({
         error,
       })
     }
-  }, [deletingEvent, deleteMutation])
+  }, [deletingEvent, deleteMutation, t])
 
   const handleToggleActive = useCallback(
     async (event: SpinEventType) => {
@@ -114,51 +116,51 @@ export function SpinEventTable({
     () => [
       {
         accessorKey: 'name',
-        header: 'Name',
+        header: t('name'),
         cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
       },
       {
         accessorKey: 'description',
-        header: 'Description',
+        header: t('description'),
         cell: ({ row }) => (
           <div className="max-w-[200px] truncate">{row.original.description || '-'}</div>
         ),
       },
       {
         accessorKey: 'startDate',
-        header: 'Start Date',
+        header: t('startDate'),
         cell: ({ row }) => format(new Date(row.original.startDate), 'MMM dd, yyyy'),
       },
       {
         accessorKey: 'endDate',
-        header: 'End Date',
+        header: t('endDate'),
         cell: ({ row }) =>
           row.original.endDate
             ? format(new Date(row.original.endDate), 'MMM dd, yyyy')
-            : 'No end date',
+            : t('noEndDate'),
       },
       {
         accessorKey: 'isActive',
-        header: 'Status',
+        header: t('status'),
         cell: ({ row }) => (
           <Badge variant={row.original.isActive ? 'default' : 'secondary'}>
-            {row.original.isActive ? 'Active' : 'Inactive'}
+            {row.original.isActive ? t('active') : t('inactive')}
           </Badge>
         ),
       },
       {
         accessorKey: '_count.rewards',
-        header: 'Rewards',
+        header: t('rewards'),
         cell: ({ row }) => row.original._count?.rewards || 0,
       },
       {
         accessorKey: '_count.spins',
-        header: 'Spins',
+        header: t('spins'),
         cell: ({ row }) => row.original._count?.spins || 0,
       },
       {
         id: 'actions',
-        header: () => <div className="text-right">Actions</div>,
+        header: () => <div className="text-right">{t('actions')}</div>,
         cell: ({ row }) => {
           const event = row.original
           return (
@@ -171,7 +173,7 @@ export function SpinEventTable({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={() => handleToggleActive(event)}
@@ -180,19 +182,19 @@ export function SpinEventTable({
                     {event.isActive ? (
                       <span className="flex items-center gap-2">
                         <ToggleLeft className="h-4 w-4" />
-                        Deactivate
+                        {t('deactivate')}
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
                         <ToggleRight className="h-4 w-4" />
-                        Activate
+                        {t('activate')}
                       </span>
                     )}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => onEdit(event)}>
                     <span className="flex items-center gap-2">
                       <Edit className="h-4 w-4" />
-                      Edit
+                      {t('edit')}
                     </span>
                   </DropdownMenuItem>
                   <DropdownMenuItem
@@ -201,7 +203,7 @@ export function SpinEventTable({
                   >
                     <span className="flex items-center gap-2">
                       <Trash2 className="h-4 w-4" />
-                      Delete
+                      {t('delete')}
                     </span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -211,7 +213,7 @@ export function SpinEventTable({
         },
       },
     ],
-    [onEdit, toggleMutation.isPending, handleToggleActive]
+    [onEdit, toggleMutation.isPending, handleToggleActive, t]
   )
 
   // Setup React Table
@@ -241,7 +243,7 @@ export function SpinEventTable({
   if (events.length === 0) {
     return (
       <div className="py-8 text-center text-muted-foreground">
-        <p>No events found. Create your first event to get started.</p>
+        <p>{t('noEventsFound')}</p>
       </div>
     )
   }
@@ -252,7 +254,7 @@ export function SpinEventTable({
         {/* Search Input and New Event Button */}
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:py-4">
           <Input
-            placeholder="Filter by name..."
+            placeholder={t('filterByName')}
             value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
             onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
             className="w-full sm:max-w-sm"
@@ -261,7 +263,7 @@ export function SpinEventTable({
             <div className="sm:ml-auto">
               <Button onClick={onNewEvent}>
                 <Plus className="mr-2 h-4 w-4" />
-                New Event
+                {t('newEvent')}
               </Button>
             </div>
           )}
