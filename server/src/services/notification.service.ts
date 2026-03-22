@@ -270,7 +270,7 @@ export const notificationService = {
 
       // 3. Send via Firebase Admin
       const response = await messaging.sendEachForMulticast(message)
-      getContextLogger()?.info('send notification', response)
+      getContextLogger()?.info({ response }, 'send notification')
 
       // 4. Cleanup invalid or expired tokens
       if (response.failureCount > 0) {
@@ -299,7 +299,7 @@ export const notificationService = {
         failureCount: response.failureCount
       }
     } catch (error) {
-      getContextLogger()?.error('[NotificationService.sendToAccount] Failed:', error)
+      getContextLogger()?.error(error, '[NotificationService.sendToAccount] Failed:')
       return { success: false, reason: 'Internal error' }
     }
   },
@@ -329,7 +329,7 @@ export const notificationService = {
 
       return { success: true, count: response.successCount }
     } catch (error) {
-      getContextLogger()?.error('[NotificationService.sendSilentDataToAccount] Failed:', error)
+      getContextLogger()?.error(error, '[NotificationService.sendSilentDataToAccount] Failed:')
       return { success: false }
     }
   },
@@ -346,7 +346,7 @@ export const notificationService = {
       })
       getContextLogger()?.info(`[NotificationService] Purged ${invalidTokens.length} dead FCM tokens.`)
     } catch (error) {
-      getContextLogger()?.error('[NotificationService.cleanupTokens] Failed:', error)
+      getContextLogger()?.error(error, '[NotificationService.cleanupTokens] Failed:')
     }
   }
 }

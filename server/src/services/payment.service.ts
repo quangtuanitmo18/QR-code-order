@@ -681,7 +681,7 @@ export const paymentService = {
     } else if (event.type === 'payment_intent.succeeded' || event.type === 'payment_intent.payment_failed') {
       const paymentIntent = event.data.object as Stripe.PaymentIntent
 
-      getContextLogger()?.info('🔍 Looking for payment with payment_intent:', paymentIntent.id)
+      getContextLogger()?.info({ paymentIntentId: paymentIntent.id }, '🔍 Looking for payment with payment_intent:')
 
       // Try multiple methods to find the payment
 
@@ -704,7 +704,7 @@ export const paymentService = {
 
         if (sessions.data.length > 0) {
           const session = sessions.data[0]
-          getContextLogger()?.info('✅ Found session:', session.id)
+          getContextLogger()?.info({ sessionId: session.id }, '✅ Found session:')
 
           // Find payment by session ID
           existingPayment = await paymentRepository.findPaymentByExternalSessionId(session.id)
@@ -731,7 +731,7 @@ export const paymentService = {
                 }
               } catch (err) {
                 // Session might be expired, continue
-                getContextLogger()?.info('⚠️ Failed to get session:', p.externalSessionId)
+                getContextLogger()?.info({ externalSessionId: p.externalSessionId }, '⚠️ Failed to get session:')
               }
             }
           }
@@ -740,11 +740,11 @@ export const paymentService = {
     }
 
     if (!transactionRef) {
-      getContextLogger()?.error('❌ Could not find transaction reference for event:', event.type, event.id)
+      getContextLogger()?.error({ eventType: event.type, eventId: event.id }, '❌ Could not find transaction reference for event:')
       throw new Error('Transaction reference not found in event')
     }
 
-    getContextLogger()?.info('✅ Transaction reference found:', transactionRef)
+    getContextLogger()?.info({ transactionRef }, '✅ Transaction reference found:')
 
     // Find payment by transaction ref
     payment = await paymentRepository.findPaymentByTransactionRef(transactionRef)
@@ -775,7 +775,7 @@ export const paymentService = {
         try {
           paymentMethod = await stripe.paymentMethods.retrieve(paymentIntent.payment_method as string)
         } catch (err) {
-          getContextLogger()?.error('Failed to retrieve payment method:', err)
+          getContextLogger()?.error(err, 'Failed to retrieve payment method:')
         }
       }
 

@@ -212,7 +212,7 @@ export const taskService = {
           await fs.promises.unlink(filePath)
         } catch (error) {
           // Log error but continue with deletion
-          getContextLogger()?.error(`Failed to delete attachment file: ${filePath}`, error)
+          getContextLogger()?.error(error, `Failed to delete attachment file: ${filePath}`)
         }
       }
     }

@@ -23,7 +23,7 @@ export async function getLiveExchangeRate(targetCurrency: 'VND' | 'RUB' = 'VND')
 
     return data.rates.VND || 25000
   } catch (error) {
-    getContextLogger()?.error('Failed to fetch exchange rate, using default:', error)
+    getContextLogger()?.error(error, 'Failed to fetch exchange rate, using default:')
     return targetCurrency === 'RUB' ? 95 : 25000
   }
 }

@@ -90,7 +90,7 @@ export const createYooKassaPayment = async ({
 
     // Log detailed error information
     if (error.response?.data) {
-      getContextLogger()?.error('YooKassa API Error:', JSON.stringify(error.response.data, null, 2))
+      getContextLogger()?.error({ data: error.response.data }, 'YooKassa API Error:')
     }
 
     throw new Error(`Failed to create YooKassa payment: ${error.message}`)
@@ -139,12 +139,12 @@ export async function verifyYooKassaWebhook(signature: string, body: any) {
 
     const paymentId = body.object.id
 
-    getContextLogger()?.info('📋 Notification details:', {
+    getContextLogger()?.info({
       type: body.type,
       event: body.event,
       paymentId,
       status: body.object?.status
-    })
+    }, '📋 Notification details:')
 
     // Verify payment exists in YooKassa by fetching it
     // This ensures the webhook is legitimate
@@ -153,7 +153,7 @@ export async function verifyYooKassaWebhook(signature: string, body: any) {
     let payment
     try {
       payment = await yookassa.getPayment(paymentId)
-      getContextLogger()?.info('✅ Payment fetched from YooKassa:', JSON.stringify(payment, null, 2))
+      getContextLogger()?.info({ payment }, '✅ Payment fetched from YooKassa:')
     } catch (fetchError: any) {
       getContextLogger()?.error('❌ Failed to fetch payment from YooKassa:', fetchError.message)
       throw new Error(`Cannot verify payment ${paymentId}: ${fetchError.message}`)
@@ -163,18 +163,18 @@ export async function verifyYooKassaWebhook(signature: string, body: any) {
       throw new Error(`Payment ${paymentId} not found in YooKassa`)
     }
 
-    getContextLogger()?.info('✅ Webhook verified - payment exists in YooKassa:', {
+    getContextLogger()?.info({
       id: payment.id,
       status: payment.status,
       amount: payment.amount?.value
-    })
+    }, '✅ Webhook verified - payment exists in YooKassa:')
 
     // Additional security: Check payment status matches notification
     if (payment.status !== body.object.status) {
-      getContextLogger()?.warn('⚠️ Payment status mismatch:', {
+      getContextLogger()?.warn({
         notificationStatus: body.object.status,
         actualStatus: payment.status
-      })
+      }, '⚠️ Payment status mismatch:')
     }
 
     return body

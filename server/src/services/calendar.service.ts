@@ -294,7 +294,7 @@ export const calendarService = {
         await notificationService.createEventCreatedNotifications(event.id, body.employeeIds)
       } catch (error) {
         // Log error but don't fail event creation
-        getContextLogger()?.error('[Calendar Service] Failed to create notifications:', error)
+        getContextLogger()?.error(error, '[Calendar Service] Failed to create notifications:')
       }
 
       // Return event directly (serializerCompiler will handle Date serialization)
@@ -360,7 +360,7 @@ export const calendarService = {
           await notificationService.createEventUpdatedNotifications(eventId, assignedUserIds)
         } catch (error) {
           // Log error but don't fail event update
-          getContextLogger()?.error('[Calendar Service] Failed to create update notifications:', error)
+          getContextLogger()?.error(error, '[Calendar Service] Failed to create update notifications:')
         }
       }
 
@@ -399,7 +399,7 @@ export const calendarService = {
       } catch (error) {
         // Log error but don't fail event deletion
         // Note: Event is already deleted, so we can't fetch it again
-        getContextLogger()?.error('[Calendar Service] Failed to create cancellation notifications:', error)
+        getContextLogger()?.error(error, '[Calendar Service] Failed to create cancellation notifications:')
       }
     }
 

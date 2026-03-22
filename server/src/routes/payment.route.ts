@@ -90,7 +90,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
 
       const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=${paymentSuccess}&amount=${payment.amount}&txnRef=${transactionRef}&method=Stripe`
 
-      request.log.info('Stripe return: Redirecting to', redirectUrl)
+      request.log.info({ redirectUrl }, 'Stripe return: Redirecting to')
       reply.redirect(redirectUrl)
     } catch (error: any) {
       request.log.error('Stripe return error:', error)
@@ -127,13 +127,13 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
           return
         }
 
-        request.log.info('[Stripe Webhook] Raw body type:', typeof rawBody)
-        request.log.info('[Stripe Webhook] Raw body is Buffer:', Buffer.isBuffer(rawBody))
+        request.log.info({ rawBodyType: typeof rawBody }, '[Stripe Webhook] Raw body type:')
+        request.log.info({ isBuffer: Buffer.isBuffer(rawBody) }, '[Stripe Webhook] Raw body is Buffer:')
 
         // Verify webhook signature
         const event = verifyStripeWebhook(rawBody, signature)
 
-        request.log.info('[Stripe Webhook] Event:', event.type, event.id)
+        request.log.info({ eventType: event.type, eventId: event.id }, '[Stripe Webhook] Event:')
 
         // Handle relevant events
         if (
@@ -170,7 +170,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
     try {
       const { txnRef } = request.query as { txnRef?: string }
 
-      request.log.info('YooKassa return: Query params:', JSON.stringify(request.query, null, 2))
+      request.log.info({ query: request.query }, 'YooKassa return: Query params:')
 
       if (!txnRef) {
         throw new Error('Transaction reference is required')
@@ -210,7 +210,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
 
       const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=${paymentSuccess}&amount=${payment.amount}&txnRef=${txnRef}&method=YooKassa`
 
-      request.log.info('YooKassa return: Redirecting to', redirectUrl)
+      request.log.info({ redirectUrl }, 'YooKassa return: Redirecting to')
       reply.redirect(redirectUrl)
     } catch (error: any) {
       request.log.error('YooKassa return error:', error)
@@ -224,8 +224,8 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
   fastify.post('/yookassa/webhook', async (request, reply) => {
     try {
       request.log.info('[YooKassa Webhook] Received')
-      request.log.info('Headers:', JSON.stringify(request.headers, null, 2))
-      request.log.info('Body:', JSON.stringify(request.body, null, 2))
+      request.log.info({ headers: request.headers }, 'Headers:')
+      request.log.info({ body: request.body }, 'Body:')
 
       // YooKassa sends signature in 'signature' header, NOT 'authorization'
       const signature = request.headers['signature'] as string
@@ -236,7 +236,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
         return
       }
 
-      request.log.info('[YooKassa Webhook] Signature header present:', signature.substring(0, 30) + '...')
+      request.log.info({ signature: signature.substring(0, 30) + '...' }, '[YooKassa Webhook] Signature header present:')
 
       // Verify webhook signature
       const notification = await verifyYooKassaWebhook(signature, request.body)

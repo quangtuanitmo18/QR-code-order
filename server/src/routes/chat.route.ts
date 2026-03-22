@@ -469,7 +469,7 @@ export default async function chatRoutes(fastify: FastifyInstance, options: Fast
             },
             files
           )
-          request.log.info('result', result)
+          request.log.info({ result }, 'result')
 
           // Emit WebSocket event for new message
           emitNewMessage(fastify, request.params.conversationId, result, accountId)
