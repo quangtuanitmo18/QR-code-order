@@ -16,6 +16,33 @@ import { convertToModelMessages, stepCountIs, streamText } from 'ai'
 import crypto from 'crypto'
 import { FastifyReply } from 'fastify'
 
+/**
+ * Filter out `providerMetadata` from SSE data lines.
+ * @ai-sdk/react does not accept this field in tool-output-available events
+ * but @openrouter/ai-sdk-provider injects it into every stream event.
+ */
+function filterSSEProviderMetadata(chunk: Uint8Array): Uint8Array {
+  const text = new TextDecoder().decode(chunk)
+  const filtered = text
+    .split('\n')
+    .map((line) => {
+      if (!line.startsWith('data: ')) return line
+      try {
+        const data = JSON.parse(line.slice(6))
+        if (data.providerMetadata !== undefined) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { providerMetadata: _, ...rest } = data
+          return 'data: ' + JSON.stringify(rest)
+        }
+      } catch {
+        // Not valid JSON — leave line as-is
+      }
+      return line
+    })
+    .join('\n')
+  return new TextEncoder().encode(filtered)
+}
+
 /** Max tokens a single session is allowed to consume before being cut off. */
 const SESSION_TOKEN_BUDGET = 50_000
 
@@ -301,8 +328,8 @@ class AiChatService {
             done = readResult.done
             if (done) {
               reply.raw.end()
-            } else {
-              reply.raw.write(readResult.value)
+            } else if (readResult.value) {
+              reply.raw.write(filterSSEProviderMetadata(readResult.value))
             }
           }
         }
