@@ -2,6 +2,8 @@
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Role } from '@/constants/type'
+import { useAppStore } from '@/store/useAppStore'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
 import {
@@ -27,6 +29,7 @@ const QUICK_PROMPT_KEYS = ['quickPrompt1', 'quickPrompt2', 'quickPrompt3', 'quic
 
 export default function AdminAiChatButton() {
   const t = useTranslations('AdminAiChat')
+  const { isAuth, role } = useAppStore()
   const [isOpen, setIsOpen] = useState(false)
   const [input, setInput] = useState('')
   const [sessionId, setSessionId] = useState<string | undefined>(undefined)
@@ -301,6 +304,9 @@ export default function AdminAiChatButton() {
         return null
     }
   }
+
+  // Only show for authenticated Owners
+  if (!isAuth || role !== Role.Owner) return null
 
   return (
     <>
