@@ -61,7 +61,8 @@ const configSchema = z.object({
   CHROMA_HOST: z.string().optional().default('api.trychroma.com'),
   CHROMA_API_KEY: z.string().optional().default(''),
   CHROMA_TENANT: z.string().optional().default('default_tenant'),
-  CHROMA_DATABASE: z.string().optional().default('default_database')
+  CHROMA_DATABASE: z.string().optional().default('default_database'),
+  MEDIASOUP_ANNOUNCED_IP: z.string().optional().default('127.0.0.1')
 })
 
 const configServer = configSchema.safeParse(process.env)

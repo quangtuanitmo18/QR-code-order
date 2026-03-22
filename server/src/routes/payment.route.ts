@@ -1,4 +1,5 @@
 import { ManagerRoom } from '@/constants/type'
+import envConfig from '@/config'
 import {
   getGuestPaymentsController,
   getPaymentDetailController,
@@ -35,7 +36,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
         fastify.io.to(ManagerRoom).emit('payment', result.orders)
       }
 
-      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+      const clientUrl = envConfig.CLIENT_URL
       const success = result.payment.status === 'Success'
 
       const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=${success}&amount=${result.payment.amount}&txnRef=${result.payment.transactionRef}&method=${result.payment.paymentMethod}`
@@ -43,7 +44,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
       reply.redirect(redirectUrl)
     } catch (error: any) {
       request.log.info('error', error)
-      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+      const clientUrl = envConfig.CLIENT_URL
       const redirectUrl = `${clientUrl}/guest/orders/payment-result?success=false&error=${encodeURIComponent(error.message)}`
       reply.redirect(redirectUrl)
     }
@@ -85,7 +86,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
         throw new Error('Payment not found')
       }
 
-      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+      const clientUrl = envConfig.CLIENT_URL
       const paymentSuccess = success === 'true' && session.payment_status === 'paid'
 
       const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=${paymentSuccess}&amount=${payment.amount}&txnRef=${transactionRef}&method=Stripe`
@@ -94,7 +95,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
       reply.redirect(redirectUrl)
     } catch (error: any) {
       request.log.error('Stripe return error:', error)
-      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+      const clientUrl = envConfig.CLIENT_URL
       const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=false&error=${encodeURIComponent(error.message)}`
       reply.redirect(redirectUrl)
     }
@@ -205,7 +206,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
         })
       }
 
-      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+      const clientUrl = envConfig.CLIENT_URL
       const paymentSuccess = yookassaPayment.status === 'succeeded'
 
       const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=${paymentSuccess}&amount=${payment.amount}&txnRef=${txnRef}&method=YooKassa`
@@ -214,7 +215,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
       reply.redirect(redirectUrl)
     } catch (error: any) {
       request.log.error('YooKassa return error:', error)
-      const clientUrl = process.env.CLIENT_URL || 'http://localhost:3000'
+      const clientUrl = envConfig.CLIENT_URL
       const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=false&error=${encodeURIComponent(error.message)}`
       reply.redirect(redirectUrl)
     }

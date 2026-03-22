@@ -1,3 +1,4 @@
+import envConfig from '@/config'
 import { FastifyInstance } from 'fastify'
 import fastifyPlugin from 'fastify-plugin'
 import * as mediasoup from 'mediasoup'
@@ -64,7 +65,7 @@ export const mediasoupConfig = {
         ip: '0.0.0.0',
         // In production, this should ideally be the public IP of the server
         // Using an env variable or an external IP discovery service
-        announcedIp: process.env.MEDIASOUP_ANNOUNCED_IP || '127.0.0.1'
+        announcedIp: envConfig.MEDIASOUP_ANNOUNCED_IP
       }
     ],
     initialAvailableOutgoingBitrate: 1000000,
