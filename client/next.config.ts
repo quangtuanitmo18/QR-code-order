@@ -1,6 +1,6 @@
 import envConfig from '@/config'
 import NextBundleAnalyzer from '@next/bundle-analyzer'
-import { SentryBuildOptions, withSentryConfig } from '@sentry/nextjs'
+// import { SentryBuildOptions, withSentryConfig } from '@sentry/nextjs'
 import type { NextConfig } from 'next'
 import createNextIntlPlugin from 'next-intl/plugin'
 
@@ -52,22 +52,23 @@ const withBundleAnalyzer = NextBundleAnalyzer({
 })
 
 // Rest of your configuration remains the same
-const sentryWebpackPluginOptions: SentryBuildOptions = {
-  authToken: envConfig.SENTRY_AUTH_TOKEN,
-  org: envConfig.SENTRY_ORG,
-  project: envConfig.SENTRY_PROJECT,
+// const sentryWebpackPluginOptions: any = {
+//   authToken: envConfig.SENTRY_AUTH_TOKEN,
+//   org: envConfig.SENTRY_ORG,
+//   project: envConfig.SENTRY_PROJECT,
+//
+//   release: envConfig.NEXT_PUBLIC_RELEASE ? { name: envConfig.NEXT_PUBLIC_RELEASE } : undefined,
+//   sourcemaps: {
+//     disable: true,
+//     assets: ['**/*.js', '**/*.js.map'],
+//     ignore: ['**/node_modules/**'],
+//     deleteSourcemapsAfterUpload: false,
+//   },
+//   silent: true,
+// }
 
-  release: envConfig.NEXT_PUBLIC_RELEASE ? { name: envConfig.NEXT_PUBLIC_RELEASE } : undefined,
-  sourcemaps: {
-    disable: true,
-    assets: ['**/*.js', '**/*.js.map'],
-    ignore: ['**/node_modules/**'],
-    deleteSourcemapsAfterUpload: false,
-  },
-  silent: true,
-}
-
-export default withSentryConfig(
-  withBundleAnalyzer(withNextIntl(nextConfig)),
-  sentryWebpackPluginOptions
-)
+export default withBundleAnalyzer(withNextIntl(nextConfig))
+// export default withSentryConfig(
+//   withBundleAnalyzer(withNextIntl(nextConfig)),
+//   sentryWebpackPluginOptions
+// )
