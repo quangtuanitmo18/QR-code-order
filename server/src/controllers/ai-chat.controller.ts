@@ -3,6 +3,7 @@ import { requireGuestHook, requireLoginedHook, requireOwnerHook } from '@/hooks/
 import { ChatRequestBody, chatRequestSchema } from '@/schemaValidations/ai-chat.schema'
 import { aiChatService } from '@/services/ai-chat.service'
 import { guestService } from '@/services/guest.service'
+import { couponService } from '@/services/coupon.service'
 import { getContextLogger } from '@/utils/logger'
 import { FastifyInstance } from 'fastify'
 
@@ -73,7 +74,6 @@ export async function aiChatController(fastify: FastifyInstance) {
           result = await guestService.cancelOrder(params.orderId, guestId)
           result = { message: `Order #${params.orderId} has been cancelled successfully.`, ...result }
         } else if (action === 'applyCoupon') {
-          const { couponService } = await import('@/services/coupon.service')
           result = await couponService.applyToOrder(params.couponCode, params.orderId, guestId)
           result = { message: `Coupon "${params.couponCode}" applied successfully! 🎉`, ...result }
         } else {
