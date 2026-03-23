@@ -12,11 +12,13 @@ import {
 import { Link, usePathname } from '@/i18n/routing'
 import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
+import { useTranslations } from 'next-intl'
 import { PanelLeft, UtensilsCrossed } from 'lucide-react'
 
 export default function MobileNavLinks() {
   const pathname = usePathname()
   const role = useAppStore((state) => state.role)
+  const t = useTranslations('Navigation')
 
   if (pathname.includes('/manage/login')) {
     return null
@@ -66,7 +68,7 @@ export default function MobileNavLinks() {
                   <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
                 )}
                 <Item.Icon className={cn('h-5 w-5', isActive && 'text-primary')} />
-                {Item.title}
+                {t(Item.title as any)}
               </Link>
             )
           })}

@@ -569,7 +569,8 @@
     "actionSuccess": "Thao tác thành công",
     "actionFailed": "Thao tác thất bại",
     "actionExecuting": "Đang xử lý...",
-    "actionDenied": "Đã hủy thao tác."
+    "actionDenied": "Đã hủy thao tác.",
+    "retryAction": "Thử lại"
   },
   "AdminAiChat": {
     "title": "Trợ lý AI Quản trị",
@@ -710,5 +711,21 @@
     "noBlogPostsFound": "Không tìm thấy bài viết nào.",
     "showingLength": "Đang hiển thị {length} bài trên {total} kết quả",
     "archiveSuccess": "Lưu trữ bài viết thành công"
+  },
+  "Navigation": {
+    "dashboard": "Bảng điều khiển",
+    "orders": "Đơn hàng",
+    "tables": "Bàn ăn",
+    "dishes": "Món ăn",
+    "reviews": "Đánh giá",
+    "calendar": "Lịch trình",
+    "tasks": "Công việc",
+    "chat": "Tin nhắn",
+    "blogs": "Bài viết",
+    "coupons": "Mã giảm giá",
+    "employees": "Nhân viên",
+    "spin": "Vòng quay",
+    "employeeSpin": "Vòng quay nhân viên",
+    "setting": "Cài đặt"
   }
 }

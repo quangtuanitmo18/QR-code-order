@@ -711,5 +711,21 @@
     "noBlogPostsFound": "No blog posts found.",
     "showingLength": "Showing {length} of {total} results",
     "archiveSuccess": "Blog post archived successfully"
+  },
+  "Navigation": {
+    "dashboard": "Dashboard",
+    "orders": "Orders",
+    "tables": "Tables",
+    "dishes": "Dishes",
+    "reviews": "Reviews",
+    "calendar": "Calendar",
+    "tasks": "Tasks",
+    "chat": "Chat",
+    "blogs": "Blogs",
+    "coupons": "Coupons",
+    "employees": "Employees",
+    "spin": "Spin",
+    "employeeSpin": "Employee Spin",
+    "setting": "Setting"
   }
 }

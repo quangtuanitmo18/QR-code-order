@@ -8,10 +8,12 @@ import { cn } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
 import { PanelLeft, Settings, UtensilsCrossed } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 
 export default function NavLinks() {
   const pathname = usePathname()
   const role = useAppStore((state) => state.role)
+  const t = useTranslations('Navigation')
   // Start expanded on desktop so the toggle button and labels are clearly visible.
   const [isExpanded, setIsExpanded] = useState(true)
 
@@ -87,8 +89,8 @@ export default function NavLinks() {
                     <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
                   )}
                   <Item.Icon className={cn('h-5 w-5 flex-shrink-0', isActive && 'text-primary')} />
-                  {isExpanded && <span className="truncate">{Item.title}</span>}
-                  <span className="sr-only">{Item.title}</span>
+                  {isExpanded && <span className="truncate">{t(Item.title as any)}</span>}
+                  <span className="sr-only">{t(Item.title as any)}</span>
                 </Link>
               )
 
@@ -97,7 +99,7 @@ export default function NavLinks() {
               ) : (
                 <Tooltip key={Item.href}>
                   <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-                  <TooltipContent side="right">{Item.title}</TooltipContent>
+                  <TooltipContent side="right">{t(Item.title as any)}</TooltipContent>
                 </Tooltip>
               )
             })}
@@ -124,8 +126,8 @@ export default function NavLinks() {
                   <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-primary" />
                 )}
                 <Settings className={cn('h-5 w-5', isActive && 'text-primary')} />
-                {isExpanded && <span className="truncate">Setting</span>}
-                <span className="sr-only">Setting</span>
+                {isExpanded && <span className="truncate">{t('setting')}</span>}
+                <span className="sr-only">{t('setting')}</span>
               </Link>
             )
 
@@ -134,7 +136,7 @@ export default function NavLinks() {
             ) : (
               <Tooltip>
                 <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
-                <TooltipContent side="right">Setting</TooltipContent>
+                <TooltipContent side="right">{t('setting')}</TooltipContent>
               </Tooltip>
             )
           })()}
