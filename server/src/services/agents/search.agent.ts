@@ -196,6 +196,13 @@ export function createSearchAgentTools() {
           // Group order items by dish snapshot, sum quantities
           const popularItems = await prisma.orderItem.groupBy({
             by: ['dishSnapshotId'],
+            where: {
+              order: {
+                status: {
+                  not: 'Rejected'
+                }
+              }
+            },
             _sum: { quantity: true },
             orderBy: { _sum: { quantity: 'desc' } },
             take: limit
