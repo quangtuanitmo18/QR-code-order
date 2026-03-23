@@ -1,4 +1,4 @@
-import { DishStatus, OrderStatus, PaymentStatus } from '@/constants/type'
+import { DishStatus, OrderStatus, TableStatus } from '@/constants/type'
 import prisma from '@/database'
 import { getContextLogger } from '@/utils/logger'
 
@@ -85,36 +85,51 @@ class AdminService {
       }
     }
 
+    // Chặn chống sập RAM máy chủ: Yêu cầu lấy dữ liệu giới hạn trong 1 năm
+    const diffDays = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    if (diffDays > 365) {
+      return {
+        totalRevenue: 0,
+        paymentCount: 0,
+        dailyBreakdown: [],
+        message: 'Khoảng thời gian vượt quá 365 ngày. Vì lý do an toàn hiệu năng, vui lòng truy vấn từng năm một.'
+      }
+    }
+
     try {
-      const payments = await prisma.payment.findMany({
+      const orders = await prisma.order.findMany({
         where: {
-          status: PaymentStatus.Success,
-          paidAt: { gte: start, lte: end }
+          status: OrderStatus.Paid,
+          createdAt: { gte: start, lte: end }
         },
-        select: { amount: true, paidAt: true }
+        select: { totalAmount: true, discountAmount: true, createdAt: true }
       })
 
-      const totalRevenue = payments.reduce((sum, p) => sum + p.amount, 0)
+      let totalRevenue = 0
 
       // Build daily breakdown
       const dailyMap = new Map<string, { revenue: number; orderCount: number }>()
-      for (const p of payments) {
-        if (!p.paidAt) continue
-        const day = p.paidAt.toISOString().slice(0, 10) // YYYY-MM-DD
+      for (const o of orders) {
+        if (!o.createdAt) continue
+        const netRevenue = o.totalAmount - (o.discountAmount ?? 0)
+        totalRevenue += netRevenue
+
+        const day = o.createdAt.toISOString().slice(0, 10) // YYYY-MM-DD
         const entry = dailyMap.get(day) || { revenue: 0, orderCount: 0 }
-        entry.revenue += p.amount
+        entry.revenue += netRevenue
         entry.orderCount += 1
         dailyMap.set(day, entry)
       }
+
       const dailyBreakdown = Array.from(dailyMap.entries())
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([date, data]) => ({ date, ...data }))
 
       return {
         totalRevenue,
-        paymentCount: payments.length,
+        paymentCount: orders.length,
         dailyBreakdown,
-        message: `Total revenue from ${startDate} to ${endDate} is $${totalRevenue / 100} across ${payments.length} paid orders.`
+        message: `Total revenue from ${startDate} to ${endDate} is $${totalRevenue} across ${orders.length} paid orders.`
       }
     } catch (error) {
       log?.error({ err: error }, '[AdminService] getRevenueTrends DB error')
@@ -128,6 +143,13 @@ class AdminService {
   async getDishPerformance(sortBy: 'best' | 'worst', limit: number): Promise<DishPerformanceItem[]> {
     const popularItems = await prisma.orderItem.groupBy({
       by: ['dishSnapshotId'],
+      where: {
+        order: {
+          status: {
+            not: OrderStatus.Rejected
+          }
+        }
+      },
       _sum: { quantity: true },
       orderBy: { _sum: { quantity: sortBy === 'best' ? 'desc' : 'asc' } },
       take: limit
@@ -229,7 +251,7 @@ class AdminService {
     })
 
     const activeTables = await prisma.table.count({
-      where: { status: 'Occupied' }
+      where: { status: TableStatus.Reserved }
     })
 
     return {

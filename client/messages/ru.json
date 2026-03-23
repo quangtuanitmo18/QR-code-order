@@ -326,7 +326,8 @@
     "tableNumber": "Стол {number}",
     "scanToOrder": "Сканировать для заказа",
     "capacity": "Вместимость: {capacity} человек",
-    "noTables": "Нет доступных столов"
+    "noTables": "Нет доступных столов",
+    "linkCopied": "Ссылка скопирована!"
   },
   "Blog": {
     "title": "Блоги",

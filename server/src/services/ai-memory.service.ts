@@ -1,8 +1,6 @@
-import envConfig from '@/config'
 import prisma from '@/database'
+import { generateTextWithFallback } from '@/services/ai-provider.service'
 import { getContextLogger } from '@/utils/logger'
-import { createOpenRouter } from '@openrouter/ai-sdk-provider'
-import { generateText } from 'ai'
 
 /** Lightweight UIMessage-like shape stored in DB */
 export interface UIMessageLike {
@@ -236,10 +234,6 @@ class AiMemoryService {
       return existingSummary || ''
     }
 
-    const openrouter = createOpenRouter({
-      apiKey: envConfig.OPENROUTER_API_KEY
-    })
-
     const evictedText = evictedMessages
       .map((m) => {
         // Omit system messages from summary
@@ -266,11 +260,14 @@ ${evictedText}
 Updated Comprehensive Summary (max 200 words, use clear and direct language):`
 
     try {
-      const result = await generateText({
-        model: openrouter.chat('google/gemini-2.5-flash'),
-        prompt,
-        maxOutputTokens: 300 // Keep summary short
-      })
+      const result = await generateTextWithFallback(
+        {
+          prompt,
+          maxOutputTokens: 300 // Keep summary short
+        },
+        'openai/gpt-oss-120b',
+        'google/gemini-2.5-flash'
+      )
 
       return result.text.trim()
     } catch (error) {

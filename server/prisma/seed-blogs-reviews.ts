@@ -27,9 +27,10 @@ async function main() {
 
   const blogs = [
     {
-      title: 'The Art of Pho: How We Perfect Vietnam\'s Most Iconic Bowl',
+      title: "The Art of Pho: How We Perfect Vietnam's Most Iconic Bowl",
       slug: 'art-of-pho-perfect-vietnams-iconic-bowl',
-      excerpt: 'Every bowl of pho at Big Boy starts 18 hours before you order it. Here\'s the story behind our bone broth.',
+      excerpt:
+        "Every bowl of pho at Big Boy starts 18 hours before you order it. Here's the story behind our bone broth.",
       category: 'Behind the Kitchen',
       tags: JSON.stringify(['pho', 'vietnamese-cuisine', 'chef-notes', 'cooking']),
       featured: true,
@@ -156,7 +157,8 @@ We're also working with two other Da Nang restaurants to create a collective pur
     {
       title: 'How We Built a Zero-Waste Kitchen (And What We Learned)',
       slug: 'zero-waste-kitchen-lessons-learned',
-      excerpt: 'Last year we composted 98% of our food waste. Here\'s the system we built, and the mistakes we made along the way.',
+      excerpt:
+        "Last year we composted 98% of our food waste. Here's the system we built, and the mistakes we made along the way.",
       category: 'Sourcing & Sustainability',
       tags: JSON.stringify(['zero-waste', 'sustainability', 'environment', 'kitchen-operations']),
       featured: false,
@@ -228,9 +230,10 @@ We're proud of this progress. We're also aware it took four years to get here.
 `
     },
     {
-      title: '5 Vietnamese Dishes You Didn\'t Know Were Seasonal',
+      title: "5 Vietnamese Dishes You Didn't Know Were Seasonal",
       slug: '5-vietnamese-dishes-seasonal-guide',
-      excerpt: 'Mango salad in July, bánh cuốn in October, sầu riêng dishes in June — Vietnamese cuisine is deeply tied to agricultural seasons.',
+      excerpt:
+        'Mango salad in July, bánh cuốn in October, sầu riêng dishes in June — Vietnamese cuisine is deeply tied to agricultural seasons.',
       category: 'Food Education',
       tags: JSON.stringify(['vietnamese-food', 'seasonal', 'menu', 'education']),
       featured: false,
@@ -294,7 +297,8 @@ We also believe it's more honest. A tomato in January is not the same as a tomat
     {
       title: 'QR Ordering: How We Designed a System Guests Actually Like',
       slug: 'qr-ordering-system-design-guest-experience',
-      excerpt: 'When we rolled out QR code ordering, 30% of guests initially refused to use it. Here\'s how we redesigned the experience until they did.',
+      excerpt:
+        "When we rolled out QR code ordering, 30% of guests initially refused to use it. Here's how we redesigned the experience until they did.",
       category: 'Technology & Experience',
       tags: JSON.stringify(['qr-ordering', 'technology', 'ux', 'restaurant-innovation']),
       featured: true,
@@ -366,9 +370,10 @@ What did work: making it fast, making it fail gracefully (when in doubt, call a 
 `
     },
     {
-      title: 'Pairing Vietnamese Cuisine with Natural Wine: A Sommelier\'s Guide',
+      title: "Pairing Vietnamese Cuisine with Natural Wine: A Sommelier's Guide",
       slug: 'vietnamese-cuisine-natural-wine-pairing-guide',
-      excerpt: 'Natural wine and Vietnamese food have more in common than you\'d think. Both rely on fermentation, brightness, and balance.',
+      excerpt:
+        "Natural wine and Vietnamese food have more in common than you'd think. Both rely on fermentation, brightness, and balance.",
       category: 'Food & Drink',
       tags: JSON.stringify(['wine', 'pairing', 'natural-wine', 'drinks']),
       featured: false,
@@ -433,7 +438,8 @@ We rotate our wine selection monthly based on what we can source from natural wi
     {
       title: 'Our New Dietary Labels: Navigating the Menu with Allergies and Preferences',
       slug: 'dietary-labels-allergy-menu-navigation',
-      excerpt: 'We\'ve redesigned how we communicate allergens and dietary options — here\'s what each label means and how our kitchen staff are trained.',
+      excerpt:
+        "We've redesigned how we communicate allergens and dietary options — here's what each label means and how our kitchen staff are trained.",
       category: 'Guest Experience',
       tags: JSON.stringify(['allergens', 'dietary', 'vegetarian', 'gluten-free', 'menu']),
       featured: false,
@@ -515,7 +521,8 @@ If you're using the AI assistant to order, tell it your restrictions at the star
     {
       title: 'The Big Boy Story: From 4 Tables to 120 Seats in 15 Years',
       slug: 'big-boy-restaurant-story-15-years',
-      excerpt: 'Our founder\'s account of what it took to build a restaurant that survived two economic downturns, a pandemic, and 15 years of Da Nang\'s changing food scene.',
+      excerpt:
+        "Our founder's account of what it took to build a restaurant that survived two economic downturns, a pandemic, and 15 years of Da Nang's changing food scene.",
       category: 'About Us',
       tags: JSON.stringify(['founding-story', 'history', 'chef-minh', 'da-nang']),
       featured: true,
@@ -593,7 +600,8 @@ Some days it's right. Some days we adjust.
     {
       title: 'Da Nang Food Map: 10 Essential Dishes Beyond Big Boy',
       slug: 'da-nang-food-map-essential-dishes',
-      excerpt: 'As locals, we want Da Nang to win. Here are 10 dishes from around the city that every visitor should try — none of them ours.',
+      excerpt:
+        'As locals, we want Da Nang to win. Here are 10 dishes from around the city that every visitor should try — none of them ours.',
       category: 'City Guide',
       tags: JSON.stringify(['da-nang', 'food-guide', 'local-tips', 'city-guide']),
       featured: false,
@@ -665,9 +673,10 @@ Da Nang is a walkable eating city. Everything in Hải Châu district is within 
 `
     },
     {
-      title: 'Training the Next Generation: Big Boy\'s Kitchen Apprenticeship Program',
+      title: "Training the Next Generation: Big Boy's Kitchen Apprenticeship Program",
       slug: 'kitchen-apprenticeship-program-training',
-      excerpt: 'We run a paid 12-month kitchen apprenticeship for culinary school graduates. Here\'s what it covers and why we built it this way.',
+      excerpt:
+        "We run a paid 12-month kitchen apprenticeship for culinary school graduates. Here's what it covers and why we built it this way.",
       category: 'Team & Culture',
       tags: JSON.stringify(['team', 'apprenticeship', 'training', 'hiring', 'culture']),
       featured: false,
@@ -784,9 +793,21 @@ Send a short letter explaining why you want to be here (not a generic letter —
   const guestPool: typeof existingGuests = [...existingGuests]
 
   const guestNames = [
-    'Minh Tuấn', 'Thu Hương', 'Bảo Long', 'Phương Linh', 'Đức Anh',
-    'Yuki Tanaka', 'James Wilson', 'Maria Santos', 'Li Wei', 'Emma Johnson',
-    'Park Jimin', 'Ahmed Hassan', 'Priya Sharma', 'Thomas Müller', 'Sophie Laurent'
+    'Minh Tuấn',
+    'Thu Hương',
+    'Bảo Long',
+    'Phương Linh',
+    'Đức Anh',
+    'Yuki Tanaka',
+    'James Wilson',
+    'Maria Santos',
+    'Li Wei',
+    'Emma Johnson',
+    'Park Jimin',
+    'Ahmed Hassan',
+    'Priya Sharma',
+    'Thomas Müller',
+    'Sophie Laurent'
   ]
 
   // Create extra guests if we have fewer than 15
@@ -800,158 +821,291 @@ Send a short letter explaining why you want to be here (not a generic letter —
     // 5-star reviews (glowing)
     {
       guestIdx: 0,
-      overallRating: 5, foodQuality: 5, serviceQuality: 5, ambiance: 5, priceValue: 5,
-      comment: 'Absolutely blown away. The pho broth was unlike anything I have tasted outside of a home kitchen in Hanoi. Crystal clear, perfectly seasoned, and the noodles were silky fresh. Staff noticed I was eating alone and chatted with me between courses — that kind of hospitality is rare. Will be back every time I am in Da Nang.',
+      overallRating: 5,
+      foodQuality: 5,
+      serviceQuality: 5,
+      ambiance: 5,
+      priceValue: 5,
+      comment:
+        'Absolutely blown away. The pho broth was unlike anything I have tasted outside of a home kitchen in Hanoi. Crystal clear, perfectly seasoned, and the noodles were silky fresh. Staff noticed I was eating alone and chatted with me between courses — that kind of hospitality is rare. Will be back every time I am in Da Nang.',
       status: 'VISIBLE',
-      replyContent: 'Thank you so much — this made Chef Minh smile. We hope to see you again soon!',
+      replyContent: 'Thank you so much — this made Chef Minh smile. We hope to see you again soon!'
     },
     {
       guestIdx: 1,
-      overallRating: 5, foodQuality: 5, serviceQuality: 4, ambiance: 5, priceValue: 5,
-      comment: 'Brought my parents here for their anniversary dinner. The ribeye steak was cooked exactly to how my father requested (medium-rare with charcoal crust), the tiramisu was light and deeply coffee-flavored, and the QR ordering system meant we spent the whole evening talking instead of waiting for menus. One of the best meals we have had in Vietnam.',
+      overallRating: 5,
+      foodQuality: 5,
+      serviceQuality: 4,
+      ambiance: 5,
+      priceValue: 5,
+      comment:
+        'Brought my parents here for their anniversary dinner. The ribeye steak was cooked exactly to how my father requested (medium-rare with charcoal crust), the tiramisu was light and deeply coffee-flavored, and the QR ordering system meant we spent the whole evening talking instead of waiting for menus. One of the best meals we have had in Vietnam.',
       status: 'VISIBLE',
-      replyContent: 'Happy anniversary to your parents! We love hosting family celebrations — thank you for trusting us with this one.',
+      replyContent:
+        'Happy anniversary to your parents! We love hosting family celebrations — thank you for trusting us with this one.'
     },
     {
       guestIdx: 2,
-      overallRating: 5, foodQuality: 5, serviceQuality: 5, ambiance: 4, priceValue: 5,
-      comment: 'I am a food writer and I have eaten at over 200 restaurants in Southeast Asia this year. Big Boy is in my top 10 — possibly top 5. The sourcing commitment is evident in every plate. The mango salad was seasonal and perfect. The matcha mille crepe was technically impressive. And the price point for this quality is almost irresponsible.',
+      overallRating: 5,
+      foodQuality: 5,
+      serviceQuality: 5,
+      ambiance: 4,
+      priceValue: 5,
+      comment:
+        'I am a food writer and I have eaten at over 200 restaurants in Southeast Asia this year. Big Boy is in my top 10 — possibly top 5. The sourcing commitment is evident in every plate. The mango salad was seasonal and perfect. The matcha mille crepe was technically impressive. And the price point for this quality is almost irresponsible.',
       status: 'VISIBLE',
-      replyContent: 'That means a great deal coming from someone with your experience. We hope you will write about us — we would be honored.',
+      replyContent:
+        'That means a great deal coming from someone with your experience. We hope you will write about us — we would be honored.'
     },
     {
       guestIdx: 3,
-      overallRating: 5, foodQuality: 5, serviceQuality: 5, ambiance: 5, priceValue: 4,
-      comment: 'As someone with a serious tree nut allergy, eating at a new restaurant is always stressful. The staff here handled it with genuine care — they checked with the kitchen for every dish I was interested in, noted my allergy on the order, and the manager came to confirm before the food arrived. I felt safe, and the food was delicious. The chicken tikka masala is one of the best I have had outside India.',
+      overallRating: 5,
+      foodQuality: 5,
+      serviceQuality: 5,
+      ambiance: 5,
+      priceValue: 4,
+      comment:
+        'As someone with a serious tree nut allergy, eating at a new restaurant is always stressful. The staff here handled it with genuine care — they checked with the kitchen for every dish I was interested in, noted my allergy on the order, and the manager came to confirm before the food arrived. I felt safe, and the food was delicious. The chicken tikka masala is one of the best I have had outside India.',
       status: 'VISIBLE',
-      replyContent: 'Your safety is our absolute priority — we are so glad the team handled this well. Please always mention your allergy when ordering and we will take care of you.',
+      replyContent:
+        'Your safety is our absolute priority — we are so glad the team handled this well. Please always mention your allergy when ordering and we will take care of you.'
     },
     {
       guestIdx: 4,
-      overallRating: 5, foodQuality: 5, serviceQuality: 5, ambiance: 5, priceValue: 5,
-      images: JSON.stringify(['https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=800&q=80']),
-      comment: 'Been coming here monthly for two years. The consistency is what impresses me most — this is not a place that is great the first time and average the second. Every visit the pho is the same, the service is the same, the prices are the same. That predictable excellence is hard to build and harder to maintain. Big Boy has it.',
+      overallRating: 5,
+      foodQuality: 5,
+      serviceQuality: 5,
+      ambiance: 5,
+      priceValue: 5,
+      images: JSON.stringify([
+        'https://images.unsplash.com/photo-1484723091791-009251d29641?auto=format&fit=crop&w=800&q=80'
+      ]),
+      comment:
+        'Been coming here monthly for two years. The consistency is what impresses me most — this is not a place that is great the first time and average the second. Every visit the pho is the same, the service is the same, the prices are the same. That predictable excellence is hard to build and harder to maintain. Big Boy has it.',
       status: 'VISIBLE',
-      replyContent: 'Two years of trust — thank you. Consistency is something we work hard at every day. See you next month.',
+      replyContent:
+        'Two years of trust — thank you. Consistency is something we work hard at every day. See you next month.'
     },
     // 4-star reviews (positive with constructive notes)
     {
       guestIdx: 5,
-      overallRating: 4, foodQuality: 5, serviceQuality: 3, ambiance: 4, priceValue: 4,
-      images: JSON.stringify(['https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80']),
-      comment: 'The food is genuinely excellent — some of the best Vietnamese food I have eaten in Da Nang. My only hesitation giving 5 stars is the service on a busy Saturday night was stretched. We waited about 20 minutes for our order to arrive even with QR ordering, and nobody checked on us during the wait. Not a dealbreaker, just something to note. The BBQ ribs were phenomenal.',
+      overallRating: 4,
+      foodQuality: 5,
+      serviceQuality: 3,
+      ambiance: 4,
+      priceValue: 4,
+      images: JSON.stringify([
+        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80'
+      ]),
+      comment:
+        'The food is genuinely excellent — some of the best Vietnamese food I have eaten in Da Nang. My only hesitation giving 5 stars is the service on a busy Saturday night was stretched. We waited about 20 minutes for our order to arrive even with QR ordering, and nobody checked on us during the wait. Not a dealbreaker, just something to note. The BBQ ribs were phenomenal.',
       status: 'VISIBLE',
-      replyContent: 'Thank you for the honest feedback — Saturday evenings are our busiest and we clearly need to improve check-ins during high volume times. We are working on it. Glad the ribs hit the mark!',
+      replyContent:
+        'Thank you for the honest feedback — Saturday evenings are our busiest and we clearly need to improve check-ins during high volume times. We are working on it. Glad the ribs hit the mark!'
     },
     {
       guestIdx: 6,
-      overallRating: 4, foodQuality: 4, serviceQuality: 5, ambiance: 4, priceValue: 3,
-      comment: 'Really lovely experience overall. The staff remembered my name from a previous visit, which was a wonderful surprise. My only feedback would be that the pricing has moved up noticeably in the last 12 months — the chicken Alfredo used to feel like great value and now it feels just okay for the price. I understand costs have risen everywhere, but it is worth noting.',
+      overallRating: 4,
+      foodQuality: 4,
+      serviceQuality: 5,
+      ambiance: 4,
+      priceValue: 3,
+      comment:
+        'Really lovely experience overall. The staff remembered my name from a previous visit, which was a wonderful surprise. My only feedback would be that the pricing has moved up noticeably in the last 12 months — the chicken Alfredo used to feel like great value and now it feels just okay for the price. I understand costs have risen everywhere, but it is worth noting.',
       status: 'VISIBLE',
-      replyContent: 'We appreciate the loyalty and the honest note on pricing. You are right that some input costs have risen significantly. We review pricing carefully and try to absorb what we can. Thank you for continuing to come.',
+      replyContent:
+        'We appreciate the loyalty and the honest note on pricing. You are right that some input costs have risen significantly. We review pricing carefully and try to absorb what we can. Thank you for continuing to come.'
     },
     {
       guestIdx: 7,
-      overallRating: 4, foodQuality: 4, serviceQuality: 4, ambiance: 3, priceValue: 4,
-      images: JSON.stringify(['https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=800&q=80']),
-      comment: 'Great food and solid service. My only comment is the noise level on weekend evenings is quite high — I came for a quiet dinner with a colleague and we had to lean across the table to hear each other during peak time. Might be worth considering acoustic panels or softer music to balance the ambient energy. Would still recommend for lunch.',
+      overallRating: 4,
+      foodQuality: 4,
+      serviceQuality: 4,
+      ambiance: 3,
+      priceValue: 4,
+      images: JSON.stringify([
+        'https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=800&q=80'
+      ]),
+      comment:
+        'Great food and solid service. My only comment is the noise level on weekend evenings is quite high — I came for a quiet dinner with a colleague and we had to lean across the table to hear each other during peak time. Might be worth considering acoustic panels or softer music to balance the ambient energy. Would still recommend for lunch.',
       status: 'VISIBLE',
-      replyContent: null,
+      replyContent: null
     },
     {
       guestIdx: 8,
-      overallRating: 4, foodQuality: 5, serviceQuality: 4, ambiance: 4, priceValue: 3,
-      images: JSON.stringify(['https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80']),
-      comment: 'My third visit and the food continues to be the draw. The beef noodle soup pho is deeply satisfying, the herb quality is noticeably different from other pho places in the city. Deducting a star only because the outdoor seating area could use some shade during the afternoon heat — the sun makes you choose between a good table and a comfortable one.',
+      overallRating: 4,
+      foodQuality: 5,
+      serviceQuality: 4,
+      ambiance: 4,
+      priceValue: 3,
+      images: JSON.stringify([
+        'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80'
+      ]),
+      comment:
+        'My third visit and the food continues to be the draw. The beef noodle soup pho is deeply satisfying, the herb quality is noticeably different from other pho places in the city. Deducting a star only because the outdoor seating area could use some shade during the afternoon heat — the sun makes you choose between a good table and a comfortable one.',
       status: 'VISIBLE',
-      replyContent: null,
+      replyContent: null
     },
     {
       guestIdx: 9,
-      overallRating: 4, foodQuality: 4, serviceQuality: 4, ambiance: 5, priceValue: 4,
-      comment: 'The ambiance is what sets this place apart from other restaurants at this price point. The space feels designed and considered — warm lighting, interesting seating arrangements, plants that are actually alive. The Pad Thai was exactly right: slightly sweet, nutty, with real flavors. Would return for a date night.',
+      overallRating: 4,
+      foodQuality: 4,
+      serviceQuality: 4,
+      ambiance: 5,
+      priceValue: 4,
+      comment:
+        'The ambiance is what sets this place apart from other restaurants at this price point. The space feels designed and considered — warm lighting, interesting seating arrangements, plants that are actually alive. The Pad Thai was exactly right: slightly sweet, nutty, with real flavors. Would return for a date night.',
       status: 'VISIBLE',
-      replyContent: null,
+      replyContent: null
     },
     // 3-star reviews (mixed)
     {
       guestIdx: 10,
-      overallRating: 3, foodQuality: 3, serviceQuality: 3, ambiance: 4, priceValue: 2,
-      images: JSON.stringify(['https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80']),
-      comment: 'Mixed feelings. The atmosphere is great and the ambiance score is deserved. But for a Monday lunch the burger arrived dry and the cheese was not melted through. The fries were excellent. I did not say anything at the time but I should have — I think this might have been an off day. Will give it another try because the reputation seems deserved based on other reviews.',
+      overallRating: 3,
+      foodQuality: 3,
+      serviceQuality: 3,
+      ambiance: 4,
+      priceValue: 2,
+      images: JSON.stringify([
+        'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80'
+      ]),
+      comment:
+        'Mixed feelings. The atmosphere is great and the ambiance score is deserved. But for a Monday lunch the burger arrived dry and the cheese was not melted through. The fries were excellent. I did not say anything at the time but I should have — I think this might have been an off day. Will give it another try because the reputation seems deserved based on other reviews.',
       status: 'VISIBLE',
-      replyContent: 'We are sorry the burger was not right — that is not our standard and you are right to note it. Please do come back and mention this review to any staff member. Your next burger is on us.',
+      replyContent:
+        'We are sorry the burger was not right — that is not our standard and you are right to note it. Please do come back and mention this review to any staff member. Your next burger is on us.'
     },
     {
       guestIdx: 11,
-      overallRating: 3, foodQuality: 4, serviceQuality: 2, ambiance: 4, priceValue: 3,
-      images: JSON.stringify(['https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=80']),
-      comment: 'The food was genuinely good when it arrived — the mushroom risotto was particularly well made, creamy and properly seasoned. But we waited 45 minutes with no update, and when we asked the server said they were busy. I get it — restaurants get busy. But a quick check-in or heads-up would have changed the whole experience. The food saved this from a 2-star.',
+      overallRating: 3,
+      foodQuality: 4,
+      serviceQuality: 2,
+      ambiance: 4,
+      priceValue: 3,
+      images: JSON.stringify([
+        'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=800&q=80'
+      ]),
+      comment:
+        'The food was genuinely good when it arrived — the mushroom risotto was particularly well made, creamy and properly seasoned. But we waited 45 minutes with no update, and when we asked the server said they were busy. I get it — restaurants get busy. But a quick check-in or heads-up would have changed the whole experience. The food saved this from a 2-star.',
       status: 'VISIBLE',
-      replyContent: 'A 45-minute wait with no communication is not acceptable and we are sorry this happened. We have addressed this with the team. Thank you for the food feedback too — the risotto is a dish we are proud of and we will make sure the service matches it.',
+      replyContent:
+        'A 45-minute wait with no communication is not acceptable and we are sorry this happened. We have addressed this with the team. Thank you for the food feedback too — the risotto is a dish we are proud of and we will make sure the service matches it.'
     },
     {
       guestIdx: 12,
-      overallRating: 3, foodQuality: 3, serviceQuality: 4, ambiance: 4, priceValue: 2,
-      images: JSON.stringify(['https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80']),
-      comment: 'Visited based on a recommendation. Service was warm and attentive, the space is lovely. The Pad Thai was okay but I found it sweeter than I expected from Vietnamese cuisine — I like mine with more fish sauce-forward lime balance. Subjective taste, so no real criticism, but I would communicate that to guests who are less familiar with Thai noodles expecting a more savory profile.',
+      overallRating: 3,
+      foodQuality: 3,
+      serviceQuality: 4,
+      ambiance: 4,
+      priceValue: 2,
+      images: JSON.stringify([
+        'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80'
+      ]),
+      comment:
+        'Visited based on a recommendation. Service was warm and attentive, the space is lovely. The Pad Thai was okay but I found it sweeter than I expected from Vietnamese cuisine — I like mine with more fish sauce-forward lime balance. Subjective taste, so no real criticism, but I would communicate that to guests who are less familiar with Thai noodles expecting a more savory profile.',
       status: 'VISIBLE',
-      replyContent: 'Thank you for the note on Pad Thai balance — this is genuinely useful. You can request "less sweet, more lime" when ordering and we will adjust. Next time try this — we think it will hit the right note for you.',
+      replyContent:
+        'Thank you for the note on Pad Thai balance — this is genuinely useful. You can request "less sweet, more lime" when ordering and we will adjust. Next time try this — we think it will hit the right note for you.'
     },
     {
       guestIdx: 13,
-      overallRating: 3, foodQuality: 2, serviceQuality: 4, ambiance: 5, priceValue: 2,
-      images: JSON.stringify(['https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80']),
-      comment: 'The restaurant is beautiful and the team are lovely people. Unfortunately my salmon fillet arrived overcooked to the point of being dry throughout. I mentioned it and they offered to remake it, which they did flawlessly — the second was perfect. So the execution is there, quality control just needs tightening on busy evenings. Second salmon was a 5-star dish.',
+      overallRating: 3,
+      foodQuality: 2,
+      serviceQuality: 4,
+      ambiance: 5,
+      priceValue: 2,
+      images: JSON.stringify([
+        'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80'
+      ]),
+      comment:
+        'The restaurant is beautiful and the team are lovely people. Unfortunately my salmon fillet arrived overcooked to the point of being dry throughout. I mentioned it and they offered to remake it, which they did flawlessly — the second was perfect. So the execution is there, quality control just needs tightening on busy evenings. Second salmon was a 5-star dish.',
       status: 'VISIBLE',
-      replyContent: 'Thank you for giving us the chance to fix it — and for the honest rating reflecting both experiences. Consistency between first and second cook on the same dish should not differ. We will work on it.',
+      replyContent:
+        'Thank you for giving us the chance to fix it — and for the honest rating reflecting both experiences. Consistency between first and second cook on the same dish should not differ. We will work on it.'
     },
     // 2-star reviews (critical but fair)
     {
       guestIdx: 14,
-      overallRating: 2, foodQuality: 2, serviceQuality: 2, ambiance: 4, priceValue: 1,
-      images: JSON.stringify(['https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80']),
-      comment: 'I had a disappointing experience and want to give honest feedback because the restaurant has a good reputation. My order arrived 35 minutes late during what seemed like a medium-busy period. The noodles in my mì quảng-style dish were overcooked and sticky. The server did not apologize and seemed defensive when I mentioned it. I hope this was an unusual day, but I cannot recommend based on this visit.',
+      overallRating: 2,
+      foodQuality: 2,
+      serviceQuality: 2,
+      ambiance: 4,
+      priceValue: 1,
+      images: JSON.stringify([
+        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80'
+      ]),
+      comment:
+        'I had a disappointing experience and want to give honest feedback because the restaurant has a good reputation. My order arrived 35 minutes late during what seemed like a medium-busy period. The noodles in my mì quảng-style dish were overcooked and sticky. The server did not apologize and seemed defensive when I mentioned it. I hope this was an unusual day, but I cannot recommend based on this visit.',
       status: 'VISIBLE',
-      replyContent: 'Thank you for the direct feedback — this is not the experience we aim to provide. Defensive responses from staff to legitimate concerns are something we take seriously. We would genuinely like to speak with you about this visit. Please email hello@bigboy.vn with your visit date and we will follow up personally.',
+      replyContent:
+        'Thank you for the direct feedback — this is not the experience we aim to provide. Defensive responses from staff to legitimate concerns are something we take seriously. We would genuinely like to speak with you about this visit. Please email hello@bigboy.vn with your visit date and we will follow up personally.'
     },
     // Pending/draft reviews
     {
       guestIdx: 0,
-      overallRating: 5, foodQuality: 5, serviceQuality: 5, ambiance: 5, priceValue: 5,
-      comment: 'Just wanted to say the AI ordering assistant is a game changer. It remembered I ordered the pho last time and asked if I wanted it again. That kind of personalization felt genuinely thoughtful, not gimmicky. Also recommended the tiramisu as a pairing and was completely correct. Lovely meal.',
+      overallRating: 5,
+      foodQuality: 5,
+      serviceQuality: 5,
+      ambiance: 5,
+      priceValue: 5,
+      comment:
+        'Just wanted to say the AI ordering assistant is a game changer. It remembered I ordered the pho last time and asked if I wanted it again. That kind of personalization felt genuinely thoughtful, not gimmicky. Also recommended the tiramisu as a pairing and was completely correct. Lovely meal.',
       status: 'HIDDEN',
-      replyContent: null,
+      replyContent: null
     },
     {
       guestIdx: 1,
-      overallRating: 4, foodQuality: 4, serviceQuality: 4, ambiance: 4, priceValue: 4,
-      images: JSON.stringify(['https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80']),
-      comment: 'Really pleasant lunch. The side salad was fresher than any salad I have had at a restaurant in Vietnam this trip — clearly locally sourced, dressed at the right moment, not overdressed. Small thing but it tells you something about how carefully this kitchen works.',
+      overallRating: 4,
+      foodQuality: 4,
+      serviceQuality: 4,
+      ambiance: 4,
+      priceValue: 4,
+      images: JSON.stringify([
+        'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80'
+      ]),
+      comment:
+        'Really pleasant lunch. The side salad was fresher than any salad I have had at a restaurant in Vietnam this trip — clearly locally sourced, dressed at the right moment, not overdressed. Small thing but it tells you something about how carefully this kitchen works.',
       status: 'HIDDEN',
-      replyContent: null,
+      replyContent: null
     },
     {
       guestIdx: 2,
-      overallRating: 5, foodQuality: 5, serviceQuality: 5, ambiance: 5, priceValue: 5,
-      comment: 'Came for breakfast and had the beef noodle pho. Left changed. I do not say that lightly — I have eaten pho in Hanoi, in Saigon, in Paris, in Sydney. This is as good as the best I have had. The broth is serious. Please never change this dish.',
+      overallRating: 5,
+      foodQuality: 5,
+      serviceQuality: 5,
+      ambiance: 5,
+      priceValue: 5,
+      comment:
+        'Came for breakfast and had the beef noodle pho. Left changed. I do not say that lightly — I have eaten pho in Hanoi, in Saigon, in Paris, in Sydney. This is as good as the best I have had. The broth is serious. Please never change this dish.',
       status: 'HIDDEN',
-      replyContent: null,
+      replyContent: null
     },
     {
       guestIdx: 3,
-      overallRating: 4, foodQuality: 5, serviceQuality: 4, ambiance: 4, priceValue: 4,
-      images: JSON.stringify(['https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80']),
-      comment: 'Birthday dinner for my girlfriend. The staff brought out a small complimentary dessert with a candle without us asking — someone must have noticed the occasion from our conversation. That surprise made the whole evening. The food was also very good; the salmon fillet was cooked correctly and the matcha latte was real matcha, not powder from a bag.',
+      overallRating: 4,
+      foodQuality: 5,
+      serviceQuality: 4,
+      ambiance: 4,
+      priceValue: 4,
+      images: JSON.stringify([
+        'https://images.unsplash.com/photo-1482049016688-2d3e1b311543?auto=format&fit=crop&w=800&q=80'
+      ]),
+      comment:
+        'Birthday dinner for my girlfriend. The staff brought out a small complimentary dessert with a candle without us asking — someone must have noticed the occasion from our conversation. That surprise made the whole evening. The food was also very good; the salmon fillet was cooked correctly and the matcha latte was real matcha, not powder from a bag.',
       status: 'HIDDEN',
-      replyContent: null,
+      replyContent: null
     },
     {
       guestIdx: 4,
-      overallRating: 1, foodQuality: 1, serviceQuality: 1, ambiance: 3, priceValue: 1,
-      comment: 'Very disappointing. Had high expectations based on reviews but the reality did not match. Food came out in the wrong order (dessert before mains), one dish was completely forgotten and only appeared when we asked, and the meat in my burger was undercooked pink in the center. The ambiance is nice but that cannot save a meal this poorly executed. Will not return.',
+      overallRating: 1,
+      foodQuality: 1,
+      serviceQuality: 1,
+      ambiance: 3,
+      priceValue: 1,
+      comment:
+        'Very disappointing. Had high expectations based on reviews but the reality did not match. Food came out in the wrong order (dessert before mains), one dish was completely forgotten and only appeared when we asked, and the meat in my burger was undercooked pink in the center. The ambiance is nice but that cannot save a meal this poorly executed. Will not return.',
       status: 'HIDDEN',
-      replyContent: null,
+      replyContent: null
     }
   ]
 
@@ -976,7 +1130,7 @@ Send a short letter explaining why you want to be here (not a generic letter —
         approvedBy: r.status === 'VISIBLE' ? admin.id : undefined,
         approvedAt: r.status === 'VISIBLE' ? createdAt : undefined,
         replyContent: r.replyContent ?? undefined,
-        repliedBy: r.replyContent ? (employee1?.id ?? admin.id) : undefined,
+        repliedBy: r.replyContent ? employee1?.id ?? admin.id : undefined,
         repliedAt: r.replyContent ? new Date(createdAt.getTime() + 2 * 60 * 60 * 1000) : undefined,
         createdAt,
         updatedAt: createdAt
@@ -990,5 +1144,8 @@ Send a short letter explaining why you want to be here (not a generic letter —
 }
 
 main()
-  .catch((e) => { console.error(e); process.exit(1) })
+  .catch((e) => {
+    console.error(e)
+    process.exit(1)
+  })
   .finally(() => prisma.$disconnect())

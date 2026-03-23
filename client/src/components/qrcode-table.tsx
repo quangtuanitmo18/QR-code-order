@@ -14,10 +14,6 @@ export default function QRCodeTable({
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   useEffect(() => {
-    // Hiện tại: Thư viện QRCode nó sẽ vẽ lên cái thẻ Canvas
-    // Bây giờ: Chúng ta sẽ tạo 1 cái thẻ canvas ảo để thư viện QRCode code nó vẽ QR lên trên đó.
-    // Và chúng ta sẽ edit thẻ canvas thật
-    // Cuối cùng thì chúng ta sẽ đưa cái thẻ canvas ảo chứa QR Code ở trên vào thẻ Canvas thật
     const canvas = canvasRef.current!
     canvas.height = width + 70
     canvas.width = width

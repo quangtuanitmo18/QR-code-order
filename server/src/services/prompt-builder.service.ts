@@ -89,7 +89,7 @@ ${restaurantInfo}
     }
 
     // Inject Memory Context at the TOP of the prompt if it exists
-    let finalPrompt = ''
+    let finalPrompt = `--- CURRENT REAL-TIME INFO ---\nToday's Date and Time (ISO): ${new Date().toISOString()}\n\n`
     if (memoryContext?.summary) {
       finalPrompt += `--- MEMORY CONTEXT ---\nA summary of your past conversation with this user so far:\n${memoryContext.summary}\n\n`
     }
@@ -157,7 +157,7 @@ You are a professional business analyst and operations assistant. You help the o
 8. DO NOT make up data. Only present information from tool results.
 9. If a tool returns an error, explain it clearly and suggest alternatives.`
 
-    let finalPrompt = ''
+    let finalPrompt = `--- CURRENT REAL-TIME INFO ---\nToday's Date and Time (ISO): ${new Date().toISOString()}\n\n`
     if (memoryContext?.summary) {
       finalPrompt += `--- MEMORY CONTEXT ---\nSummary of your past conversation with this admin:\n${memoryContext.summary}\n\n`
     }

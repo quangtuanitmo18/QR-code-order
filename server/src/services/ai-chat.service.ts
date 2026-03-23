@@ -1,9 +1,9 @@
-import envConfig from '@/config'
 import { validateMessageContent } from '@/middleware/ai-security'
 import { createFaqAgentTools } from '@/services/agents/faq.agent'
 import { createOrderAgentTools } from '@/services/agents/order.agent'
 import { createSearchAgentTools } from '@/services/agents/search.agent'
 import { aiMemoryService } from '@/services/ai-memory.service'
+import { streamTextWithFallback } from '@/services/ai-provider.service'
 import { aiRouterService, intentFromTaskPlan } from '@/services/ai-router.service'
 import { clearPendingExecution, getPendingExecution, savePendingExecution } from '@/services/pending-execution'
 import { promptBuilderService } from '@/services/prompt-builder.service'
@@ -11,8 +11,7 @@ import { buildDAG, executeTasksV2 } from '@/services/task-executor'
 import { enrichTasks } from '@/services/task-policy'
 import { toUIMessages } from '@/utils/ai-message'
 import { getContextLogger } from '@/utils/logger'
-import { createOpenRouter } from '@openrouter/ai-sdk-provider'
-import { convertToModelMessages, stepCountIs, streamText } from 'ai'
+import { convertToModelMessages, stepCountIs } from 'ai'
 import crypto from 'crypto'
 import { FastifyReply } from 'fastify'
 
@@ -50,10 +49,6 @@ const SESSION_TOKEN_BUDGET = 50_000
 const LOW_CONFIDENCE = 0.5
 
 class AiChatService {
-  private openrouter = createOpenRouter({
-    apiKey: envConfig.OPENROUTER_API_KEY
-  })
-
   async handleChat(
     messages: Array<Record<string, unknown>>,
     userId: string,
@@ -251,60 +246,63 @@ class AiChatService {
       const abortController = new AbortController()
       timeout = setTimeout(() => abortController.abort(), 30_000)
 
-      const result = streamText({
-        model: this.openrouter.chat('google/gemini-2.5-flash'),
-        maxOutputTokens: 2048,
-        system: effectiveSystemPrompt,
-        messages: modelMessages,
-        tools: Object.keys(agentTools).length > 0 ? agentTools : undefined,
-        stopWhen: stepCountIs(8),
+      const result = streamTextWithFallback(
+        {
+          maxOutputTokens: 2048,
+          system: effectiveSystemPrompt,
+          messages: modelMessages,
+          tools: Object.keys(agentTools).length > 0 ? agentTools : undefined,
+          stopWhen: stepCountIs(8),
 
-        abortSignal: abortController.signal,
-        onFinish: async (event) => {
-          clearTimeout(timeout)
-          try {
-            const newMessages = event.response.messages
-              .filter((msg) => msg.role === 'assistant')
-              .map((msg) => {
-                const textParts = ((msg.content || []) as any[])
-                  .filter((c: any) => c.type === 'text' && c.text)
-                  .map((c: any) => ({ type: 'text' as const, text: c.text }))
-                return {
-                  id: `msg-asst-${Date.now()}-${Math.random()}`,
-                  role: 'assistant' as const,
-                  parts: textParts.length > 0 ? textParts : [{ type: 'text' as const, text: '' }]
-                }
-              })
-              .filter((msg) => msg.parts.some((p) => p.text !== ''))
-
-            const updatedHistory = [...hotMessages, ...newMessages]
-
-            if (needsNewSummary) {
-              log?.info(`[AI Memory] Generating progressive summary for ${evictedMessages.length} evicted messages`)
-              memorySummary = await aiMemoryService.generateProgressiveSummary(memorySummary, evictedMessages)
-              summaryVersion++
-            }
-
-            const parsedUserId = userId !== 'guest' ? parseInt(userId) : undefined
-            await aiMemoryService.saveSession(
-              session,
-              updatedHistory,
-              { accountId: parsedUserId, guestId },
-              event.usage
-                ? {
-                    promptTokens: event.usage.inputTokens || 0,
-                    completionTokens: event.usage.outputTokens || 0,
-                    totalTokens: event.usage.totalTokens || 0
+          abortSignal: abortController.signal,
+          onFinish: async (event: any) => {
+            clearTimeout(timeout)
+            try {
+              const newMessages = event.response.messages
+                .filter((msg: any) => msg.role === 'assistant')
+                .map((msg: any) => {
+                  const textParts = ((msg.content || []) as any[])
+                    .filter((c: any) => c.type === 'text' && c.text)
+                    .map((c: any) => ({ type: 'text' as const, text: c.text }))
+                  return {
+                    id: `msg-asst-${Date.now()}-${Math.random()}`,
+                    role: 'assistant' as const,
+                    parts: textParts.length > 0 ? textParts : [{ type: 'text' as const, text: '' }]
                   }
-                : undefined,
-              memorySummary,
-              summaryVersion
-            )
-          } catch (e) {
-            log?.error({ err: e }, '[AI Chat] Failed to save session on finish')
+                })
+                .filter((msg: any) => msg.parts.some((p: any) => p.text !== ''))
+
+              const updatedHistory = [...hotMessages, ...newMessages]
+
+              if (needsNewSummary) {
+                log?.info(`[AI Memory] Generating progressive summary for ${evictedMessages.length} evicted messages`)
+                memorySummary = await aiMemoryService.generateProgressiveSummary(memorySummary, evictedMessages)
+                summaryVersion++
+              }
+
+              const parsedUserId = userId !== 'guest' ? parseInt(userId) : undefined
+              await aiMemoryService.saveSession(
+                session,
+                updatedHistory,
+                { accountId: parsedUserId, guestId },
+                event.usage
+                  ? {
+                      promptTokens: event.usage.inputTokens || 0,
+                      completionTokens: event.usage.outputTokens || 0,
+                      totalTokens: event.usage.totalTokens || 0
+                    }
+                  : undefined,
+                memorySummary,
+                summaryVersion
+              )
+            } catch (e) {
+              log?.error({ err: e }, '[AI Chat] Failed to save session on finish')
+            }
           }
-        }
-      })
+        },
+        'openai/gpt-oss-120b',
+        'google/gemini-2.5-flash'
+      )
 
       // 5. Pipe the stream directly to Fastify's raw response
       reply.hijack()

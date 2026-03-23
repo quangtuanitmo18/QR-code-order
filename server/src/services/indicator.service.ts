@@ -1,15 +1,17 @@
 import envConfig from '@/config'
-import { OrderStatus } from '@/constants/type'
+import { OrderStatus, TableStatus } from '@/constants/type'
+import prisma from '@/database'
 import { indicatorRepository } from '@/repositories/indicator.repository'
 import { formatInTimeZone } from 'date-fns-tz'
 
 export const indicatorService = {
   // Get dashboard indicators
   async getDashboardIndicators({ fromDate, toDate }: { fromDate: Date; toDate: Date }) {
-    const [orders, guests, dishes] = await Promise.all([
+    const [orders, guests, dishes, servingTableCount] = await Promise.all([
       indicatorRepository.findOrdersWithDetails(fromDate, toDate),
       indicatorRepository.findGuestsWithPaidOrders(fromDate, toDate),
-      indicatorRepository.findAllDishes()
+      indicatorRepository.findAllDishes(),
+      prisma.table.count({ where: { status: TableStatus.Reserved } })
     ])
 
     // revenue
@@ -40,33 +42,29 @@ export const indicatorService = {
     // Tạo object revenueByDateObj với key là ngày từ fromDate -> toDate và value là doanh thu
     const revenueByDateObj: { [key: string]: number } = {}
 
-    for (let i = fromDate; i <= toDate; i.setDate(i.getDate() + 1)) {
-      revenueByDateObj[formatInTimeZone(i, envConfig.SERVER_TIMEZONE, 'dd/MM/yyyy')] = 0
+    const iDate = new Date(fromDate)
+    while (iDate <= toDate) {
+      revenueByDateObj[formatInTimeZone(iDate, envConfig.SERVER_TIMEZONE, 'dd/MM/yyyy')] = 0
+      iDate.setDate(iDate.getDate() + 1)
     }
 
     // number of tables being used
     const tableNumberObj: { [key: number]: boolean } = {}
     orders.forEach((order) => {
       if (order.status === OrderStatus.Paid) {
-        // revenue & dish stats by items
+        const netRevenue = order.totalAmount - (order.discountAmount ?? 0)
+        revenue += netRevenue
+        const date = formatInTimeZone(order.createdAt, envConfig.SERVER_TIMEZONE, 'dd/MM/yyyy')
+        revenueByDateObj[date] = (revenueByDateObj[date] ?? 0) + netRevenue
+
+        // dish stats by items
         order.items.forEach((item: any) => {
-          revenue += item.totalPrice
           if (item.dishSnapshot.dishId && dishIndicatorObj[item.dishSnapshot.dishId]) {
-            dishIndicatorObj[item.dishSnapshot.dishId].successOrders++
+            dishIndicatorObj[item.dishSnapshot.dishId].successOrders += item.quantity
           }
-          const date = formatInTimeZone(order.createdAt, envConfig.SERVER_TIMEZONE, 'dd/MM/yyyy')
-          revenueByDateObj[date] = (revenueByDateObj[date] ?? 0) + item.totalPrice
         })
       }
-      if (
-        [OrderStatus.Processing, OrderStatus.Pending, OrderStatus.Delivered].includes(order.status as any) &&
-        order.tableNumber !== null
-      ) {
-        tableNumberObj[order.tableNumber] = true
-      }
     })
-    // Số lượng bàn đang sử dụng
-    const servingTableCount = Object.keys(tableNumberObj).length
 
     const revenueByDate = Object.keys(revenueByDateObj).map((date) => {
       return {

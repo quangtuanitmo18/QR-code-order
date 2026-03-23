@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Role } from '@/constants/type'
+import { formatCurrency } from '@/lib/utils'
 import { useAppStore } from '@/store/useAppStore'
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport } from 'ai'
@@ -133,7 +134,7 @@ export default function AdminAiChatButton() {
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-md bg-white/70 p-2 text-center dark:bg-white/5">
                 <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                  ${((totalRevenue || 0) / 100).toLocaleString()}
+                  {formatCurrency(totalRevenue || 0)}
                 </div>
                 <div className="text-[10px] text-muted-foreground">{t('totalRevenue')}</div>
               </div>
@@ -176,7 +177,7 @@ export default function AdminAiChatButton() {
                   <div className="flex items-center gap-3 text-muted-foreground">
                     <span>{dish.totalOrdered}x</span>
                     <span className="font-medium text-foreground">
-                      ${((dish.price || 0) / 100).toFixed(2)}
+                      {formatCurrency(dish.price || 0)}
                     </span>
                   </div>
                 </div>
@@ -239,7 +240,7 @@ export default function AdminAiChatButton() {
                       <span>
                         Order #{order.id} {order.tableNumber ? `(Table ${order.tableNumber})` : ''}
                       </span>
-                      <span>${((order.totalAmount || 0) / 100).toFixed(2)}</span>
+                      <span>{formatCurrency(order.totalAmount || 0)}</span>
                     </div>
                     <div className="flex justify-between text-[10px] text-muted-foreground">
                       <span>

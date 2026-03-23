@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { formatCurrency } from '@/lib/utils'
 import { useDashboardIndicator } from '@/queries/useIndicator'
-import { endOfDay, format, startOfDay, subDays, startOfMonth } from 'date-fns'
+import { endOfDay, format, startOfDay, startOfMonth, subDays } from 'date-fns'
 import { useTranslations } from 'next-intl'
 import dynamic from 'next/dynamic'
 import { useState } from 'react'
@@ -84,7 +84,7 @@ export default function DashboardMain() {
         <Button variant={'outline'} onClick={resetDateFilter} className="w-full sm:w-auto">
           {t('reset')}
         </Button>
-        <div className="h-6 w-px bg-border hidden sm:block mx-1"></div>
+        <div className="mx-1 hidden h-6 w-px bg-border sm:block"></div>
         <div className="flex flex-wrap gap-2">
           <Button variant="secondary" size="sm" onClick={setToday}>
             {t('today')}
@@ -180,7 +180,7 @@ export default function DashboardMain() {
         </Card>
         <Card className="bg-card/50 backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:border-primary/50 hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{t('tablesInUse')}</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('tablesInUse')} (Live)</CardTitle>
             <div className="rounded-full bg-purple-500/10 p-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

@@ -123,8 +123,7 @@ export function createSearchAgentTools() {
             take: 5
           })
 
-          const dish =
-            candidates.find((d) => d.name.toLowerCase() === lowerName) || candidates[0] || null
+          const dish = candidates.find((d) => d.name.toLowerCase() === lowerName) || candidates[0] || null
 
           if (!dish) {
             return { message: `Dish "${dishName}" not found or not currently available.` }
@@ -197,6 +196,13 @@ export function createSearchAgentTools() {
           // Group order items by dish snapshot, sum quantities
           const popularItems = await prisma.orderItem.groupBy({
             by: ['dishSnapshotId'],
+            where: {
+              order: {
+                status: {
+                  not: 'Rejected'
+                }
+              }
+            },
             _sum: { quantity: true },
             orderBy: { _sum: { quantity: 'desc' } },
             take: limit
@@ -228,7 +234,7 @@ export function createSearchAgentTools() {
               if (!snap) return null
               const liveId = liveNameToId.get(snap.name.toLowerCase()) ?? null
               return {
-                id: liveId,        // dish ID for ordering — pass this as dishId in placeOrder
+                id: liveId, // dish ID for ordering — pass this as dishId in placeOrder
                 name: snap.name,
                 category: snap.category,
                 price: snap.price,

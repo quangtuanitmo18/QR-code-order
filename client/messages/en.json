@@ -260,7 +260,8 @@
     "tableNumber": "Table {number}",
     "scanToOrder": "Scan to order",
     "capacity": "Capacity: {capacity} people",
-    "noTables": "No tables available"
+    "noTables": "No tables available",
+    "linkCopied": "Link copied to clipboard!"
   },
   "Blog": {
     "title": "Blogs",
