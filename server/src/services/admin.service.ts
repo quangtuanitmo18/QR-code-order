@@ -1,4 +1,4 @@
-import { DishStatus, OrderStatus, PaymentStatus } from '@/constants/type'
+import { DishStatus, OrderStatus, PaymentStatus, TableStatus } from '@/constants/type'
 import prisma from '@/database'
 import { getContextLogger } from '@/utils/logger'
 
@@ -82,6 +82,17 @@ class AdminService {
         paymentCount: 0,
         dailyBreakdown: [],
         message: 'Invalid date format. Please use ISO 8601 (e.g., 2026-03-01T00:00:00Z).'
+      }
+    }
+
+    // Chặn chống sập RAM máy chủ: Yêu cầu lấy dữ liệu giới hạn trong 1 năm
+    const diffDays = Math.ceil(Math.abs(end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24))
+    if (diffDays > 365) {
+      return {
+        totalRevenue: 0,
+        paymentCount: 0,
+        dailyBreakdown: [],
+        message: 'Khoảng thời gian vượt quá 365 ngày. Vì lý do an toàn hiệu năng, vui lòng truy vấn từng năm một.'
       }
     }
 
@@ -229,7 +240,7 @@ class AdminService {
     })
 
     const activeTables = await prisma.table.count({
-      where: { status: 'Occupied' }
+      where: { status: TableStatus.Reserved }
     })
 
     return {

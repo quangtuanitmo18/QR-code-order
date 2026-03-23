@@ -260,7 +260,8 @@
     "tableNumber": "Bàn {number}",
     "scanToOrder": "Quét để đặt món",
     "capacity": "Sức chứa: {capacity} người",
-    "noTables": "Không có bàn nào"
+    "noTables": "Không có bàn nào",
+    "linkCopied": "Đã sao chép liên kết!"
   },
   "Blog": {
     "title": "Blogs",

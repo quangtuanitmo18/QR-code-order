@@ -20,6 +20,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@ai-sdk/groq": "^3.0.31",
     "@ai-sdk/openai": "^3.0.41",
     "@appigram/yookassa-node": "^1.1.11",
     "@fastify/auth": "^4.6.1",

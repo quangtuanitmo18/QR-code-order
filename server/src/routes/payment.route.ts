@@ -237,7 +237,10 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
         return
       }
 
-      request.log.info({ signature: signature.substring(0, 30) + '...' }, '[YooKassa Webhook] Signature header present:')
+      request.log.info(
+        { signature: signature.substring(0, 30) + '...' },
+        '[YooKassa Webhook] Signature header present:'
+      )
 
       // Verify webhook signature
       const notification = await verifyYooKassaWebhook(signature, request.body)

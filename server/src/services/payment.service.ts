@@ -1,5 +1,5 @@
 import envConfig from '@/config'
-import { OrderStatus, PaymentMethod, PaymentStatus } from '@/constants/type'
+import { OrderStatus, PaymentMethod, PaymentStatus, TableStatus } from '@/constants/type'
 import prisma from '@/database'
 import { couponRepository } from '@/repositories/coupon.repository'
 import { paymentRepository } from '@/repositories/payment.repository'
@@ -10,6 +10,22 @@ import { createStripeCheckoutSession, getStripeSession, stripe } from '@/utils/s
 import { buildVNPayPaymentUrl, verifyVNPayReturn } from '@/utils/vnpay'
 import { createYooKassaPayment, getYooKassaPaymentStatus } from '@/utils/yookassa'
 import Stripe from 'stripe'
+
+async function checkAndFreeTable(tx: any, tableNumber: number | null | undefined) {
+  if (!tableNumber) return
+  const activeOrdersCount = await tx.order.count({
+    where: {
+      tableNumber,
+      status: { in: [OrderStatus.Pending, OrderStatus.Processing, OrderStatus.Delivered] }
+    }
+  })
+  if (activeOrdersCount === 0) {
+    await tx.table.update({
+      where: { number: tableNumber },
+      data: { status: TableStatus.Available }
+    })
+  }
+}
 
 export const paymentService = {
   // Create a payment (unified for all methods)
@@ -238,6 +254,8 @@ export const paymentService = {
           paymentId: payment.id
         }
       })
+
+      await checkAndFreeTable(tx, guest?.tableNumber)
 
       // Get updated orders with items
       const updatedOrders = await tx.order.findMany({
@@ -638,6 +656,8 @@ export const paymentService = {
           }
         })
 
+        await checkAndFreeTable(tx, payment.tableNumber)
+
         updatedOrders = await tx.order.findMany({
           where: {
             id: {
@@ -740,7 +760,10 @@ export const paymentService = {
     }
 
     if (!transactionRef) {
-      getContextLogger()?.error({ eventType: event.type, eventId: event.id }, '❌ Could not find transaction reference for event:')
+      getContextLogger()?.error(
+        { eventType: event.type, eventId: event.id },
+        '❌ Could not find transaction reference for event:'
+      )
       throw new Error('Transaction reference not found in event')
     }
 
@@ -838,6 +861,8 @@ export const paymentService = {
             paymentId: payment.id
           }
         })
+
+        await checkAndFreeTable(tx, payment.tableNumber)
 
         updatedOrders = await tx.order.findMany({
           where: {
@@ -951,6 +976,8 @@ export const paymentService = {
             paymentId: payment.id
           }
         })
+
+        await checkAndFreeTable(tx, payment.tableNumber)
 
         updatedOrders = await tx.order.findMany({
           where: {

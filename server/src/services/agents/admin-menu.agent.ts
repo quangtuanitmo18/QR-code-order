@@ -16,7 +16,7 @@ export function createAdminMenuAgentTools(context: { accountId?: number }) {
         updates: z
           .object({
             status: z.enum(['Available', 'Unavailable', 'Hidden']).optional(),
-            price: z.number().optional()
+            price: z.number().min(0, 'Giá không được < 0').max(100000000, 'Giá quá phi lý lớn').optional()
           })
           .describe('The fields to update')
       })

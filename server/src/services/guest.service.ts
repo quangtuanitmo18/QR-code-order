@@ -197,6 +197,11 @@ export const guestService = {
         }
       })
 
+      await tx.table.update({
+        where: { number: guest.tableNumber },
+        data: { status: TableStatus.Reserved }
+      })
+
       return createdOrder
     })
     // Keep response backward-compatible: return as an array of orders

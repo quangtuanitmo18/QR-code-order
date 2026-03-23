@@ -139,12 +139,15 @@ export async function verifyYooKassaWebhook(signature: string, body: any) {
 
     const paymentId = body.object.id
 
-    getContextLogger()?.info({
-      type: body.type,
-      event: body.event,
-      paymentId,
-      status: body.object?.status
-    }, '📋 Notification details:')
+    getContextLogger()?.info(
+      {
+        type: body.type,
+        event: body.event,
+        paymentId,
+        status: body.object?.status
+      },
+      '📋 Notification details:'
+    )
 
     // Verify payment exists in YooKassa by fetching it
     // This ensures the webhook is legitimate
@@ -163,18 +166,24 @@ export async function verifyYooKassaWebhook(signature: string, body: any) {
       throw new Error(`Payment ${paymentId} not found in YooKassa`)
     }
 
-    getContextLogger()?.info({
-      id: payment.id,
-      status: payment.status,
-      amount: payment.amount?.value
-    }, '✅ Webhook verified - payment exists in YooKassa:')
+    getContextLogger()?.info(
+      {
+        id: payment.id,
+        status: payment.status,
+        amount: payment.amount?.value
+      },
+      '✅ Webhook verified - payment exists in YooKassa:'
+    )
 
     // Additional security: Check payment status matches notification
     if (payment.status !== body.object.status) {
-      getContextLogger()?.warn({
-        notificationStatus: body.object.status,
-        actualStatus: payment.status
-      }, '⚠️ Payment status mismatch:')
+      getContextLogger()?.warn(
+        {
+          notificationStatus: body.object.status,
+          actualStatus: payment.status
+        },
+        '⚠️ Payment status mismatch:'
+      )
     }
 
     return body

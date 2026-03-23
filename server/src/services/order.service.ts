@@ -238,6 +238,21 @@ export const orderService = {
       }
     })
 
+    if (orderRecord.tableNumber && [OrderStatus.Paid, OrderStatus.Rejected].includes(status as any)) {
+      const activeOrdersCount = await prisma.order.count({
+        where: {
+          tableNumber: orderRecord.tableNumber,
+          status: { in: [OrderStatus.Pending, OrderStatus.Processing, OrderStatus.Delivered] }
+        }
+      })
+      if (activeOrdersCount === 0) {
+        await prisma.table.update({
+          where: { number: orderRecord.tableNumber },
+          data: { status: TableStatus.Available }
+        })
+      }
+    }
+
     const socketRecord = await prisma.socket.findUnique({
       where: {
         guestId: orderRecord.guestId!

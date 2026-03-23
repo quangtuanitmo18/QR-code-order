@@ -3,7 +3,9 @@ import QRCodeTable from '@/components/qrcode-table'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Download, Users } from 'lucide-react'
+import { toast } from '@/components/ui/use-toast'
+import { getTableLink } from '@/lib/utils'
+import { Copy, Download, Users } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 type Table = {
@@ -63,14 +65,42 @@ export default function QRCodesList({ tables }: { tables: Table[] }) {
                 <QRCodeTable token={table.token} tableNumber={table.number} width={200} />
               </div>
             </div>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => downloadQRCode(table.number)}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download QR Code
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={async () => {
+                  const link = getTableLink({ token: table.token, tableNumber: table.number })
+                  try {
+                    await navigator.clipboard.writeText(link)
+                    toast({
+                      description: t('linkCopied', { defaultValue: 'Link copied to clipboard!' }),
+                    })
+                  } catch (e) {
+                    const textarea = document.createElement('textarea')
+                    textarea.value = link
+                    document.body.appendChild(textarea)
+                    textarea.select()
+                    document.execCommand('copy')
+                    document.body.removeChild(textarea)
+                    toast({
+                      description: t('linkCopied', { defaultValue: 'Link copied to clipboard!' }),
+                    })
+                  }
+                }}
+              >
+                <Copy className="mr-2 h-4 w-4" />
+                Copy Link
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => downloadQRCode(table.number)}
+              >
+                <Download className="mr-2 h-4 w-4" />
+                Download
+              </Button>
+            </div>
           </CardContent>
         </Card>
       ))}

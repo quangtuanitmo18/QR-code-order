@@ -432,7 +432,12 @@ export function createAiTools(context: { guestId?: number }) {
         items: z
           .array(
             z.object({
-              dishId: z.number().optional().describe('The database ID of the dish from search results. Use this when available for reliable lookup.'),
+              dishId: z
+                .number()
+                .optional()
+                .describe(
+                  'The database ID of the dish from search results. Use this when available for reliable lookup.'
+                ),
               dishName: z.string().describe('The display name of the dish (used as fallback if dishId is unavailable)'),
               quantity: z.number().min(1).describe('How many of this dish to order')
             })
@@ -441,7 +446,6 @@ export function createAiTools(context: { guestId?: number }) {
           .describe('Array of dishes to order with quantities')
       }),
       execute: async ({ items }: { items: Array<{ dishId?: number; dishName: string; quantity: number }> }) => {
-
         const log = getContextLogger()
         try {
           if (!context.guestId) {

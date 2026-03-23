@@ -1,7 +1,5 @@
-import envConfig from '@/config'
+import { generateObjectWithFallback } from '@/services/ai-provider.service'
 import { getContextLogger } from '@/utils/logger'
-import { createOpenRouter } from '@openrouter/ai-sdk-provider'
-import { generateObject } from 'ai'
 import { z } from 'zod'
 import { UIMessageLike } from './ai-memory.service'
 import { type RawTask } from './task-policy'
@@ -99,9 +97,6 @@ class AiRouterService {
     }
 
     const log = getContextLogger()
-    const openrouter = createOpenRouter({
-      apiKey: envConfig.OPENROUTER_API_KEY
-    })
 
     // Format recent messages for the planner prompt
     const contextText = recentMessages
@@ -144,14 +139,17 @@ ${contextText}
 Decompose the user's last message into tasks:`
 
     try {
-      const result = await generateObject({
-        model: openrouter.chat('google/gemini-2.5-flash'),
-        schema: TaskPlanSchema,
-        prompt,
-        maxOutputTokens: 2048
-      })
+      const result = await generateObjectWithFallback(
+        {
+          schema: TaskPlanSchema,
+          prompt,
+          maxOutputTokens: 2048
+        },
+        'openai/gpt-oss-120b',
+        'google/gemini-2.5-flash'
+      )
 
-      const plan = result.object
+      const plan = result.object as TaskPlanResult
 
       log?.info(
         `[AI Planner] Planned ${plan.tasks.length} task(s): [${plan.tasks.map((t) => t.intent).join(', ')}] (confidence: ${plan.confidence})`
