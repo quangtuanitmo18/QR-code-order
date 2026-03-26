@@ -53,7 +53,8 @@ class AdminAiChatService {
     messages: Array<Record<string, unknown>>,
     accountId: number,
     sessionId: string | undefined,
-    reply: FastifyReply
+    reply: FastifyReply,
+    timeZone?: string
   ) {
     const log = getContextLogger()
 
@@ -86,9 +87,10 @@ class AdminAiChatService {
       let summaryVersion = memoryResult.summaryVersion
 
       // 2. Build admin-specific system prompt
-      const systemPrompt = await promptBuilderService.buildAdminSystemPrompt({
-        summary: memorySummary
-      })
+      const systemPrompt = await promptBuilderService.buildAdminSystemPrompt(
+        { summary: memorySummary },
+        timeZone
+      )
 
       // 3. Convert incoming messages to UIMessage format
       const newUiMessages = toUIMessages(

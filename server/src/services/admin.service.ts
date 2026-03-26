@@ -238,8 +238,14 @@ class AdminService {
    * Get live restaurant status: pending orders + occupied tables.
    */
   async getLiveOrders(): Promise<LiveOrdersResult> {
+    // Chỉ lấy các order pending/processing được tạo trong vòng 24 giờ qua (tránh lấy báo cáo đơn rác từ tuần trước)
+    const last24Hours = new Date(Date.now() - 24 * 60 * 60 * 1000)
+
     const pendingOrders = await prisma.order.findMany({
-      where: { status: { in: [OrderStatus.Pending, OrderStatus.Processing] } },
+      where: { 
+        status: { in: [OrderStatus.Pending, OrderStatus.Processing] },
+        createdAt: { gte: last24Hours }
+      },
       include: {
         table: { select: { number: true } },
         guest: { select: { name: true } },

@@ -15,7 +15,7 @@ export function createAdminOrdersAgentTools(context: { accountId?: number }) {
      */
     admin_search_orders: tool({
       description:
-        'Search historical orders based on specific criteria (e.g., table number, date, guest name, status). Use this when the owner asks about past orders, complaints ("yesterday at table 2"), or specific order histories.',
+        'Search ALL orders (historical and current) based on criteria (table number, date, guest name, status). Use this when the admin asks about past orders OR "How many orders/revenue today?" (pass today\'s startDate and endDate).',
       inputSchema: z.object({
         tableNumber: z.number().optional().describe('Filter by table number'),
         startDate: z.string().optional().describe('ISO 8601 date string for start of range'),
@@ -33,6 +33,9 @@ export function createAdminOrdersAgentTools(context: { accountId?: number }) {
         limit?: number
       }) => {
         const log = getContextLogger()
+
+        console.log('filter',filters)
+
         const denied = authGuard()
         if (denied) return denied
         try {
@@ -64,7 +67,7 @@ export function createAdminOrdersAgentTools(context: { accountId?: number }) {
      */
     admin_get_live_orders: tool({
       description:
-        'Get the count and details of currently active/pending orders and tables. Use this when the admin wants a live overview of the restaurant floor.',
+        'Get the count and details of CURRENTLY ACTIVE/PENDING/PROCESSING orders and occupied tables right at this moment. DO NOT use this if the admin asks for "all orders today", use admin_search_orders instead.',
       inputSchema: z.object({}),
       execute: async () => {
         const log = getContextLogger()

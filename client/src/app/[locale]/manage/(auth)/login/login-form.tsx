@@ -139,11 +139,11 @@ export default function LoginForm() {
                 {loginMutation.isPending && <LoaderCircle className="mr-2 h-5 w-5 animate-spin" />}
                 {t('buttonLogin')}
               </Button>
-              <Link href={googleOauthUrl}>
+              {/* <Link href={googleOauthUrl}>
                 <Button variant="outline" className="w-full" type="button">
                   {t('loginWithGoogle')}
                 </Button>
-              </Link>
+              </Link> */}
             </div>
           </form>
         </Form>

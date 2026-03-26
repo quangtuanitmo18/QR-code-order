@@ -40,8 +40,11 @@ export function middleware(request: NextRequest) {
   // Check if current path is an unauthenticated path
   const isUnAuthPath = unAuthPaths.some((path) => pathname.startsWith(path))
 
+  // Public paths that should bypass auth constraints
+  const isPublicPath = pathname.match(/\/(en|vi|ru)\/guest\/orders\/payment-result/)
+
   // 1. If not logged in then do not allow access to private paths (except unauth paths)
-  if (privatePaths.some((path) => pathname.startsWith(path)) && !refreshToken && !isUnAuthPath) {
+  if (privatePaths.some((path) => pathname.startsWith(path)) && !refreshToken && !isUnAuthPath && !isPublicPath) {
     const isGuestPath = guestPaths.some((path) => pathname.startsWith(path))
     const url = new URL(isGuestPath ? `/${locale}` : `/${locale}/manage/login`, request.url)
     if (!isGuestPath) {
@@ -70,7 +73,7 @@ export function middleware(request: NextRequest) {
     }
 
     // 2.2 If access token has expired
-    if (privatePaths.some((path) => pathname.startsWith(path)) && !accessToken) {
+    if (privatePaths.some((path) => pathname.startsWith(path)) && !accessToken && !isPublicPath) {
       const url = new URL(`/${locale}/manage/refresh-token`, request.url)
       url.searchParams.set('refreshToken', refreshToken)
       url.searchParams.set('redirect', pathname)

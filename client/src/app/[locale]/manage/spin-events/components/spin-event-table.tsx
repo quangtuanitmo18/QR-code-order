@@ -261,9 +261,9 @@ export function SpinEventTable({
           />
           {onNewEvent && (
             <div className="sm:ml-auto">
-              <Button onClick={onNewEvent}>
-                <Plus className="mr-2 h-4 w-4" />
-                {t('newEvent')}
+              <Button onClick={onNewEvent} size="sm" className="h-8 gap-2">
+                <Plus className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">{t('newEvent')}</span>
               </Button>
             </div>
           )}

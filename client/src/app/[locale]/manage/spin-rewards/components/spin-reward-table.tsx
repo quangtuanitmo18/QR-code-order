@@ -263,9 +263,9 @@ export function SpinRewardTable({
           </Select>
           {onNewReward && (
             <div className="sm:ml-auto">
-              <Button onClick={onNewReward}>
-                <Plus className="mr-2 h-4 w-4" />
-                {t('newReward')}
+              <Button onClick={onNewReward} size="sm" className="h-8 gap-2">
+                <Plus className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">{t('newReward')}</span>
               </Button>
             </div>
           )}

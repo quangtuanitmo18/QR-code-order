@@ -21,7 +21,7 @@ export async function adminAiChatController(fastify: FastifyInstance) {
       preValidation: fastify.auth([requireLoginedHook, requireOwnerHook])
     },
     async (request, reply) => {
-      const { messages, sessionId } = request.body as ChatRequestBody
+      const { messages, sessionId, timeZone } = request.body as ChatRequestBody
       const token = request.decodedAccessToken
       const accountId = token?.userId
 
@@ -31,7 +31,7 @@ export async function adminAiChatController(fastify: FastifyInstance) {
       }
 
       // Handle streaming response — reply.hijack() is called inside the service
-      await adminAiChatService.handleChat(messages, accountId, sessionId, reply)
+      await adminAiChatService.handleChat(messages, accountId, sessionId, reply, timeZone)
     }
   )
 

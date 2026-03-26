@@ -107,7 +107,7 @@ export default function AddDish() {
       <DialogTrigger asChild>
         <Button
           size="sm"
-          className="h-8 gap-2 rounded-full bg-gradient-to-r from-primary to-accent shadow-md transition-all hover:shadow-lg hover:brightness-105 active:scale-95"
+          className="h-8 gap-2"
         >
           <PlusCircle className="h-4 w-4" />
           <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">{t('addDish')}</span>

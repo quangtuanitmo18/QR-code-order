@@ -19,7 +19,8 @@ const messageSchema = z
 
 export const chatRequestSchema = z.object({
   messages: z.array(messageSchema).max(50),
-  sessionId: z.string().optional()
+  sessionId: z.string().optional(),
+  timeZone: z.string().optional()
 })
 
 export type ChatRequestBody = z.infer<typeof chatRequestSchema>

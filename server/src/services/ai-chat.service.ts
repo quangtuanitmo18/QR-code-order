@@ -54,7 +54,8 @@ class AiChatService {
     userId: string,
     sessionId: string | undefined,
     reply: FastifyReply,
-    guestId?: number
+    guestId?: number,
+    timeZone?: string
   ) {
     const log = getContextLogger()
 
@@ -87,7 +88,7 @@ class AiChatService {
       let summaryVersion = memoryResult.summaryVersion
 
       // 2. Build dynamic system prompt from DB (restaurant info + FAQs) and inject memory summary
-      const systemPrompt = await promptBuilderService.buildSystemPrompt(userId, { summary: memorySummary })
+      const systemPrompt = await promptBuilderService.buildSystemPrompt(userId, { summary: memorySummary }, timeZone)
 
       // 3. Convert incoming messages to UIMessage format
       const newUiMessages = toUIMessages(

@@ -228,9 +228,9 @@ export function TaskTable({ onNewTask, onEditTask, onViewTask }: TaskTableProps)
 
             {/* New Task Button */}
             <div className="sm:ml-auto">
-              <Button onClick={onNewTask}>
-                <Plus className="mr-2 h-4 w-4" />
-                {t('newTask')}
+              <Button onClick={onNewTask} size="sm" className="h-8 gap-2">
+                <Plus className="h-4 w-4" />
+                <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">{t('newTask')}</span>
               </Button>
             </div>
           </div>

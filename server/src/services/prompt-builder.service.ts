@@ -13,7 +13,11 @@ class PromptBuilderService {
   private readonly CACHE_TTL_MS = 5 * 60 * 1000
   private cache: CachedPrompt | null = null
 
-  async buildSystemPrompt(userId: string, memoryContext?: { summary?: string | null }): Promise<string> {
+  async buildSystemPrompt(
+    userId: string,
+    memoryContext?: { summary?: string | null },
+    timeZone?: string
+  ): Promise<string> {
     let basePrompt = ''
 
     // Return cached prompt base if still valid
@@ -89,7 +93,10 @@ ${restaurantInfo}
     }
 
     // Inject Memory Context at the TOP of the prompt if it exists
-    let finalPrompt = `--- CURRENT REAL-TIME INFO ---\nToday's Date and Time (ISO): ${new Date().toISOString()}\n\n`
+    const now = new Date()
+    const tz = timeZone || 'Asia/Ho_Chi_Minh'
+    const localTime = now.toLocaleString('en-GB', { timeZone: tz })
+    let finalPrompt = `--- CURRENT REAL-TIME INFO ---\nToday's Date and Time (Local): ${localTime} (Timezone: ${tz})\nServer ISO Time: ${now.toISOString()}\n\n`
     if (memoryContext?.summary) {
       finalPrompt += `--- MEMORY CONTEXT ---\nA summary of your past conversation with this user so far:\n${memoryContext.summary}\n\n`
     }
@@ -101,7 +108,7 @@ ${restaurantInfo}
   /**
    * Build a system prompt specifically for the Admin AI Assistant.
    */
-  async buildAdminSystemPrompt(memoryContext?: { summary?: string | null }): Promise<string> {
+  async buildAdminSystemPrompt(memoryContext?: { summary?: string | null }, timeZone?: string): Promise<string> {
     // Reuse cached restaurant info
     let restaurantInfo = ''
     if (this.cache && Date.now() < this.cache.expiresAt) {
@@ -157,7 +164,10 @@ You are a professional business analyst and operations assistant. You help the o
 8. DO NOT make up data. Only present information from tool results.
 9. If a tool returns an error, explain it clearly and suggest alternatives.`
 
-    let finalPrompt = `--- CURRENT REAL-TIME INFO ---\nToday's Date and Time (ISO): ${new Date().toISOString()}\n\n`
+    const now = new Date()
+    const tz = timeZone || 'Asia/Ho_Chi_Minh'
+    const localTime = now.toLocaleString('en-GB', { timeZone: tz })
+    let finalPrompt = `--- CURRENT REAL-TIME INFO ---\nToday's Date and Time (Local): ${localTime} (Timezone: ${tz})\nServer ISO Time: ${now.toISOString()}\n\n`
     if (memoryContext?.summary) {
       finalPrompt += `--- MEMORY CONTEXT ---\nSummary of your past conversation with this admin:\n${memoryContext.summary}\n\n`
     }

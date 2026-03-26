@@ -32,7 +32,7 @@ export default function AiChatButton() {
     () =>
       new DefaultChatTransport({
         api: '/api/guest/ai-chat',
-        body: () => ({ sessionId: sessionIdRef.current }),
+        body: () => ({ sessionId: sessionIdRef.current, timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
         fetch: async (input, init) => {
           const res = await globalThis.fetch(input, init)
           const id = res.headers.get('x-ai-session-id')
