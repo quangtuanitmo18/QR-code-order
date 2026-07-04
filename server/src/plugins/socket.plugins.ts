@@ -3,7 +3,6 @@ import prisma from '@/database'
 import { AuthError } from '@/utils/errors'
 import { verifyAccessToken } from '@/utils/jwt'
 import fastifyPlugin from 'fastify-plugin'
-import { registerCallSocketHandlers } from './call.socket'
 import { registerChatSocketHandlers } from './chat.socket'
 
 export const socketPlugin = fastifyPlugin(async (fastify) => {
@@ -59,8 +58,7 @@ export const socketPlugin = fastifyPlugin(async (fastify) => {
     // Register chat socket handlers
     registerChatSocketHandlers(fastify, socket)
 
-    // Register call socket handlers
-    registerCallSocketHandlers(fastify, socket)
+    // Call handlers disabled
 
     // Handle Tab Visibility (focus / blur)
     socket.on('client-visibility', ({ isFocused }: { isFocused: boolean }) => {
