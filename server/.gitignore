@@ -7,7 +7,6 @@ dist/
 
 /logs
 
-/prisma/dev.db
 
 /uploads
 # Test database

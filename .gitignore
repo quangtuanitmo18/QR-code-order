@@ -2,7 +2,6 @@
 */node_modules
 *.docx
 
-server/prisma/dev.db
 
 # backups
 /backups
