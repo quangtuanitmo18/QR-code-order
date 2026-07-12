@@ -1,5 +1,3 @@
-import blogApiRequest from '@/apiRequests/blog'
-import dishApiRequest from '@/apiRequests/dish'
 import envConfig, { locales } from '@/config'
 import { generateSlugUrl } from '@/lib/utils'
 import type { MetadataRoute } from 'next'
@@ -25,14 +23,20 @@ const staticRoutes: MetadataRoute.Sitemap = [
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const [dishResult, blogResult] = await Promise.all([
-      dishApiRequest.list().catch(() => ({ payload: { data: [] } })),
-      blogApiRequest.getBlogPosts({ page: 1, limit: 1000 }).catch(() => ({
-        payload: { data: [] },
-      })),
+      fetch(`${envConfig.NEXT_PUBLIC_API_ENDPOINT}/dishes`, {
+        signal: AbortSignal.timeout(5000),
+      })
+        .then(async (res) => ({ payload: await res.json() }))
+        .catch(() => ({ payload: { data: [] as any[] } })),
+      fetch(`${envConfig.NEXT_PUBLIC_API_ENDPOINT}/blog-posts?page=1&limit=1000`, {
+        signal: AbortSignal.timeout(5000),
+      })
+        .then(async (res) => ({ payload: await res.json() }))
+        .catch(() => ({ payload: { data: [] as any[] } })),
     ])
 
-    const dishList = dishResult.payload.data
-    const blogList = blogResult.payload.data
+    const dishList = (dishResult.payload?.data || []) as any[]
+    const blogList = (blogResult.payload?.data || []) as any[]
 
     const localizeStaticSiteMap = locales.reduce((acc, locale) => {
       return [
