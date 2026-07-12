@@ -265,8 +265,8 @@ Updated Comprehensive Summary (max 200 words, use clear and direct language):`
           prompt,
           maxOutputTokens: 300 // Keep summary short
         },
-        'openai/gpt-oss-120b',
-        'google/gemini-2.5-flash'
+        'gemini-3.1-flash-lite',
+        'gemini-3.1-flash-lite'
       )
 
       return result.text.trim()

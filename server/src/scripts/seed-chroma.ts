@@ -7,7 +7,7 @@
  * This script:
  * 1. Seeds 'restaurant_menu' collection with dish data
  * 2. Seeds 'restaurant_faq' collection with FAQ data
- * 3. Creates embeddings via OpenRouter API
+ * 3. Creates embeddings via Google Generative AI API
  * 4. Runs test queries to verify both collections
  */
 

@@ -145,8 +145,8 @@ Decompose the user's last message into tasks:`
           prompt,
           maxOutputTokens: 2048
         },
-        'openai/gpt-oss-120b',
-        'google/gemini-2.5-flash'
+        'gemini-3.1-flash-lite',
+        'gemini-3.1-flash-lite'
       )
 
       const plan = result.object as TaskPlanResult

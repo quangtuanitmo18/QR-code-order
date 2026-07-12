@@ -1,14 +1,15 @@
-import envConfig, { API_URL } from '@/config'
+import envConfig from '@/config'
 import { getContextLogger } from '@/utils/logger'
 
 /**
  * Embedding Service
- * Creates vector embeddings via OpenRouter API using text-embedding-3-large model.
+ * Creates vector embeddings via Google Generative AI API using gemini-embedding-001 model.
+ * Uses Google's OpenAI-compatible endpoint.
  * Includes retry logic for resilience.
  */
 class EmbeddingService {
-  private readonly baseURL = 'https://openrouter.ai/api/v1'
-  private readonly model = 'text-embedding-3-large'
+  private readonly baseURL = 'https://generativelanguage.googleapis.com/v1beta/openai'
+  private readonly model = 'gemini-embedding-001'
 
   /**
    * Retry helper — retries a function once after a 1s delay.
@@ -32,18 +33,16 @@ class EmbeddingService {
    * Includes 1 retry with 1s backoff for resilience.
    */
   async createEmbeddings(texts: string[]): Promise<number[][]> {
-    if (!envConfig.OPENROUTER_API_KEY) {
-      throw new Error('[Embedding] OPENROUTER_API_KEY is not configured')
+    if (!envConfig.GOOGLE_GENERATIVE_AI_API_KEY) {
+      throw new Error('[Embedding] GOOGLE_GENERATIVE_AI_API_KEY is not configured')
     }
 
     return this.withRetry(async () => {
       const response = await fetch(`${this.baseURL}/embeddings`, {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${envConfig.OPENROUTER_API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': API_URL,
-          'X-Title': 'QR Order - AI Assistant'
+          Authorization: `Bearer ${envConfig.GOOGLE_GENERATIVE_AI_API_KEY}`,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           model: this.model,

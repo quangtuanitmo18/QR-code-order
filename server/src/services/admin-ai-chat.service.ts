@@ -18,7 +18,7 @@ import { FastifyReply } from 'fastify'
 /**
  * Filter out `providerMetadata` from SSE data lines.
  * @ai-sdk/react does not accept this field in tool-output-available events
- * but @openrouter/ai-sdk-provider injects it into every stream event.
+ * but some providers (e.g. OpenRouter) inject it into every stream event.
  */
 function filterSSEProviderMetadata(chunk: Uint8Array): Uint8Array {
   const text = new TextDecoder().decode(chunk)
@@ -231,7 +231,7 @@ class AdminAiChatService {
       const stream = createUIMessageStream({
         originalMessages: hotMessages,
         execute: async ({ writer }) => {
-          const result = streamTextWithFallback(
+          const result = await streamTextWithFallback(
             {
               maxOutputTokens: 2048,
               system: effectiveSystemPrompt,
@@ -285,8 +285,8 @@ class AdminAiChatService {
                 }
               }
             },
-            'openai/gpt-oss-120b',
-            'google/gemini-2.5-flash'
+            'gemini-3.1-flash-lite',
+            'gemini-3.1-flash-lite'
           )
 
           writer.merge(result.toUIMessageStream({ originalMessages: hotMessages }))

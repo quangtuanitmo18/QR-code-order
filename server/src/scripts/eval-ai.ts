@@ -1,10 +1,14 @@
-import { openrouter } from '@openrouter/ai-sdk-provider'
+import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { generateText, stepCountIs } from 'ai'
 import 'dotenv/config'
 import { createAiTools } from '../services/ai-tools'
 import { promptBuilderService } from '../services/prompt-builder.service'
 // chalk is ESM-only, use dynamic import
 let chalk: any
+
+const google = createGoogleGenerativeAI({
+  apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || ''
+})
 
 /**
  * AI Assistant V2 - Automated Evaluation Suite
@@ -56,7 +60,7 @@ async function runEvaluations() {
 
     try {
       const response = await generateText({
-        model: openrouter.chat('google/gemini-2.5-flash'),
+        model: google('gemini-3.1-flash-lite'),
         system: systemPrompt,
         messages: [{ role: 'user', content: tc.input }],
         tools: createAiTools({}),
@@ -96,7 +100,10 @@ async function runEvaluations() {
         failed++
       }
     } catch (e: any) {
-      console.log(chalk.red(`  [ERROR] Execution failed: ${e.message}`))
+      console.log(chalk.red(`  [ERROR] Execution failed: ${e.stack || e.message}`))
+      if (e.responseBody) {
+        console.log(chalk.red(`  Response Body: ${e.responseBody}`))
+      }
       failed++
     }
   }
