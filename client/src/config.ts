@@ -30,7 +30,10 @@ const configProject = configSchema.safeParse({
 })
 if (!configProject.success) {
   console.error(configProject.error.errors)
-  throw new Error('Invalid environment variables')
+  const missingKeys = configProject.error.errors
+    .map((err) => `${err.path.join('.')}: ${err.message}`)
+    .join(', ')
+  throw new Error(`Invalid environment variables: [${missingKeys}]`)
 }
 
 const envConfig = configProject.data
