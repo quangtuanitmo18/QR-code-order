@@ -128,7 +128,16 @@ export const guestService = {
         throw new Error(`Table ${table.number} has been hidden, please logout and choose another table`)
       }
       if (table.status === TableStatus.Reserved) {
-        throw new Error(`Table ${table.number} has been reserved, please logout and choose another table`)
+        // Allow if this guest is the one who reserved the table (has existing orders at this table)
+        const guestOrdersAtTable = await tx.order.count({
+          where: {
+            guestId,
+            tableNumber: table.number
+          }
+        })
+        if (guestOrdersAtTable === 0) {
+          throw new Error(`Table ${table.number} has been reserved, please logout and choose another table`)
+        }
       }
 
       let totalAmount = 0
