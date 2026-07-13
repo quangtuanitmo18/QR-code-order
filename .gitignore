@@ -30,3 +30,6 @@ docs/
 .agent
 
 shadcn-dashboard-landing-template/
+# Deploy env files
+server/.env.render
+client/.env.vercel

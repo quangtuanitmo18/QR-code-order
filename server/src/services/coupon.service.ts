@@ -60,7 +60,7 @@ export const couponService = {
     if (coupon.minOrderAmount !== null && orderTotal < coupon.minOrderAmount) {
       return {
         valid: false,
-        message: `Đơn hàng chưa đủ điều kiện (tối thiểu ${coupon.minOrderAmount.toLocaleString('vi-VN')} VND)`
+        message: `Đơn hàng chưa đủ điều kiện (tối thiểu $${coupon.minOrderAmount})`
       }
     }
 
@@ -225,8 +225,8 @@ export const couponService = {
         remainingUses,
         description:
           c.discountType === CouponDiscountType.Percentage
-            ? `${c.discountValue}% off${c.minOrderAmount ? ` on orders over ${c.minOrderAmount.toLocaleString()} VND` : ''}`
-            : `${c.discountValue.toLocaleString()} VND off${c.minOrderAmount ? ` on orders over ${c.minOrderAmount.toLocaleString()} VND` : ''}`
+            ? `${c.discountValue}% off${c.minOrderAmount ? ` on orders over $${c.minOrderAmount}` : ''}`
+            : `$${c.discountValue} off${c.minOrderAmount ? ` on orders over $${c.minOrderAmount}` : ''}`
       })
     }
 
