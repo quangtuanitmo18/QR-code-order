@@ -8,8 +8,8 @@ import {
   verifyVNPayPaymentController,
   verifyYooKassaPaymentController
 } from '@/controllers/payment.controller'
-import prisma from '@/database'
 import { requireEmployeeHook, requireGuestHook, requireLoginedHook, requireOwnerHook } from '@/hooks/auth.hooks'
+import prisma from '@/database'
 import {
   GetPaymentDetailRes,
   GetPaymentDetailResType,
@@ -20,8 +20,9 @@ import {
   PaymentParam,
   PaymentParamType
 } from '@/schemaValidations/payment.schema'
-import { getStripeSession, verifyStripeWebhook } from '@/utils/stripe'
-import { getYooKassaPayment, verifyYooKassaWebhook } from '@/utils/yookassa'
+import { paymentService } from '@/services/payment.service'
+import { verifyStripeWebhook } from '@/utils/stripe'
+import { verifyYooKassaWebhook } from '@/utils/yookassa'
 import { FastifyInstance, FastifyPluginOptions } from 'fastify'
 
 export default async function paymentRoutes(fastify: FastifyInstance, options: FastifyPluginOptions) {
@@ -60,36 +61,29 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
     }
   })
 
-  // Stripe return URL (public, no auth)
+  // Stripe return URL (public, no auth) — verifies payment + updates orders
   fastify.get('/stripe/return', async (request, reply) => {
     try {
-      const { session_id, success } = request.query as { session_id?: string; success?: string }
+      const { session_id } = request.query as { session_id?: string }
 
       if (!session_id) {
         throw new Error('Session ID is required')
       }
 
-      // Fetch session from Stripe
-      const session = await getStripeSession(session_id)
-      const transactionRef = session.metadata?.transactionRef
+      // Verify payment and update orders to Paid
+      const result = await paymentService.verifyStripePaymentBySession(session_id)
 
-      if (!transactionRef) {
-        throw new Error('Transaction reference not found')
-      }
-
-      // Find payment in database
-      const payment = await prisma.payment.findUnique({
-        where: { transactionRef }
-      })
-
-      if (!payment) {
-        throw new Error('Payment not found')
+      // Emit socket event for real-time UI update
+      if (result.orders.length > 0) {
+        if (result.socketId) {
+          fastify.io.to(result.socketId).to(ManagerRoom).emit('payment', result.orders)
+        } else {
+          fastify.io.to(ManagerRoom).emit('payment', result.orders)
+        }
       }
 
       const clientUrl = envConfig.CLIENT_URL
-      const paymentSuccess = success === 'true' && session.payment_status === 'paid'
-
-      const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=${paymentSuccess}&amount=${payment.amount}&txnRef=${transactionRef}&method=Stripe`
+      const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=${result.isSuccess}&amount=${result.payment.amount}&txnRef=${result.payment.transactionRef}&method=Stripe`
 
       request.log.info({ redirectUrl }, 'Stripe return: Redirecting to')
       reply.redirect(redirectUrl)
@@ -164,9 +158,7 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
     }
   )
 
-  // YooKassa return URL (public, no auth)
-  // Note: YooKassa does NOT automatically add query params to return_url
-  // We add the transaction reference when creating the payment
+  // YooKassa return URL (public, no auth) — verifies payment + updates orders
   fastify.get('/yookassa/return', async (request, reply) => {
     try {
       const { txnRef } = request.query as { txnRef?: string }
@@ -177,39 +169,20 @@ export default async function paymentRoutes(fastify: FastifyInstance, options: F
         throw new Error('Transaction reference is required')
       }
 
-      // Find payment in database
-      const payment = await prisma.payment.findUnique({
-        where: { transactionRef: txnRef }
-      })
+      // Verify payment and update orders to Paid
+      const result = await paymentService.verifyYooKassaPaymentByReturn(txnRef)
 
-      if (!payment) {
-        throw new Error('Payment not found')
-      }
-
-      // Fetch latest payment status from YooKassa
-      const yookassaPayment = await getYooKassaPayment(payment.externalTransactionId!)
-
-      request.log.info('YooKassa return: Payment status from API:', yookassaPayment.status)
-
-      // Update payment status if needed (webhook may not have been processed yet)
-      if (yookassaPayment.status === 'succeeded' && payment.status === 'Pending') {
-        await prisma.payment.update({
-          where: { id: payment.id },
-          data: {
-            status: 'Success',
-            metadata: JSON.stringify({
-              ...JSON.parse(payment.metadata as string),
-              yookassaStatus: yookassaPayment.status,
-              updatedAt: new Date().toISOString()
-            })
-          }
-        })
+      // Emit socket event for real-time UI update
+      if (result.orders.length > 0) {
+        if (result.socketId) {
+          fastify.io.to(result.socketId).to(ManagerRoom).emit('payment', result.orders)
+        } else {
+          fastify.io.to(ManagerRoom).emit('payment', result.orders)
+        }
       }
 
       const clientUrl = envConfig.CLIENT_URL
-      const paymentSuccess = yookassaPayment.status === 'succeeded'
-
-      const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=${paymentSuccess}&amount=${payment.amount}&txnRef=${txnRef}&method=YooKassa`
+      const redirectUrl = `${clientUrl}/en/guest/orders/payment-result?success=${result.isSuccess}&amount=${result.payment.amount}&txnRef=${txnRef}&method=YooKassa`
 
       request.log.info({ redirectUrl }, 'YooKassa return: Redirecting to')
       reply.redirect(redirectUrl)

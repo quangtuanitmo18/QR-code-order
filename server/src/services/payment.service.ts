@@ -8,7 +8,7 @@ import { convertUSDtoRUB, convertUSDtoVND, getLiveExchangeRate } from '@/utils/c
 import { getContextLogger } from '@/utils/logger'
 import { createStripeCheckoutSession, getStripeSession, stripe } from '@/utils/stripe'
 import { buildVNPayPaymentUrl, verifyVNPayReturn } from '@/utils/vnpay'
-import { createYooKassaPayment, getYooKassaPaymentStatus } from '@/utils/yookassa'
+import { createYooKassaPayment, getYooKassaPayment, getYooKassaPaymentStatus } from '@/utils/yookassa'
 import Stripe from 'stripe'
 
 async function checkAndFreeTable(tx: any, tableNumber: number | null | undefined) {
@@ -1006,6 +1006,170 @@ export const paymentService = {
       payment: result.payment,
       orders: result.orders,
       socketId: socketRecord?.socketId
+    }
+  },
+
+  /**
+   * Verify Stripe payment from return URL (session_id-based).
+   * Unlike webhook-based verify, this uses the Stripe session directly.
+   * Updates both payment status AND order statuses to Paid.
+   */
+  async verifyStripePaymentBySession(sessionId: string) {
+    const log = getContextLogger()
+
+    // Fetch session from Stripe
+    const session = await getStripeSession(sessionId)
+    const transactionRef = session.metadata?.transactionRef
+
+    if (!transactionRef) {
+      throw new Error('Transaction reference not found')
+    }
+
+    // Find payment in database
+    const payment = await paymentRepository.findPaymentByTransactionRef(transactionRef)
+
+    if (!payment) {
+      throw new Error('Payment not found')
+    }
+
+    const isSuccess = session.payment_status === 'paid'
+
+    // If already processed, just return
+    if (payment.status === PaymentStatus.Success) {
+      const orders = await paymentRepository.findOrdersByPaymentId(payment.id)
+      return { payment, orders, socketId: null, isSuccess: true }
+    }
+
+    if (!isSuccess) {
+      return { payment, orders: [], socketId: null, isSuccess: false }
+    }
+
+    // Update payment + orders in transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const updatedPayment = await tx.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: PaymentStatus.Success,
+          paidAt: new Date(),
+          metadata: JSON.stringify({
+            ...JSON.parse(payment.metadata as string || '{}'),
+            stripeSessionId: sessionId,
+            verifiedViaReturn: true,
+            processedAt: new Date().toISOString()
+          })
+        }
+      })
+
+      // Update orders to Paid
+      const orders = await tx.order.findMany({
+        where: {
+          guestId: payment.guestId!,
+          status: { in: [OrderStatus.Pending, OrderStatus.Processing, OrderStatus.Delivered] }
+        }
+      })
+
+      await tx.order.updateMany({
+        where: { id: { in: orders.map((o) => o.id) } },
+        data: { status: OrderStatus.Paid, paymentId: payment.id }
+      })
+
+      await checkAndFreeTable(tx, payment.tableNumber)
+
+      const updatedOrders = await tx.order.findMany({
+        where: { id: { in: orders.map((o) => o.id) } },
+        include: { items: { include: { dishSnapshot: true } }, orderHandler: true, guest: true }
+      })
+
+      return { payment: updatedPayment, orders: updatedOrders }
+    })
+
+    const socketRecord = await paymentRepository.findSocketByGuestId(payment.guestId!)
+
+    log?.info({ transactionRef, ordersUpdated: result.orders.length }, 'Stripe return: verified and updated orders')
+
+    return {
+      payment: result.payment,
+      orders: result.orders,
+      socketId: socketRecord?.socketId,
+      isSuccess: true
+    }
+  },
+
+  /**
+   * Verify YooKassa payment from return URL.
+   * Fetches latest status from YooKassa API and updates both payment AND orders.
+   */
+  async verifyYooKassaPaymentByReturn(txnRef: string) {
+    const log = getContextLogger()
+
+    const payment = await paymentRepository.findPaymentByTransactionRef(txnRef)
+
+    if (!payment) {
+      throw new Error('Payment not found')
+    }
+
+    // Fetch latest status from YooKassa
+    const yookassaPayment = await getYooKassaPayment(payment.externalTransactionId!)
+    const isSuccess = yookassaPayment.status === 'succeeded'
+
+    // If already processed, just return
+    if (payment.status === PaymentStatus.Success) {
+      const orders = await paymentRepository.findOrdersByPaymentId(payment.id)
+      return { payment, orders, socketId: null, isSuccess: true }
+    }
+
+    if (!isSuccess) {
+      return { payment, orders: [], socketId: null, isSuccess: false }
+    }
+
+    // Update payment + orders in transaction
+    const result = await prisma.$transaction(async (tx) => {
+      const updatedPayment = await tx.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: PaymentStatus.Success,
+          paidAt: new Date(),
+          metadata: JSON.stringify({
+            ...JSON.parse(payment.metadata as string || '{}'),
+            yookassaStatus: yookassaPayment.status,
+            verifiedViaReturn: true,
+            updatedAt: new Date().toISOString()
+          })
+        }
+      })
+
+      // Update orders to Paid
+      const orders = await tx.order.findMany({
+        where: {
+          guestId: payment.guestId!,
+          status: { in: [OrderStatus.Pending, OrderStatus.Processing, OrderStatus.Delivered] }
+        }
+      })
+
+      await tx.order.updateMany({
+        where: { id: { in: orders.map((o) => o.id) } },
+        data: { status: OrderStatus.Paid, paymentId: payment.id }
+      })
+
+      await checkAndFreeTable(tx, payment.tableNumber)
+
+      const updatedOrders = await tx.order.findMany({
+        where: { id: { in: orders.map((o) => o.id) } },
+        include: { items: { include: { dishSnapshot: true } }, orderHandler: true, guest: true }
+      })
+
+      return { payment: updatedPayment, orders: updatedOrders }
+    })
+
+    const socketRecord = await paymentRepository.findSocketByGuestId(payment.guestId!)
+
+    log?.info({ txnRef, ordersUpdated: result.orders.length }, 'YooKassa return: verified and updated orders')
+
+    return {
+      payment: result.payment,
+      orders: result.orders,
+      socketId: socketRecord?.socketId,
+      isSuccess: true
     }
   },
 
