@@ -319,7 +319,7 @@ export const guestService = {
       // Fallback 2: name-based SQL lookup (works for exact English names)
       if (!dish) {
         const matches = await prisma.dish.findMany({
-          where: { name: { contains: item.dishName.toLowerCase() }, status: 'Available' },
+          where: { name: { contains: item.dishName, mode: 'insensitive' }, status: 'Available' },
           take: 10
         })
 
@@ -335,14 +335,21 @@ export const guestService = {
           const topMatch = semanticResults[0]
 
           if (topMatch && topMatch.id) {
-            dish = await prisma.dish.findFirst({
-              where: { id: topMatch.id, status: 'Available' }
-            })
+            // Validate semantic match: check the matched dish name shares at least one significant word
+            const requestedWords = new Set(item.dishName.toLowerCase().split(/\s+/).filter(w => w.length > 2))
+            const matchedWords = (topMatch.name || '').toLowerCase().split(/\s+/)
+            const hasOverlap = matchedWords.some(w => requestedWords.has(w))
+
+            if (hasOverlap) {
+              dish = await prisma.dish.findFirst({
+                where: { id: topMatch.id, status: 'Available' }
+              })
+            }
           }
 
           if (!dish) {
             throw new Error(
-              `Could not find dish "${item.dishName}". Please search the menu first and ensure the dish name is correct.`
+              `Could not find dish "${item.dishName}". Please search the menu first and use the exact dish name or ID.`
             )
           }
         }

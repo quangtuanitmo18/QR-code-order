@@ -477,7 +477,7 @@ export function createAiTools(context: { guestId?: number }) {
             if (!dish) {
               const matches = await prisma.dish.findMany({
                 where: {
-                  name: { contains: item.dishName.toLowerCase() },
+                  name: { contains: item.dishName, mode: 'insensitive' },
                   status: 'Available'
                 },
                 take: 10
