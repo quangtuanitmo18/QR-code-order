@@ -9,7 +9,7 @@ config({
 
 const checkEnv = async () => {
   const chalk = (await import('chalk')).default
-  if (!fs.existsSync(path.resolve('.env'))) {
+  if (process.env.NODE_ENV !== 'production' && !fs.existsSync(path.resolve('.env'))) {
     console.log(chalk.red(`don't have .env`))
     process.exit(1)
   }
