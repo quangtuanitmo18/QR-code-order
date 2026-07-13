@@ -79,10 +79,10 @@ function getToolExecutor(
     }
     case 'place_order': {
       return async (params) => {
-        const items = params.items as Array<{ dishName: string; quantity: number }> | undefined
+        const items = params.items as Array<{ dishId?: number; dishName: string; quantity: number }> | undefined
         if (!items || items.length === 0) return { message: 'No items specified for the order.' }
         if (!context.guestId) return { message: 'Unable to identify your session.' }
-        return guestService.placeOrderByName(context.guestId, items)
+        return guestService.placeOrderById(context.guestId, items)
       }
     }
     case 'cancel_order': {

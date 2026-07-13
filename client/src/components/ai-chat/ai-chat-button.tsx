@@ -74,6 +74,9 @@ export default function AiChatButton() {
 
   // Handle HITL action execution
   const handleAction = async (toolCallId: string, toolName: string, params: any) => {
+    // Prevent double-click: skip if already loading
+    if (hitlResults[toolCallId]?.status === 'loading') return
+
     setHitlResults((prev) => ({
       ...prev,
       [toolCallId]: { status: 'loading' },
@@ -85,7 +88,7 @@ export default function AiChatButton() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ action: toolName, params }),
+        body: JSON.stringify({ action: toolName, params, toolCallId }),
       })
 
       const data = await res.json()
@@ -420,6 +423,7 @@ export default function AiChatButton() {
                                           : ''
                                       }`}
                                       onClick={() => handleAction(toolCallId, toolName, input)}
+                                      disabled={hitlResults[toolCallId]?.status === 'loading'}
                                     >
                                       {t('confirmApprove')}
                                     </Button>
@@ -428,6 +432,7 @@ export default function AiChatButton() {
                                       variant="outline"
                                       className="w-full"
                                       onClick={() => handleDeny(toolCallId)}
+                                      disabled={hitlResults[toolCallId]?.status === 'loading'}
                                     >
                                       {t('confirmDeny')}
                                     </Button>

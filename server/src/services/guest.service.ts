@@ -140,6 +140,9 @@ export const guestService = {
       }[] = []
 
       for (const order of body) {
+        if (!order.quantity || order.quantity < 1 || order.quantity > 99) {
+          throw new Error(`Invalid quantity: ${order.quantity}. Must be between 1 and 99.`)
+        }
         const dish = await tx.dish.findUniqueOrThrow({
           where: {
             id: order.dishId
@@ -257,7 +260,7 @@ export const guestService = {
 
     for (const item of items) {
       const exactMatches = await prisma.dish.findMany({
-        where: { name: { contains: item.dishName.toLowerCase() }, status: 'Available' },
+        where: { name: { contains: item.dishName, mode: 'insensitive' }, status: 'Available' },
         take: 10
       })
 

@@ -25,7 +25,6 @@ export const chatRequestSchema = z.object({
 
 export type ChatRequestBody = z.infer<typeof chatRequestSchema>
 
-/** Schema for admin AI HITL execute-action request */
 export const executeActionSchema = z.object({
   action: z.enum(['admin_cancel_order', 'admin_update_dish']),
   params: z.object({
@@ -42,3 +41,27 @@ export const executeActionSchema = z.object({
 })
 
 export type ExecuteActionBody = z.infer<typeof executeActionSchema>
+
+/** Schema for guest AI HITL execute-action request */
+export const guestExecuteActionSchema = z.object({
+  action: z.enum(['placeOrder', 'cancelOrder', 'applyCoupon']),
+  toolCallId: z.string().max(200).optional(),
+  params: z.object({
+    items: z
+      .array(
+        z.object({
+          dishId: z.number().int().positive(),
+          dishName: z.string().max(200),
+          quantity: z.number().int().min(1).max(99)
+        })
+      )
+      .min(1)
+      .max(20)
+      .optional(),
+    orderId: z.number().int().positive().optional(),
+    couponCode: z.string().max(50).optional()
+  })
+})
+
+export type GuestExecuteActionBody = z.infer<typeof guestExecuteActionSchema>
+

@@ -8,13 +8,12 @@ import { z } from 'zod'
  * Shared SQL search logic — reusable by both searchMenu and searchMenuSemantic (fallback).
  */
 async function sqlSearchDishes(query: string, take = 5) {
-  const lowerQuery = query.toLowerCase()
   const dishes = await prisma.dish.findMany({
     where: {
       OR: [
-        { name: { contains: lowerQuery } },
-        { category: { contains: lowerQuery } },
-        { tags: { contains: lowerQuery } }
+        { name: { contains: query, mode: 'insensitive' } },
+        { category: { contains: query, mode: 'insensitive' } },
+        { tags: { contains: query, mode: 'insensitive' } }
       ],
       status: 'Available'
     },
@@ -115,15 +114,13 @@ export function createSearchAgentTools() {
       execute: async ({ dishName }: { dishName: string }) => {
         const log = getContextLogger()
         try {
-          const lowerName = dishName.toLowerCase()
-
           // Exact match first, then partial match
           const candidates = await prisma.dish.findMany({
-            where: { name: { contains: lowerName }, status: 'Available' },
+            where: { name: { contains: dishName, mode: 'insensitive' }, status: 'Available' },
             take: 5
           })
 
-          const dish = candidates.find((d) => d.name.toLowerCase() === lowerName) || candidates[0] || null
+          const dish = candidates.find((d) => d.name.toLowerCase() === dishName.toLowerCase()) || candidates[0] || null
 
           if (!dish) {
             return { message: `Dish "${dishName}" not found or not currently available.` }
@@ -242,7 +239,7 @@ export function createSearchAgentTools() {
                 totalOrdered: item._sum.quantity || 0
               }
             })
-            .filter(Boolean)
+            .filter((item): item is NonNullable<typeof item> => item !== null && item.id !== null)
         } catch (error) {
           log?.error({ err: error }, '[AI Tool: getPopularDishes] Database error')
           return { message: 'Failed to retrieve popular dishes. Please try again.' }

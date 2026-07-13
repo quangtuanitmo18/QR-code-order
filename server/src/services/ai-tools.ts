@@ -23,13 +23,12 @@ import { z } from 'zod'
  */
 
 async function sqlSearchDishes(query: string, take = 5) {
-  const lowerQuery = query.toLowerCase()
   const dishes = await prisma.dish.findMany({
     where: {
       OR: [
-        { name: { contains: lowerQuery } },
-        { category: { contains: lowerQuery } },
-        { tags: { contains: lowerQuery } }
+        { name: { contains: query, mode: 'insensitive' } },
+        { category: { contains: query, mode: 'insensitive' } },
+        { tags: { contains: query, mode: 'insensitive' } }
       ],
       status: 'Available'
     },
@@ -139,7 +138,7 @@ export function createAiTools(context: { guestId?: number }) {
         try {
           const dish = await prisma.dish.findFirst({
             where: {
-              name: { contains: dishName.toLowerCase() },
+              name: { contains: dishName, mode: 'insensitive' },
               status: 'Available'
             }
           })
@@ -381,7 +380,7 @@ export function createAiTools(context: { guestId?: number }) {
             // Fallback: try SQL search on FAQ table
             const faqs = await prisma.fAQ.findMany({
               where: {
-                OR: [{ question: { contains: query.toLowerCase() } }, { answer: { contains: query.toLowerCase() } }]
+                OR: [{ question: { contains: query, mode: 'insensitive' } }, { answer: { contains: query, mode: 'insensitive' } }]
               },
               take: 3
             })
