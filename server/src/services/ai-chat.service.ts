@@ -205,7 +205,11 @@ class AiChatService {
           if (intent === 'SEARCH') {
             agentTools = createSearchAgentTools()
           } else if (intent === 'ORDER') {
-            agentTools = createOrderAgentTools({ guestId })
+            // Order intent needs search tools too — AI must look up dish IDs before placing orders
+            agentTools = {
+              ...createSearchAgentTools(),
+              ...createOrderAgentTools({ guestId })
+            }
           } else if (intent === 'FAQ') {
             agentTools = createFaqAgentTools()
           } else {
